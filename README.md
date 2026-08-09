@@ -6,6 +6,8 @@ Shadow Grid is an original browser-based real-time stealth tactics vertical slic
 
 Babylon.js renders the 3D scene; strict TypeScript holds gameplay; Vite builds the static application; Vitest tests deterministic rules; HTML/CSS provides the HUD. Node 22 is recommended.
 
+The game runs entirely in the browser and does not require a backend service.
+
 ```sh
 npm ci
 npm run dev
