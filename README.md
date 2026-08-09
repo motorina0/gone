@@ -17,7 +17,7 @@ Commands: `npm run dev` starts Vite, `npm run build` creates `dist`, `npm test` 
 
 ## Controls and gameplay
 
-Left-click the cyan operative to select them, then left-click walkable ground to path around structures. Drag with middle/right mouse to pan/rotate and use the wheel to zoom. Press **Q** (or the HUD button) to emit a cooldown-limited distraction; guards within its radius investigate. Approach behind a non-alert guard and press **E** for a silent takedown. **P/Escape** pauses. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
+Tap or left-click the cyan operative to select them, then tap or left-click walkable ground to path around structures. On touchscreens, drag to orbit and pinch to zoom; with a mouse, middle/right drag pans or rotates and the wheel zooms. Use the labelled HUD buttons or press **Q** to distract, **E** for a rear silent takedown, and **P/Escape** to pause. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
 
 Settings for volume, camera rotation, and cone visibility are stored locally. Volume is reserved for later generated audio; this slice intentionally ships silently.
 
@@ -33,4 +33,4 @@ If Pages shows a blank page, inspect the browser console/network panel, confirm 
 
 ## Limitations and roadmap
 
-This focused desktop slice uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Mobile input, richer navmeshes, cover/crouch, accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
+This focused slice uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Richer navmeshes, cover/crouch, additional accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
