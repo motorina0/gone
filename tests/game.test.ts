@@ -39,3 +39,13 @@ describe('camera controls',()=>{
     expect(right.radius).toBe(28);
   });
 });
+
+describe('phase two movement and accessibility',()=>{
+  it('moves crouched players more slowly',async()=>{const {movePlayer}=await import('../src/movement/movement');const standing={position:{x:0,z:0},selected:true,path:[{x:4,z:0}],crouched:false};const crouched={...standing,position:{x:0,z:0},path:[{x:4,z:0}],crouched:true};movePlayer(standing,.25);movePlayer(crouched,.25);expect(standing.position.x).toBeGreaterThan(crouched.position.x)});
+  it('requires longer exposure while crouched',()=>{expect(updateExposure(0,true,1.5,2.1).detected).toBe(false);expect(updateExposure(0,true,1.5,1.4).detected).toBe(true)});
+  it('persists accessibility settings',()=>{expect(parseSettings('{"reducedMotion":true,"highContrast":true}')).toMatchObject({reducedMotion:true,highContrast:true})});
+});
+
+describe('crouch state',()=>{
+  it('toggles only while playing and resets on restart',async()=>{const {Game,LEVEL_OBSTACLES}=await import('../src/core/game');const game=new Game(LEVEL_OBSTACLES);game.toggleCrouch();expect(game.player.crouched).toBe(true);game.toggleCrouch();expect(game.player.crouched).toBe(false);game.toggleCrouch();game.phase='paused';game.toggleCrouch();expect(game.player.crouched).toBe(true);game.restart();expect(game.player.crouched).toBe(false)});
+});

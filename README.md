@@ -17,9 +17,9 @@ Commands: `npm run dev` starts Vite, `npm run build` creates `dist`, `npm test` 
 
 ## Controls and gameplay
 
-Tap or left-click the cyan operative to select them, then tap or left-click walkable ground to path around structures. On touchscreens, use the labelled zoom and rotation buttons, drag to orbit, or pinch to zoom; with a mouse, middle/right drag pans or rotates and the wheel zooms. Keyboard users can zoom with **+/-** and rotate with **[ / ]**. Use the labelled HUD buttons or press **Q** to distract, **E** for a rear silent takedown, and **P/Escape** to pause. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
+Tap or left-click the cyan operative to select them, then tap or left-click walkable ground to path around structures. On touchscreens, use the labelled zoom and rotation buttons, drag to orbit, or pinch to zoom; with a mouse, middle/right drag pans or rotates and the wheel zooms. Keyboard users can zoom with **+/-** and rotate with **[ / ]**. Use **C** or the HUD button to crouch, trading movement speed for slower detection exposure. Use the labelled HUD buttons or press **Q** to distract, **E** for a rear silent takedown, and **P/Escape** to pause. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
 
-Settings for volume, camera rotation, and the **Show guard vision fields** visual aid are stored locally. Hiding vision fields does not disable or alter guard detection. Volume is reserved for later generated audio; this slice intentionally ships silently.
+Settings for volume, camera rotation, reduced motion, high contrast, and the **Show guard vision fields** visual aid are stored locally. Hiding vision fields does not disable or alter guard detection. Volume is reserved for later generated audio; this slice intentionally ships silently.
 
 ## Architecture and tests
 
@@ -33,4 +33,4 @@ If Pages shows a blank page, inspect the browser console/network panel, confirm 
 
 ## Limitations and roadmap
 
-This focused slice uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Richer navmeshes, cover/crouch, additional accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
+Phase 2 adds crouching and accessibility preferences. This focused slice still uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Richer navmeshes, cover, additional accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
