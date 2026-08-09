@@ -1,4 +1,4 @@
-<!-- CURRENT STATE: The playable vertical slice is implemented and deployed. Desktop and mobile input, zoom/rotation controls, persistent guard vision-field visibility, and the GitHub Pages workflow are working. -->
+<!-- CURRENT STATE (PHASE 2B COMPLETE): The playable vertical slice is implemented and deployed. Desktop and mobile input, zoom/rotation controls, persistent guard vision-field visibility, and the GitHub Pages workflow are working. -->
 
 Create a browser-based real-time stealth tactics game inspired by the gameplay
 structure of classic Commandos.

@@ -33,4 +33,4 @@ If Pages shows a blank page, inspect the browser console/network panel, confirm 
 
 ## Limitations and roadmap
 
-Phase 2 adds crouching and accessibility preferences. This focused slice still uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Richer navmeshes, cover, additional accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
+Phase 2 adds crouching and accessibility preferences. This focused slice still uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and lightweight generated Web Audio cues rather than authored audio assets. Richer navmeshes, cover, additional accessibility options, generated audio, more objectives, save games, and additional original missions are future work.

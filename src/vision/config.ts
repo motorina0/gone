@@ -1,0 +1,4 @@
+export const VISION_RANGE=7;
+export const VISION_HALF_ANGLE=Math.PI/5;
+export const STANDING_EXPOSURE_SECONDS=1.4;
+export const CROUCHED_EXPOSURE_SECONDS=2.1;
