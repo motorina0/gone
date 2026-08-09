@@ -22,3 +22,20 @@ describe('camera framing',()=>{
     expect(cameraFraming(16/9)).toEqual({fov:0.8,horizontal:false});
   });
 });
+
+describe('camera controls',()=>{
+  it('zooms within camera limits',async()=>{
+    const {updateCamera}=await import('../src/camera/controls');
+    expect(updateCamera({alpha:0,radius:16},'zoom-in').radius).toBe(14);
+    expect(updateCamera({alpha:0,radius:37},'zoom-out').radius).toBe(38);
+  });
+  it('rotates in both directions without changing zoom',async()=>{
+    const {updateCamera}=await import('../src/camera/controls');
+    const left=updateCamera({alpha:0,radius:28},'rotate-left');
+    const right=updateCamera({alpha:0,radius:28},'rotate-right');
+    expect(left.alpha).toBeCloseTo(-Math.PI/8);
+    expect(right.alpha).toBeCloseTo(Math.PI/8);
+    expect(left.radius).toBe(28);
+    expect(right.radius).toBe(28);
+  });
+});

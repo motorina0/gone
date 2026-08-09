@@ -17,7 +17,7 @@ Commands: `npm run dev` starts Vite, `npm run build` creates `dist`, `npm test` 
 
 ## Controls and gameplay
 
-Tap or left-click the cyan operative to select them, then tap or left-click walkable ground to path around structures. On touchscreens, drag to orbit and pinch to zoom; with a mouse, middle/right drag pans or rotates and the wheel zooms. Use the labelled HUD buttons or press **Q** to distract, **E** for a rear silent takedown, and **P/Escape** to pause. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
+Tap or left-click the cyan operative to select them, then tap or left-click walkable ground to path around structures. On touchscreens, use the labelled zoom and rotation buttons, drag to orbit, or pinch to zoom; with a mouse, middle/right drag pans or rotates and the wheel zooms. Keyboard users can zoom with **+/-** and rotate with **[ / ]**. Use the labelled HUD buttons or press **Q** to distract, **E** for a rear silent takedown, and **P/Escape** to pause. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
 
 Settings for volume, camera rotation, and cone visibility are stored locally. Volume is reserved for later generated audio; this slice intentionally ships silently.
 
