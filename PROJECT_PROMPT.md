@@ -1,8 +1,4 @@
-# Project implementation prompt
-
-> **CURRENT STATE — 2026-08-09:** The playable vertical slice described below is implemented and deployed. Desktop and mobile input, explicit zoom/rotation controls, persistent guard-vision-field visibility, and the GitHub Pages workflow are working. Continue future work from this marker and verify the repository before changing status.
-
----
+<!-- CURRENT STATE: The playable vertical slice is implemented and deployed. Desktop and mobile input, zoom/rotation controls, persistent guard vision-field visibility, and the GitHub Pages workflow are working. -->
 
 Create a browser-based real-time stealth tactics game inspired by the gameplay
 structure of classic Commandos.
@@ -39,131 +35,1371 @@ Build a minimal but playable vertical slice using primitive meshes.
 
 Implement:
 
-1. A simple original 3D test level containing walls, buildings, obstacles,
-   walkable areas, an objective area, and an extraction area.
-2. An angled tactical Babylon.js ArcRotateCamera with a high perspective,
-   mouse-wheel zoom, mouse-drag panning, optional rotation, sensible limits,
-   and controls that do not interfere with selection.
-3. One controllable player character with click selection, a visible selection
-   indicator, click-to-move, obstacle avoidance, procedural movement, and
-   correct stopping at the destination.
-4. Navigation around static obstacles, separate from rendering, using a
-   maintainable pathfinding solution. Unreachable clicks must fail safely.
-5. Six guards with individual patrol routes, visible vision cones,
-   line-of-sight, distance/angle detection, and configurable exposure time.
-6. Guard states: idle, patrol, suspicious, investigate, alert, and return.
-7. A configurable-radius, cooldown-limited sound distraction ability.
-8. Silent takedowns only from sufficiently close behind a non-alert guard;
-   defeated guards stop detecting/moving, with clear availability feedback.
-9. Objective, extraction, win/loss, restart, pause, and resume mission flow.
-10. A tactical HUD showing selection, objective, cooldown, alert state,
-    pause/restart actions, end overlays, and control instructions.
-11. localStorage settings for sound volume, camera rotation preference, and
-    vision-cone visibility, without accounts or a backend.
+1. A simple original 3D test level containing:
 
-Use a clean, modular architecture. Keep application bootstrap, rendering,
-scene setup, camera, input, entities, movement, navigation, guard AI, vision,
-sound, interactions, mission objectives, game state, UI, and persistence
-separate. Do not place most logic in one file. Prefer small focused modules,
-clear TypeScript types, no unnecessary `any`, deterministic gameplay state,
-and separation between gameplay state and Babylon.js meshes. Avoid
-unnecessary dependencies.
+   - walls;
+   - buildings;
+   - obstacles;
+   - walkable areas;
+   - an objective area;
+   - an extraction area.
+
+2. An angled tactical camera similar to games such as Commandos:
+
+   - Babylon.js ArcRotateCamera;
+   - high angled perspective;
+   - mouse-wheel zoom;
+   - mouse-drag panning;
+   - optional camera rotation;
+   - sensible zoom and movement limits;
+   - camera controls must not interfere with unit selection.
+
+3. One controllable player character:
+
+   - click to select;
+   - visible selection indicator;
+   - click-to-move;
+   - obstacle avoidance;
+   - movement animation or a simple procedural movement effect;
+   - movement must stop correctly at the destination.
+
+4. Navigation:
+
+   - support movement around static obstacles;
+   - keep navigation logic separate from rendering;
+   - use a navigation mesh or another maintainable pathfinding solution;
+   - clicking an unreachable location must fail safely.
+
+5. Six enemy guards:
+
+   - individual patrol routes;
+   - visible vision cones;
+   - line-of-sight checks;
+   - distance and angle-based detection;
+   - detection must require a configurable exposure time rather than causing
+     an instant failure.
+
+6. Guard AI states:
+
+   - idle;
+   - patrol;
+   - suspicious;
+   - investigate;
+   - alert;
+   - return to patrol.
+
+7. Distraction ability:
+
+   - the player can create a sound event;
+   - nearby guards may investigate it;
+   - sound propagation must have a configurable radius;
+   - the ability must have a cooldown.
+
+8. Silent takedown:
+
+   - usable only from sufficiently close behind a guard;
+   - unavailable while the guard is fully alerted;
+   - defeated guards stop detecting and moving;
+   - show clear UI feedback when a takedown is available.
+
+9. Mission flow:
+
+   - one mission objective;
+   - one extraction zone;
+   - win condition;
+   - loss condition;
+   - restart;
+   - pause and resume.
+
+10. Minimal tactical HUD:
+
+- selected character;
+- current objective;
+- distraction cooldown;
+- alert state;
+- pause button;
+- restart button;
+- win and loss overlays;
+- control instructions.
+
+11. Persistence:
+
+- save settings in localStorage;
+- include at least sound volume, camera rotation preference, and vision-cone
+  visibility;
+- do not require accounts or a backend.
+
+Use a clean, modular architecture.
+
+Keep these areas separated:
+
+- application bootstrap;
+- rendering;
+- scene setup;
+- camera;
+- input;
+- entities;
+- movement;
+- navigation;
+- guard AI;
+- vision and detection;
+- sound events;
+- interactions;
+- mission objectives;
+- game state;
+- UI;
+- persistence.
+
+Do not place most of the project logic in one large file.
+
+Prefer small, focused modules with explicit responsibilities.
+
+Use clear TypeScript types and avoid unnecessary use of `any`.
+
+Keep game-state logic deterministic where practical.
+
+Separate gameplay state from Babylon.js meshes so gameplay systems can be
+tested without requiring a rendered browser scene.
+
+Avoid unnecessary dependencies.
 
 Add automated tests for at least:
 
-- vision angle and distance calculations;
-- line-of-sight decisions where practical;
+- angle and distance calculations for vision;
+- line-of-sight decision logic where practical;
 - exposure-time detection;
-- guard AI transitions;
+- guard AI state transitions;
 - sound-event radius checks;
 - silent-takedown eligibility;
-- mission completion and win/loss conditions;
+- mission objective completion;
+- win and loss conditions;
 - settings serialization.
 
-Add and keep working scripts for `npm run dev`, `npm run build`, `npm test`,
-`npm run typecheck`, and `npm run lint`.
+Add scripts for:
 
-The game must automatically deploy to GitHub Pages from
-`.github/workflows/deploy-pages.yml`. The workflow must trigger on every push
-to `main` and by manual dispatch, install with `npm ci`, run typecheck, lint,
-tests, and the production build, deploy `dist` with current official Pages
-actions and required permissions, prevent conflicting deployments, and stop
-on validation failure.
+- npm run dev
+- npm run build
+- npm test
+- npm run typecheck
+- npm run lint
 
-Configure Vite robustly for both project repositories at
-`https://username.github.io/repository-name/` and user-site repositories named
-`username.github.io`. Derive the repository name from the Actions environment
-rather than hard-coding an unknown name. Use `/` for user sites and
-`/repository-name/` for project sites.
+Configure the project so all scripts execute successfully.
 
-All assets must respect the Pages base path. Do not use unprefixed
-root-absolute asset paths. Use imports, `import.meta.env.BASE_URL`,
-`new URL(..., import.meta.url)`, or correctly handled public files. Bundles,
-CSS, GLB models, textures, audio, icons, and dynamic assets must load after
-deployment. Do not depend on localhost, local paths, secrets, server processes,
-or unavailable APIs. Avoid client routing initially; if added, use a
-Pages-safe approach. Include an unobtrusive visible build/version identifier.
+The game must be automatically deployed to GitHub Pages.
 
-Create README.md with the project description, stack, installation,
-development commands, controls, gameplay and architecture overviews, tests,
-Pages deployment and URL formats, blank-page/404 troubleshooting,
-limitations, and roadmap.
+Create a GitHub Actions workflow under:
 
-Create AGENTS.md with conventions, architecture rules, testing and Git
-requirements, deployment constraints, future Codex instructions, and required
-verification before every push.
+.github/workflows/deploy-pages.yml
 
-Create a reusable narrowly scoped read-only verifier in
-`.codex/agents/verifier.toml`, with any needed configuration in
-`.codex/config.toml`. It must focus on compliance, correctness, regressions,
-gameplay, console errors, missing tests, asset loading, Pages compatibility,
-basic-control accessibility, unnecessary dependencies, and maintainability.
-Document its invocation in AGENTS.md.
+Requirements:
 
-After implementation, a separate verifier that did not author the work must:
+- trigger deployment on every push to the main branch;
+- also support manual workflow dispatch;
+- install dependencies using npm ci;
+- run type checking;
+- run linting;
+- run tests;
+- run the production build;
+- deploy the generated dist directory using the current official GitHub Pages
+  Actions workflow;
+- use the required GitHub Pages permissions;
+- prevent concurrent deployments from conflicting;
+- fail deployment if tests or the build fail.
 
-1. Read the complete specification and inspect the entire diff.
-2. Check every requirement and acceptance criterion.
-3. Run `npm ci`, `npm run typecheck`, `npm run lint`, `npm test`, and
-   `npm run build`.
-4. Start the application and perform browser smoke testing.
-5. Inspect console output and verify load, selection, movement, obstacles,
-   patrols, cones, detection, distraction, takedown, pause/restart,
-   objectives, win/loss, persistence, assets, non-root production base paths,
-   and Pages paths.
-6. Inspect the Pages workflow and produce a concise report of checks,
-   problems, fixes, command results, and limitations.
+Configure Vite correctly for a GitHub Pages project URL:
 
-If verification finds a blocker, return to implementation, fix it, and repeat
-the complete verification. Do not declare completion with blockers. If new
-agent configuration cannot load in-session, independently verify directly and
-leave the configuration ready for future sessions.
+[https://](https://.github.io//)[.github.io/](https://.github.io//)[/](https://.github.io//)
 
-Work directly on `main`. Before changes, inspect the repository, preserve
-useful work, avoid unrelated deletion, check status, and synchronize with
-latest `main` when supported.
+Do not hard-code an unknown repository name.
+
+Determine the repository name from the GitHub Actions environment when
+building, or use another robust configuration that works locally and on
+GitHub Pages.
+
+Handle both cases:
+
+1. A normal project repository:
+   [https://username.github.io/repository-name/](https://username.github.io/repository-name/)
+
+2. A user-site repository named:
+   username.github.io
+
+Use `/` as the base for a user-site repository and
+`/repository-name/` for a normal project repository.
+
+All assets must load correctly from the GitHub Pages base path.
+
+Do not use root-absolute asset paths such as:
+
+/assets/model.glb
+
+unless they are explicitly prefixed with the correct Vite base URL.
+
+Use one of these safe approaches:
+
+- imported assets;
+- URLs generated with import.meta.env.BASE\_URL;
+- new URL(..., import.meta.url);
+- files handled correctly from the Vite public directory.
+
+The following must work after deployment:
+
+- JavaScript bundles;
+- CSS;
+- GLB models;
+- textures;
+- audio;
+- icons;
+- dynamically loaded assets.
+
+The application must not depend on localhost, local file paths, environment
+secrets, a server process, or APIs unavailable from GitHub Pages.
+
+Avoid client-side URL routing for this initial version. If routing is added,
+use a GitHub Pages-safe strategy such as hash routing.
+
+Add a visible build/version identifier somewhere unobtrusive in the UI so a
+deployment can be verified.
+
+Create README.md containing:
+
+- project description;
+- technology stack;
+- installation instructions;
+- development commands;
+- controls;
+- gameplay overview;
+- architecture overview;
+- testing instructions;
+- GitHub Pages deployment explanation;
+- expected public URL format;
+- troubleshooting for blank pages and asset 404 errors;
+- current limitations;
+- roadmap.
+
+Create AGENTS.md containing:
+
+- code conventions;
+- architecture rules;
+- testing requirements;
+- Git workflow requirements;
+- deployment constraints;
+- instructions for future Codex tasks;
+- instructions requiring verification before every push.
+
+Create a reusable, narrowly scoped read-only verification agent for future
+tasks.
+
+Add:
+
+- .codex/agents/verifier.toml
+- any necessary Codex multi-agent configuration under .codex/config.toml
+
+The verifier must focus on:
+
+- requirement compliance;
+- correctness;
+- regressions;
+- broken gameplay;
+- browser console errors;
+- missing tests;
+- asset loading;
+- GitHub Pages compatibility;
+- accessibility of basic controls;
+- unnecessary dependencies;
+- maintainability.
+
+Document in AGENTS.md how future tasks should invoke the verifier.
+
+After implementation, use a separate verifier agent that did not write the
+implementation.
+
+The verifier must independently:
+
+1. Read this complete task specification.
+2. Inspect the entire git diff.
+3. Check every requirement and acceptance criterion.
+4. Run:
+   - npm ci
+   - npm run typecheck
+   - npm run lint
+   - npm test
+   - npm run build
+5. Start the application locally.
+6. Perform browser-based smoke testing.
+7. Check the browser console for errors and important warnings.
+8. Verify:
+   - the game loads;
+   - the player can be selected;
+   - click-to-move works;
+   - obstacles affect movement;
+   - guard patrols work;
+   - vision cones display correctly;
+   - detection works;
+   - distraction works;
+   - silent takedown works;
+   - pause and restart work;
+   - the objective can be completed;
+   - win and loss states are reachable;
+   - settings persist;
+   - no required asset returns a 404;
+   - the production build works from a non-root base path;
+   - GitHub Pages paths are correct.
+9. Inspect the GitHub Actions workflow for correct Pages configuration.
+10. Produce a concise verification report containing:
+    - checks performed;
+    - problems found;
+    - fixes applied;
+    - final command results;
+    - any remaining limitations.
+
+If the verifier finds a blocking problem:
+
+- return the work to the implementation phase;
+- fix the problem;
+- run the entire verification process again.
+
+Do not declare the task complete while blocking verification failures remain.
+
+If newly created Codex agent configuration cannot be loaded during the current
+session, perform an independent fresh verification pass directly and leave the
+verifier configuration ready for future sessions.
+
+Work directly on the main branch.
+
+Before modifying files:
+
+- inspect the existing repository;
+- preserve useful existing work;
+- do not delete unrelated files;
+- check the current git status;
+- pull or synchronize with the latest main branch if supported.
 
 After implementation and independent verification:
 
-1. Confirm no unexpected generated files or secrets exist.
-2. Confirm `.gitignore` covers `node_modules`, `dist`, local environment
-   files, editor temporary files, and test artifacts.
-3. Review the complete diff.
-4. Run the full validation sequence one final time.
-5. Commit completed changes directly to `main` with a clear message.
-6. Push `main` without force-pushing or rewriting history.
-7. Never push if validation fails.
-8. Check the deployment status when possible; inspect, fix, commit, repush,
-   and recheck failures.
-9. If permissions prevent pushing, still commit locally and report the exact
-   reason without claiming a remote update.
-10. Never commit credentials, tokens, passwords, keys, or session cookies.
+1. Confirm there are no unexpected generated files or secrets.
 
-The task is complete only when the game is meaningfully playable; modular and
-documented; all five validation commands pass; independent verification has
-no blockers; the non-root production build and Pages workflow work; required
-assets load; and changes are committed and pushed when permissions allow.
+2. Confirm .gitignore includes:
+
+   - node\_modules;
+   - dist;
+   - local environment files;
+   - editor-specific temporary files;
+   - test artifacts that should not be committed.
+
+3. Review the complete diff.
+
+4. Run the full validation sequence one final time:
+
+   - npm ci
+   - npm run typecheck
+   - npm run lint
+   - npm test
+   - npm run build
+
+5. Commit all completed project changes directly to main.
+
+6. Use a clear commit message, for example:
+
+   feat: add playable stealth tactics vertical slice
+
+7. Push the main branch to the connected GitHub repository.
+
+8. Do not force-push.
+
+9. Do not rewrite existing history.
+
+10. Do not push if any required validation command fails.
+
+11. After pushing, check the GitHub Actions deployment status if the current
+    environment permits it.
+
+12. If deployment fails, inspect the logs, fix the problem, commit the fix,
+    push again, and recheck.
+
+If the environment cannot push because GitHub permissions are unavailable:
+
+- still create the local commit;
+- clearly report that the push could not be completed;
+- provide the exact reason;
+- do not claim that the repository was updated remotely.
+
+Never commit:
+
+- tokens;
+- passwords;
+- API keys;
+- private keys;
+- session cookies;
+- personal credentials.
+
+The task is complete only when:
+
+- the game is meaningfully playable;
+- the code is modular and documented;
+- npm ci succeeds;
+- npm run typecheck succeeds;
+- npm run lint succeeds;
+- npm test succeeds;
+- npm run build succeeds;
+- the verifier reports no blocking failures;
+- the production build works using a GitHub Pages-style subdirectory base;
+- the GitHub Pages workflow exists and is valid;
+- all required assets load correctly;
+- the changes are committed to main;
+- the main branch is pushed, provided repository permissions allow it.
 
 Do not spend time on polished art, advanced audio, multiplayer, a backend,
-accounts, monetization, or a large campaign. Prioritize reliable gameplay,
-clean architecture, tests, successful Pages deployment, and safe extensibility.
+accounts, monetization, or a large campaign.
+
+Prioritize:
+
+1. reliable gameplay;
+2. clean architecture;
+3. tests;
+4. successful GitHub Pages deployment;
+5. a repository that is safe to extend in later Codex tasks.
+
+Create a browser-based real-time stealth tactics game inspired by the gameplay
+
+structure of classic Commandos.
+
+
+
+Do not copy any copyrighted characters, names, missions, maps, dialogue,
+
+artwork, sounds, music, UI designs, or game assets. Create an original game
+
+with similar high-level stealth-tactics mechanics.
+
+
+
+The repository is public and the game must be deployed through GitHub Pages.
+
+
+
+\==================================================
+
+TECHNOLOGY
+
+\==================================================
+
+
+
+Use:
+
+
+
+\- Babylon.js
+
+\- TypeScript
+
+\- Vite
+
+\- HTML and CSS
+
+\- Vitest
+
+\- GitHub Actions
+
+\- GitHub Pages
+
+
+
+The application must:
+
+
+
+\- run entirely in the browser;
+
+\- require no backend;
+
+\- build as a static site;
+
+\- work on modern desktop browsers;
+
+\- be structured so mobile support can be added later.
+
+
+
+Do not introduce React, Vue, Angular, or another frontend framework unless
+
+there is a strong technical reason. Prefer Babylon.js with modular TypeScript
+
+and lightweight DOM-based UI.
+
+
+
+\==================================================
+
+INITIAL PLAYABLE VERTICAL SLICE
+
+\==================================================
+
+
+
+Build a minimal but playable vertical slice using primitive meshes.
+
+
+
+Implement:
+
+
+
+1\. A simple original 3D test level containing:
+
+   \- walls;
+
+   \- buildings;
+
+   \- obstacles;
+
+   \- walkable areas;
+
+   \- an objective area;
+
+   \- an extraction area.
+
+
+
+2\. An angled tactical camera similar to games such as Commandos:
+
+   \- Babylon.js ArcRotateCamera;
+
+   \- high angled perspective;
+
+   \- mouse-wheel zoom;
+
+   \- mouse-drag panning;
+
+   \- optional camera rotation;
+
+   \- sensible zoom and movement limits;
+
+   \- camera controls must not interfere with unit selection.
+
+
+
+3\. One controllable player character:
+
+   \- click to select;
+
+   \- visible selection indicator;
+
+   \- click-to-move;
+
+   \- obstacle avoidance;
+
+   \- movement animation or a simple procedural movement effect;
+
+   \- movement must stop correctly at the destination.
+
+
+
+4\. Navigation:
+
+   \- support movement around static obstacles;
+
+   \- keep navigation logic separate from rendering;
+
+   \- use a navigation mesh or another maintainable pathfinding solution;
+
+   \- clicking an unreachable location must fail safely.
+
+
+
+5\. Six enemy guards:
+
+   \- individual patrol routes;
+
+   \- visible vision cones;
+
+   \- line-of-sight checks;
+
+   \- distance and angle-based detection;
+
+   \- detection must require a configurable exposure time rather than causing
+
+     an instant failure.
+
+
+
+6\. Guard AI states:
+
+   \- idle;
+
+   \- patrol;
+
+   \- suspicious;
+
+   \- investigate;
+
+   \- alert;
+
+   \- return to patrol.
+
+
+
+7\. Distraction ability:
+
+   \- the player can create a sound event;
+
+   \- nearby guards may investigate it;
+
+   \- sound propagation must have a configurable radius;
+
+   \- the ability must have a cooldown.
+
+
+
+8\. Silent takedown:
+
+   \- usable only from sufficiently close behind a guard;
+
+   \- unavailable while the guard is fully alerted;
+
+   \- defeated guards stop detecting and moving;
+
+   \- show clear UI feedback when a takedown is available.
+
+
+
+9\. Mission flow:
+
+   \- one mission objective;
+
+   \- one extraction zone;
+
+   \- win condition;
+
+   \- loss condition;
+
+   \- restart;
+
+   \- pause and resume.
+
+
+
+10\. Minimal tactical HUD:
+
+   \- selected character;
+
+   \- current objective;
+
+   \- distraction cooldown;
+
+   \- alert state;
+
+   \- pause button;
+
+   \- restart button;
+
+   \- win and loss overlays;
+
+   \- control instructions.
+
+
+
+11\. Persistence:
+
+   \- save settings in localStorage;
+
+   \- include at least sound volume, camera rotation preference, and vision-cone
+
+     visibility;
+
+   \- do not require accounts or a backend.
+
+
+
+\==================================================
+
+ARCHITECTURE
+
+\==================================================
+
+
+
+Use a clean, modular architecture.
+
+
+
+Keep these areas separated:
+
+
+
+\- application bootstrap;
+
+\- rendering;
+
+\- scene setup;
+
+\- camera;
+
+\- input;
+
+\- entities;
+
+\- movement;
+
+\- navigation;
+
+\- guard AI;
+
+\- vision and detection;
+
+\- sound events;
+
+\- interactions;
+
+\- mission objectives;
+
+\- game state;
+
+\- UI;
+
+\- persistence.
+
+
+
+Do not place most of the project logic in one large file.
+
+
+
+Prefer small, focused modules with explicit responsibilities.
+
+
+
+Use clear TypeScript types and avoid unnecessary use of \`any\`.
+
+
+
+Keep game-state logic deterministic where practical.
+
+
+
+Separate gameplay state from Babylon.js meshes so gameplay systems can be
+
+tested without requiring a rendered browser scene.
+
+
+
+Avoid unnecessary dependencies.
+
+
+
+\==================================================
+
+TESTING
+
+\==================================================
+
+
+
+Add automated tests for at least:
+
+
+
+\- angle and distance calculations for vision;
+
+\- line-of-sight decision logic where practical;
+
+\- exposure-time detection;
+
+\- guard AI state transitions;
+
+\- sound-event radius checks;
+
+\- silent-takedown eligibility;
+
+\- mission objective completion;
+
+\- win and loss conditions;
+
+\- settings serialization.
+
+
+
+Add scripts for:
+
+
+
+\- npm run dev
+
+\- npm run build
+
+\- npm test
+
+\- npm run typecheck
+
+\- npm run lint
+
+
+
+Configure the project so all scripts execute successfully.
+
+
+
+\==================================================
+
+GITHUB PAGES DEPLOYMENT
+
+\==================================================
+
+
+
+The game must be automatically deployed to GitHub Pages.
+
+
+
+Create a GitHub Actions workflow under:
+
+
+
+.github/workflows/deploy-pages.yml
+
+
+
+Requirements:
+
+
+
+\- trigger deployment on every push to the main branch;
+
+\- also support manual workflow dispatch;
+
+\- install dependencies using npm ci;
+
+\- run type checking;
+
+\- run linting;
+
+\- run tests;
+
+\- run the production build;
+
+\- deploy the generated dist directory using the current official GitHub Pages
+
+  Actions workflow;
+
+\- use the required GitHub Pages permissions;
+
+\- prevent concurrent deployments from conflicting;
+
+\- fail deployment if tests or the build fail.
+
+
+
+Configure Vite correctly for a GitHub Pages project URL:
+
+
+
+https\://\<github-username>.github.io/\<repository-name>/
+
+
+
+Do not hard-code an unknown repository name.
+
+
+
+Determine the repository name from the GitHub Actions environment when
+
+building, or use another robust configuration that works locally and on
+
+GitHub Pages.
+
+
+
+Handle both cases:
+
+
+
+1\. A normal project repository:
+
+   [https://username.github.io/repository-name/](https://username.github.io/repository-name/)
+
+
+
+2\. A user-site repository named:
+
+   username.github.io
+
+
+
+Use \`/\` as the base for a user-site repository and
+
+\`/repository-name/\` for a normal project repository.
+
+
+
+All assets must load correctly from the GitHub Pages base path.
+
+
+
+Do not use root-absolute asset paths such as:
+
+
+
+/assets/model.glb
+
+
+
+unless they are explicitly prefixed with the correct Vite base URL.
+
+
+
+Use one of these safe approaches:
+
+
+
+\- imported assets;
+
+\- URLs generated with import.meta.env.BASE\_URL;
+
+\- new URL(..., import.meta.url);
+
+\- files handled correctly from the Vite public directory.
+
+
+
+The following must work after deployment:
+
+
+
+\- JavaScript bundles;
+
+\- CSS;
+
+\- GLB models;
+
+\- textures;
+
+\- audio;
+
+\- icons;
+
+\- dynamically loaded assets.
+
+
+
+The application must not depend on localhost, local file paths, environment
+
+secrets, a server process, or APIs unavailable from GitHub Pages.
+
+
+
+Avoid client-side URL routing for this initial version. If routing is added,
+
+use a GitHub Pages-safe strategy such as hash routing.
+
+
+
+Add a visible build/version identifier somewhere unobtrusive in the UI so a
+
+deployment can be verified.
+
+
+
+\==================================================
+
+README AND PROJECT DOCUMENTATION
+
+\==================================================
+
+
+
+Create README.md containing:
+
+
+
+\- project description;
+
+\- technology stack;
+
+\- installation instructions;
+
+\- development commands;
+
+\- controls;
+
+\- gameplay overview;
+
+\- architecture overview;
+
+\- testing instructions;
+
+\- GitHub Pages deployment explanation;
+
+\- expected public URL format;
+
+\- troubleshooting for blank pages and asset 404 errors;
+
+\- current limitations;
+
+\- roadmap.
+
+
+
+Create AGENTS.md containing:
+
+
+
+\- code conventions;
+
+\- architecture rules;
+
+\- testing requirements;
+
+\- Git workflow requirements;
+
+\- deployment constraints;
+
+\- instructions for future Codex tasks;
+
+\- instructions requiring verification before every push.
+
+
+
+\==================================================
+
+INDEPENDENT VERIFICATION AGENT
+
+\==================================================
+
+
+
+Create a reusable, narrowly scoped read-only verification agent for future
+
+tasks.
+
+
+
+Add:
+
+
+
+\- .codex/agents/verifier.toml
+
+\- any necessary Codex multi-agent configuration under .codex/config.toml
+
+
+
+The verifier must focus on:
+
+
+
+\- requirement compliance;
+
+\- correctness;
+
+\- regressions;
+
+\- broken gameplay;
+
+\- browser console errors;
+
+\- missing tests;
+
+\- asset loading;
+
+\- GitHub Pages compatibility;
+
+\- accessibility of basic controls;
+
+\- unnecessary dependencies;
+
+\- maintainability.
+
+
+
+Document in AGENTS.md how future tasks should invoke the verifier.
+
+
+
+After implementation, use a separate verifier agent that did not write the
+
+implementation.
+
+
+
+The verifier must independently:
+
+
+
+1\. Read this complete task specification.
+
+2\. Inspect the entire git diff.
+
+3\. Check every requirement and acceptance criterion.
+
+4\. Run:
+
+   \- npm ci
+
+   \- npm run typecheck
+
+   \- npm run lint
+
+   \- npm test
+
+   \- npm run build
+
+5\. Start the application locally.
+
+6\. Perform browser-based smoke testing.
+
+7\. Check the browser console for errors and important warnings.
+
+8\. Verify:
+
+   \- the game loads;
+
+   \- the player can be selected;
+
+   \- click-to-move works;
+
+   \- obstacles affect movement;
+
+   \- guard patrols work;
+
+   \- vision cones display correctly;
+
+   \- detection works;
+
+   \- distraction works;
+
+   \- silent takedown works;
+
+   \- pause and restart work;
+
+   \- the objective can be completed;
+
+   \- win and loss states are reachable;
+
+   \- settings persist;
+
+   \- no required asset returns a 404;
+
+   \- the production build works from a non-root base path;
+
+   \- GitHub Pages paths are correct.
+
+9\. Inspect the GitHub Actions workflow for correct Pages configuration.
+
+10\. Produce a concise verification report containing:
+
+    \- checks performed;
+
+    \- problems found;
+
+    \- fixes applied;
+
+    \- final command results;
+
+    \- any remaining limitations.
+
+
+
+If the verifier finds a blocking problem:
+
+
+
+\- return the work to the implementation phase;
+
+\- fix the problem;
+
+\- run the entire verification process again.
+
+
+
+Do not declare the task complete while blocking verification failures remain.
+
+
+
+If newly created Codex agent configuration cannot be loaded during the current
+
+session, perform an independent fresh verification pass directly and leave the
+
+verifier configuration ready for future sessions.
+
+
+
+\==================================================
+
+GIT WORKFLOW
+
+\==================================================
+
+
+
+Work directly on the main branch.
+
+
+
+Before modifying files:
+
+
+
+\- inspect the existing repository;
+
+\- preserve useful existing work;
+
+\- do not delete unrelated files;
+
+\- check the current git status;
+
+\- pull or synchronize with the latest main branch if supported.
+
+
+
+After implementation and independent verification:
+
+
+
+1\. Confirm there are no unexpected generated files or secrets.
+
+2\. Confirm .gitignore includes:
+
+   \- node\_modules;
+
+   \- dist;
+
+   \- local environment files;
+
+   \- editor-specific temporary files;
+
+   \- test artifacts that should not be committed.
+
+3\. Review the complete diff.
+
+4\. Run the full validation sequence one final time:
+
+   \- npm ci
+
+   \- npm run typecheck
+
+   \- npm run lint
+
+   \- npm test
+
+   \- npm run build
+
+5\. Commit all completed project changes directly to main.
+
+6\. Use a clear commit message, for example:
+
+
+
+   feat: add playable stealth tactics vertical slice
+
+
+
+7\. Push the main branch to the connected GitHub repository.
+
+8\. Do not force-push.
+
+9\. Do not rewrite existing history.
+
+10\. Do not push if any required validation command fails.
+
+11\. After pushing, check the GitHub Actions deployment status if the current
+
+    environment permits it.
+
+12\. If deployment fails, inspect the logs, fix the problem, commit the fix,
+
+    push again, and recheck.
+
+
+
+If the environment cannot push because GitHub permissions are unavailable:
+
+
+
+\- still create the local commit;
+
+\- clearly report that the push could not be completed;
+
+\- provide the exact reason;
+
+\- do not claim that the repository was updated remotely.
+
+
+
+Never commit:
+
+
+
+\- tokens;
+
+\- passwords;
+
+\- API keys;
+
+\- private keys;
+
+\- session cookies;
+
+\- personal credentials.
+
+
+
+\==================================================
+
+ACCEPTANCE CRITERIA
+
+\==================================================
+
+
+
+The task is complete only when:
+
+
+
+\- the game is meaningfully playable;
+
+\- the code is modular and documented;
+
+\- npm ci succeeds;
+
+\- npm run typecheck succeeds;
+
+\- npm run lint succeeds;
+
+\- npm test succeeds;
+
+\- npm run build succeeds;
+
+\- the verifier reports no blocking failures;
+
+\- the production build works using a GitHub Pages-style subdirectory base;
+
+\- the GitHub Pages workflow exists and is valid;
+
+\- all required assets load correctly;
+
+\- the changes are committed to main;
+
+\- the main branch is pushed, provided repository permissions allow it.
+
+
+
+Do not spend time on polished art, advanced audio, multiplayer, a backend,
+
+accounts, monetization, or a large campaign.
+
+
+
+Prioritize:
+
+
+
+1\. reliable gameplay;
+
+2\. clean architecture;
+
+3\. tests;
+
+4\. successful GitHub Pages deployment;
+
+5\. a repository that is safe to extend in later Codex tasks.
