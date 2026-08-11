@@ -2,13 +2,4 @@ node_modules/
 dist/
 .env
 .env.*
-!.env.example
-.vscode/
-.idea/
-*.swp
-coverage/
-test-results/
-playwright-report/
 .DS_Store
-
-*.tsbuildinfo

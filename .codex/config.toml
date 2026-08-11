@@ -1,6 +1,0 @@
-[features]
-multi_agent = true
-
-[agents.verifier]
-description = "Read-only independent compliance and browser verification"
-config_file = "agents/verifier.toml"

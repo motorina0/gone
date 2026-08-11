@@ -1,3 +1,0 @@
-import {distance,moveToward,normalized} from '../core/math'; import type {GuardData,PlayerData} from '../core/types';
-export const movePlayer=(p:PlayerData,dt:number)=>{const target=p.path[0];if(!target)return;p.position=moveToward(p.position,target,(p.crouched?2.25:4)*dt);if(distance(p.position,target)<.03)p.path.shift()};
-export const moveGuard=(g:GuardData,dt:number)=>{if(g.defeated||!['patrol','return','investigate'].includes(g.state))return;const target=g.target??g.route[g.waypoint];g.facing=normalized({x:target.x-g.position.x,z:target.z-g.position.z});g.position=moveToward(g.position,target,1.7*dt);if(distance(g.position,target)<.08){if(g.target)delete g.target;else g.waypoint=(g.waypoint+1)%g.route.length}};

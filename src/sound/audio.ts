@@ -1,3 +1,0 @@
-export type Cue='distraction'|'alert'|'objective'|'success'|'failure'|'takedown';
-const frequencies:Record<Cue,number>={distraction:320,alert:680,objective:520,success:780,failure:140,takedown:220};
-export const playCue=(cue:Cue,volume:number):void=>{if(volume<=0)return;const AudioContextClass=window.AudioContext;const context=new AudioContextClass(),oscillator=context.createOscillator(),gain=context.createGain();oscillator.frequency.value=frequencies[cue];gain.gain.setValueAtTime(Math.min(1,Math.max(0,volume))*.08,context.currentTime);gain.gain.exponentialRampToValueAtTime(.0001,context.currentTime+.16);oscillator.connect(gain).connect(context.destination);oscillator.start();oscillator.stop(context.currentTime+.16);oscillator.onended=()=>void context.close()};
