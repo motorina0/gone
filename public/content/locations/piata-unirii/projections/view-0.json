@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "id": "view-0",
-  "name": "0\u00b0 isometric",
+  "name": "0° isometric",
   "kind": "isometric",
   "azimuth": 0,
   "elevation": 35.264,
@@ -12,8 +12,8 @@
     0.5
   ],
   "origin": {
-    "x": 428.03999999999996,
-    "y": 105.0
+    "x": 253.8461538461538,
+    "y": 77.50577367205543
   },
-  "scale": 4
+  "scale": 1.2435601350151004
 }

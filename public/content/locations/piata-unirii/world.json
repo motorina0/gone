@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0.0",
   "id": "piata-unirii-world",
-  "name": "Pia\u021ba Unirii schematic world",
+  "name": "Piața Unirii schematic world",
   "bounds": {
     "minX": 0,
     "minY": 0,
-    "maxX": 120,
-    "maxY": 90
+    "maxX": 600,
+    "maxY": 180
   },
   "spawns": {
     "player": {
