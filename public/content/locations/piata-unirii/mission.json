@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "the-courier",
+  "name": "The Courier",
+  "description": "Follow a courier through Piața Unirii, observe the exchange, collect the package, and escape.",
+  "objectives": [
+    {
+      "id": "locate",
+      "name": "Locate the courier"
+    },
+    {
+      "id": "observe",
+      "name": "Observe the exchange"
+    },
+    {
+      "id": "collect",
+      "name": "Collect the package"
+    },
+    {
+      "id": "extract",
+      "name": "Reach extraction before lockdown"
+    }
+  ],
+  "observationSeconds": 2,
+  "observationRadius": 28,
+  "interactionRadius": 8,
+  "lockdownSeconds": 60
+}

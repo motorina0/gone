@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "gone-content",
+  "name": "Gone content registry",
+  "locations": [
+    {
+      "id": "piata-unirii",
+      "manifest": "locations/piata-unirii/manifest.json"
+    }
+  ]
+}

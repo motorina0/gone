@@ -1,3 +1,0 @@
-import type {GuardData} from '../core/types';
-export type Signal='none'|'see'|'heard'|'lost';
-export const transitionGuard=(g:GuardData,signal:Signal,dt:number):GuardData=>{if(g.defeated)return g;let state=g.state,stateTime=g.stateTime+dt;if(signal==='see'){state='alert';stateTime=0}else if(signal==='heard'&&state!=='alert'){state='suspicious';stateTime=0}else if(state==='suspicious'&&stateTime>.6){state='investigate';stateTime=0}else if(state==='investigate'&&stateTime>4){state='return';stateTime=0}else if(state==='alert'&&signal==='lost'&&stateTime>3){state='return';stateTime=0}else if(state==='return'&&stateTime>3){state='patrol';stateTime=0}else if(state==='idle'&&stateTime>1){state='patrol';stateTime=0}return {...g,state,stateTime}};

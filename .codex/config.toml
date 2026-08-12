@@ -1,6 +1,6 @@
-[features]
-multi_agent = true
+[agents]
+max_threads = 4
 
 [agents.verifier]
-description = "Read-only independent compliance and browser verification"
+description = "Read-only independent verifier for Gone gameplay, content, mobile behavior, tests, and Pages compatibility."
 config_file = "agents/verifier.toml"

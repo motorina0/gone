@@ -1,34 +1,44 @@
-# Shadow Grid
+# Gone — The Courier
 
-Shadow Grid is an original browser-based real-time stealth tactics vertical slice. Guide a lone field operative through a compact industrial relay, avoid six patrol guards, secure an intelligence cache, and reach extraction. It uses only generated primitive geometry and does not reproduce any characters, locations, narrative, UI, or assets from another game.
+A production-oriented proof of concept for an original mobile 2.5D stealth-tactics game. The schematic setting is inspired by Piața Unirii in Cluj-Napoca but is intentionally neither geographically nor architecturally exact. All artwork is original placeholder SVG.
 
-## Stack and installation
+## Proof-of-concept scope
 
-Babylon.js renders the 3D scene; strict TypeScript holds gameplay; Vite builds the static application; Vitest tests deterministic rules; HTML/CSS provides the HUD. Node 22 is recommended.
+Select one field agent, follow a courier, hold **Observe** during the exchange, collect the package with **Interact**, then reach the green extraction marker before the 60-second lockdown. Three guards patrol with exposure-based detection, four civilians animate the square, and foreground overlays provide simple occlusion. No combat, accounts, backend, commercial artwork, or map-provider data is used.
 
-```sh
+## Stack and setup
+
+Phaser 4.2, strict TypeScript, Vite, Vitest, Playwright, ESLint, npm, and GitHub Pages. Node 24 is recorded in `.nvmrc` and `package.json`.
+
+```bash
+nvm use
 npm ci
 npm run dev
 ```
 
-Commands: `npm run dev` starts Vite, `npm run build` creates `dist`, `npm test` runs unit tests, `npm run typecheck` checks strict TypeScript, and `npm run lint` runs ESLint.
+Scripts: `dev`, `build`, `preview`, `validate:content`, `generate:views`, `typecheck`, `lint`, `test`, `test:e2e`, and `verify`. Run `npm run verify` before every push.
 
-## Controls and gameplay
+## Controls
 
-Left-click the cyan operative to select them, then left-click walkable ground to path around structures. Drag with middle/right mouse to pan/rotate and use the wheel to zoom. Press **Q** (or the HUD button) to emit a cooldown-limited distraction; guards within its radius investigate. Approach behind a non-alert guard and press **E** for a silent takedown. **P/Escape** pauses. First enter the violet intel area, then the green extraction. Sustained visible exposure causes loss; overlays and Restart allow another attempt.
+**Desktop:** click the agent to select; click ground to move; right/middle-drag to pan; wheel to zoom; 1–5 change view; Space pauses. **Mobile:** tap to select/move, drag empty ground to pan, use the large action/view buttons, and device browser gestures for zoom. Landscape is recommended, but portrait remains playable.
 
-Settings for volume, camera rotation, and cone visibility are stored locally. Volume is reserved for later generated audio; this slice intentionally ships silently.
+## Architecture
 
-## Architecture and tests
+Gameplay uses one canonical top-down world measured in approximate metres. Navigation, patrol, detection, mission state, and interactions operate only in `(x, y, elevation)`. Five JSON projection matrices provide invertible world/screen transforms. Switching an SVG background never resets canonical state. Phaser display objects are adapters over testable state and systems; data lives under `public/content`, not generic engine code.
 
-`src/core` owns orchestration/types/math; `navigation` is grid A* independent of rendering; `ai`, `vision`, `sound`, `interaction`, `mission`, and `movement` are deterministic systems; `entities` creates state; `rendering` and `input` adapt Babylon; `ui` is lightweight DOM; and `persistence` validates localStorage data. Tests cover vision geometry/occlusion/exposure, AI transitions, sound radius, takedowns, objectives/outcomes, and settings.
+The content registry loads a location manifest, which references separate world, mission, navigation, entity, patrol, interaction, projection, background, occlusion, and sprite resources. JSON Schemas are checked with `npm run validate:content`.
 
-## GitHub Pages deployment
+### Extend or replace content
 
-Every push to `main` (or manual dispatch) validates and deploys `dist` using GitHub's official Pages actions. `vite.config.ts` derives the repository and owner from Actions: a repository named `username.github.io` uses `/`; all others use `/repository-name/`. Expected URLs are `https://username.github.io/` or `https://username.github.io/repository-name/`. Locally, `VITE_BASE_PATH=/preview/ npm run build` tests a subdirectory build.
+- Add a location by copying the location directory, assigning stable IDs, and registering its manifest in `public/content/index.json`.
+- Add a mission as a separate mission resource and reference it from a location manifest.
+- Replace a background or occlusion SVG at the same manifest-relative path; no code change is needed.
+- Edit `environment.json`, then run `npm run generate:views` to regenerate the original schematic placeholders.
 
-If Pages shows a blank page, inspect the browser console/network panel, confirm Pages uses **GitHub Actions**, confirm the workflow succeeded, and verify bundle URLs begin with the repository base. Asset 404s usually mean a root-absolute URL was introduced; import assets or prefix public URLs with `import.meta.env.BASE_URL`. No external runtime assets are currently required.
+More detail: [architecture](docs/architecture.md), [content format](docs/content-format.md), [projection system](docs/projection-system.md), [mobile controls](docs/mobile-controls.md), and [roadmap](docs/roadmap.md).
 
-## Limitations and roadmap
+## Testing and deployment
 
-This focused desktop slice uses coarse grid navigation, simple geometric line-of-sight, one mission, procedural bobbing rather than authored animation, and no audio despite a persisted volume preference. Mobile input, richer navmeshes, cover/crouch, accessibility options, generated audio, more objectives, save games, and additional original missions are future work.
+`npm run verify` validates content, type-checks, lints, runs WebGL-free unit tests, builds at the `/gone/` base, then runs Chromium smoke tests at 1280×720, 390×844, and 844×390. The Pages workflow repeats those checks and deploys `dist` only after success. In **Settings → Pages**, set Source to **GitHub Actions** once. Expected URL: <https://motorina0.github.io/gone/>.
+
+For a blank page, inspect the browser console and confirm Pages deployed the workflow artifact rather than repository source. For asset 404s, verify the manifest-relative filename/case and that URLs retain the `/gone/` prefix. Current limitations include schematic art, grid navigation, overlay-based occlusion, no audio, and a single mission/location.

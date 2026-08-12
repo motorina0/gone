@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "civilians",
+  "name": "Ambient civilians",
+  "entities": [
+    {
+      "id": "civilian-1",
+      "name": "Civilian 1",
+      "kind": "civilian",
+      "spawn": {
+        "x": 18,
+        "y": 58,
+        "elevation": 0
+      },
+      "speed": 3
+    },
+    {
+      "id": "civilian-2",
+      "name": "Civilian 2",
+      "kind": "civilian",
+      "spawn": {
+        "x": 35,
+        "y": 72,
+        "elevation": 0
+      },
+      "speed": 3
+    },
+    {
+      "id": "civilian-3",
+      "name": "Civilian 3",
+      "kind": "civilian",
+      "spawn": {
+        "x": 75,
+        "y": 15,
+        "elevation": 0
+      },
+      "speed": 3
+    },
+    {
+      "id": "civilian-4",
+      "name": "Civilian 4",
+      "kind": "civilian",
+      "spawn": {
+        "x": 104,
+        "y": 58,
+        "elevation": 0
+      },
+      "speed": 3
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+export class GameClock{readonly step=1/30;private accumulator=0;advance(deltaSeconds:number,update:(step:number)=>void):void{this.accumulator+=Math.min(deltaSeconds,.25);while(this.accumulator>=this.step){update(this.step);this.accumulator-=this.step}}reset():void{this.accumulator=0}}

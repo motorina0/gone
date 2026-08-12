@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "movement-blockers",
+  "name": "Movement blockers",
+  "rectangles": [
+    {
+      "id": "church",
+      "x": 48,
+      "y": 24,
+      "width": 25,
+      "height": 38
+    },
+    {
+      "id": "monument",
+      "x": 62,
+      "y": 54,
+      "width": 16,
+      "height": 8
+    },
+    {
+      "id": "north-west",
+      "x": 0,
+      "y": 0,
+      "width": 120,
+      "height": 7
+    },
+    {
+      "id": "south-west",
+      "x": 0,
+      "y": 83,
+      "width": 40,
+      "height": 7
+    }
+  ]
+}

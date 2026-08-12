@@ -1,2 +1,2 @@
-import js from '@eslint/js'; import tseslint from 'typescript-eslint';
-export default tseslint.config({ignores:['dist','node_modules']},js.configs.recommended,...tseslint.configs.recommended);
+import js from '@eslint/js';import tseslint from 'typescript-eslint';
+export default tseslint.config({ignores:['dist','playwright-report','test-results','public/content/locations/piata-unirii/views','public/content/locations/piata-unirii/occlusion']},js.configs.recommended,...tseslint.configs.strict,{files:['**/*.ts'],languageOptions:{parserOptions:{project:'./tsconfig.json'}},rules:{'@typescript-eslint/explicit-function-return-type':'off','@typescript-eslint/no-non-null-assertion':'off','@typescript-eslint/no-unused-vars':['error',{'argsIgnorePattern':'^_'}]}});
