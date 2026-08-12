@@ -47,6 +47,14 @@
       "type": "array",
       "minItems": 5,
       "maxItems": 5
+    },
+    "detailOverlays": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 5,
+      "maxItems": 5
     }
   },
   "required": [
@@ -60,6 +68,7 @@
     "patrols",
     "projections",
     "views",
-    "occlusion"
+    "occlusion",
+    "detailOverlays"
   ]
 }

@@ -57,5 +57,12 @@
     "occlusion/view-180.svg",
     "occlusion/view-270.svg",
     "occlusion/view-top.svg"
+  ],
+  "detailOverlays": [
+    "textures/cathedral-0.png",
+    "textures/cathedral-90.png",
+    "textures/cathedral-180.png",
+    "textures/cathedral-270.png",
+    "textures/cathedral-top.png"
   ]
 }
