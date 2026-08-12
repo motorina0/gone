@@ -3,8 +3,8 @@
   "id": "exchange",
   "name": "Exchange",
   "position": {
-    "x": 62,
-    "y": 45,
+    "x": 80,
+    "y": 46,
     "elevation": 0
   },
   "radius": 8

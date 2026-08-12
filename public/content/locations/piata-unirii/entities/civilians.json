@@ -8,8 +8,8 @@
       "name": "Civilian 1",
       "kind": "civilian",
       "spawn": {
-        "x": 18,
-        "y": 58,
+        "x": 14,
+        "y": 72,
         "elevation": 0
       },
       "speed": 3

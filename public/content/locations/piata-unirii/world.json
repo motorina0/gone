@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "id": "piata-unirii-world",
-  "name": "Piața Unirii schematic world",
+  "name": "Pia\u021ba Unirii schematic world",
   "bounds": {
     "minX": 0,
     "minY": 0,
@@ -26,13 +26,13 @@
     }
   },
   "exchange": {
-    "x": 62,
-    "y": 45,
+    "x": 80,
+    "y": 46,
     "elevation": 0
   },
   "package": {
-    "x": 62,
-    "y": 45,
+    "x": 80,
+    "y": 46,
     "elevation": 0
   },
   "extraction": {
