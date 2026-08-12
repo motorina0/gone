@@ -55,6 +55,11 @@
       },
       "minItems": 5,
       "maxItems": 5
+    },
+    "entityScale": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
     }
   },
   "required": [
@@ -69,6 +74,7 @@
     "projections",
     "views",
     "occlusion",
-    "detailOverlays"
+    "detailOverlays",
+    "entityScale"
   ]
 }

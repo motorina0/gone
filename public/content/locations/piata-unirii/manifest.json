@@ -64,5 +64,6 @@
     "textures/cathedral-180.png",
     "textures/cathedral-270.png",
     "textures/cathedral-top.png"
-  ]
+  ],
+  "entityScale": 0.18
 }

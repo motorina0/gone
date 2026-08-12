@@ -4,8 +4,8 @@
   "name": "Guard One",
   "kind": "guard",
   "spawn": {
-    "x": 25,
-    "y": 25,
+    "x": 30,
+    "y": 75,
     "elevation": 0
   },
   "speed": 5

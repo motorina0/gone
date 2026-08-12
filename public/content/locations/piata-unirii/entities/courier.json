@@ -4,8 +4,8 @@
   "name": "Courier",
   "kind": "courier",
   "spawn": {
-    "x": 5,
-    "y": 45,
+    "x": 90,
+    "y": 90,
     "elevation": 0
   },
   "speed": 5

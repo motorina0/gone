@@ -4,8 +4,8 @@
   "name": "Guard Three",
   "kind": "guard",
   "spawn": {
-    "x": 88,
-    "y": 67,
+    "x": 460,
+    "y": 30,
     "elevation": 0
   },
   "speed": 5
