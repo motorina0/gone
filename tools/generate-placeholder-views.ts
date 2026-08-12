@@ -4,8 +4,11 @@ interface Point{x:number;y:number;elevation?:number}
 interface Projection{id:string;name:string;kind:'isometric'|'top';matrix:number[];origin:Point;scale:number}
 interface Landmark{id:string;name:string;type:string;x:number;y:number;width:number;height:number;color:string}
 interface Environment{landmarks:Landmark[];trees:Point[];streetFurniture:Array<Point&{type:string}>}
+interface World{bounds:{minX:number;minY:number;maxX:number;maxY:number}}
 const root=path.resolve('public/content/locations/piata-unirii');
 const environment=JSON.parse(await readFile(path.join(root,'environment.json'),'utf8')) as Environment;
+const world=JSON.parse(await readFile(path.join(root,'world.json'),'utf8')) as World;
+const {minX,minY,maxX,maxY}=world.bounds;
 const ids=['0','90','180','270','top'];
 const esc=(value:string)=>value.replaceAll('&','&amp;').replaceAll('’','&apos;');
 for(const id of ids){
@@ -14,11 +17,12 @@ for(const id of ids){
  const project=(p:Point):Point=>({x:projection.origin.x+(a*p.x+b*p.y)*projection.scale,y:projection.origin.y+(c*p.x+d*p.y-(p.elevation??0))*projection.scale});
  const points=(value:Point[])=>value.map(p=>{const q=project(p);return`${q.x.toFixed(1)},${q.y.toFixed(1)}`}).join(' ');
  const rectangle=(x:number,y:number,w:number,h:number,elevation=0)=>[{x,y,elevation},{x:x+w,y,elevation},{x:x+w,y:y+h,elevation},{x,y:y+h,elevation}];
- const floor=`<polygon points="${points(rectangle(0,0,120,90))}" fill="url(#ground)" stroke="#88928c" stroke-width="2"/>`;
+ const floor=`<polygon points="${points(rectangle(minX,minY,maxX-minX,maxY-minY))}" fill="url(#ground)" stroke="#88928c" stroke-width="2"/>`;
  const grid=[] as string[];
- for(let x=0;x<=120;x+=10)grid.push(`<path d="M${points([{x,y:0},{x,y:90}])}"/>`);
- for(let y=0;y<=90;y+=10)grid.push(`<path d="M${points([{x:0,y},{x:120,y}])}"/>`);
- const roads=[rectangle(0,0,120,7),rectangle(0,83,120,7),rectangle(0,0,7,90),rectangle(113,0,7,90)].map(shape=>`<polygon points="${points(shape)}"/>`).join('');const margins=[{id:'north',color:'#16191d',line:[{x:0,y:0},{x:120,y:0}]},{id:'east',color:'#3156c7',line:[{x:120,y:0},{x:120,y:90}]},{id:'south',color:'#31a34a',line:[{x:120,y:90},{x:0,y:90}]},{id:'west',color:'#cf3c3c',line:[{x:0,y:90},{x:0,y:0}]}];const marginLines=margins.map(margin=>`<polyline data-margin="${margin.id}" points="${points(margin.line)}" fill="none" stroke="${margin.color}" stroke-width="8" stroke-linecap="butt"/>`).join('');
+ for(let x=minX;x<=maxX;x+=10)grid.push(`<path d="M${points([{x,y:minY},{x,y:maxY}])}"/>`);
+ for(let y=minY;y<=maxY;y+=10)grid.push(`<path d="M${points([{x:minX,y},{x:maxX,y}])}"/>`);
+ const edge=7,worldWidth=maxX-minX,worldHeight=maxY-minY;
+ const roads=[rectangle(minX,minY,worldWidth,edge),rectangle(minX,maxY-edge,worldWidth,edge),rectangle(minX,minY,edge,worldHeight),rectangle(maxX-edge,minY,edge,worldHeight)].map(shape=>`<polygon points="${points(shape)}"/>`).join('');const margins=[{id:'north',color:'#16191d',line:[{x:minX,y:minY},{x:maxX,y:minY}]},{id:'east',color:'#3156c7',line:[{x:maxX,y:minY},{x:maxX,y:maxY}]},{id:'south',color:'#31a34a',line:[{x:maxX,y:maxY},{x:minX,y:maxY}]},{id:'west',color:'#cf3c3c',line:[{x:minX,y:maxY},{x:minX,y:minY}]}];const marginLines=margins.map(margin=>`<polyline data-margin="${margin.id}" points="${points(margin.line)}" fill="none" stroke="${margin.color}" stroke-width="8" stroke-linecap="butt"/>`).join('');
  const structures=environment.landmarks.filter(landmark=>!['church','tower'].includes(landmark.id)).map(landmark=>{
   const height=projection.kind==='top'?0:landmark.type==='tower'?14:landmark.type==='building'?8:3;
   const base=rectangle(landmark.x,landmark.y,landmark.width,landmark.height);
@@ -33,7 +37,7 @@ for(const id of ids){
  const furniture=environment.streetFurniture.map(item=>{const p=project(item);return item.type==='car'?`<rect x="${p.x-10}" y="${p.y-5}" width="20" height="10" rx="3" fill="#7b635d"/>`:`<rect x="${p.x-8}" y="${p.y-2}" width="16" height="4" fill="#9b8769"/>`}).join('');
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><defs><linearGradient id="ground" x2="0" y2="1"><stop stop-color="#263b3b"/><stop offset="1" stop-color="#162728"/></linearGradient><style>.label{fill:#e2d7bd;font:11px system-ui;text-anchor:middle;paint-order:stroke;stroke:#101a1b;stroke-width:3px}.grid path{fill:none;stroke:#738784;stroke-width:1;opacity:.25}.roads polygon{fill:#65706d;opacity:.6}</style></defs><rect width="960" height="640" fill="#0d171a"/>${floor}<g class="grid">${grid.join('')}</g><g class="roads">${roads}</g><g class="orientation-margins">${marginLines}</g>${structures}${trees}${furniture}<text x="24" y="618" fill="#9eaaa4" font-family="system-ui" font-size="13">Original schematic placeholder · ${projection.name}</text></svg>`;
  await mkdir(path.join(root,'views'),{recursive:true});await writeFile(path.join(root,'views',`view-${id}.svg`),svg);
- const occluders=environment.landmarks.filter(l=>['church','tower','monument'].includes(l.id)).map(l=>`<polygon points="${points(rectangle(l.x,l.y,l.width,l.height,projection.kind==='top'?0:l.type==='tower'?14:l.type==='building'?8:3))}" fill="#11191b" opacity=".55"/>`).join('');
+ const occluders=environment.landmarks.map(l=>`<polygon points="${points(rectangle(l.x,l.y,l.width,l.height,projection.kind==='top'?0:l.type==='tower'?14:l.type==='building'?8:3))}" fill="#11191b" opacity=".55"/>`).join('');
  await mkdir(path.join(root,'occlusion'),{recursive:true});await writeFile(path.join(root,'occlusion',`view-${id}.svg`),`<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${occluders}</svg>`);
 }
 console.log('Generated five projected grid backgrounds with elevated landmark geometry.');

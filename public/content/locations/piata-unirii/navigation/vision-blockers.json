@@ -16,6 +16,41 @@
       "y": 54,
       "width": 16,
       "height": 8
+    },
+    {
+      "id": "building-01",
+      "x": 148,
+      "y": 24,
+      "width": 34,
+      "height": 27
+    },
+    {
+      "id": "building-02",
+      "x": 224,
+      "y": 108,
+      "width": 29,
+      "height": 39
+    },
+    {
+      "id": "building-03",
+      "x": 316,
+      "y": 35,
+      "width": 46,
+      "height": 31
+    },
+    {
+      "id": "building-04",
+      "x": 413,
+      "y": 119,
+      "width": 37,
+      "height": 34
+    },
+    {
+      "id": "building-05",
+      "x": 528,
+      "y": 51,
+      "width": 33,
+      "height": 47
     }
   ]
 }

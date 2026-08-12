@@ -4,8 +4,8 @@
   "name": "Recipient",
   "kind": "recipient",
   "spawn": {
-    "x": 110,
-    "y": 42,
+    "x": 390,
+    "y": 90,
     "elevation": 0
   },
   "speed": 5
