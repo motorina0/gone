@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "courier-patrol",
+  "name": "courier route",
+  "loop": false,
+  "points": [
+    {
+      "x": 5,
+      "y": 45,
+      "elevation": 0
+    },
+    {
+      "x": 32,
+      "y": 45,
+      "elevation": 0
+    },
+    {
+      "x": 58,
+      "y": 45,
+      "elevation": 0
+    },
+    {
+      "x": 62,
+      "y": 45,
+      "elevation": 0
+    },
+    {
+      "x": 70,
+      "y": 42,
+      "elevation": 0
+    },
+    {
+      "x": 105,
+      "y": 20,
+      "elevation": 0
+    }
+  ]
+}

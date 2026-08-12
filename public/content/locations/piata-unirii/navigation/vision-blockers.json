@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "vision-blockers",
+  "name": "Vision blockers",
+  "rectangles": [
+    {
+      "id": "church",
+      "x": 48,
+      "y": 24,
+      "width": 25,
+      "height": 38
+    },
+    {
+      "id": "monument",
+      "x": 62,
+      "y": 54,
+      "width": 16,
+      "height": 8
+    }
+  ]
+}

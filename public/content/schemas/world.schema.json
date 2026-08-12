@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "bounds": {
+      "type": "object",
+      "required": [
+        "minX",
+        "minY",
+        "maxX",
+        "maxY"
+      ]
+    },
+    "spawns": {
+      "type": "object"
+    },
+    "exchange": {
+      "type": "object"
+    },
+    "package": {
+      "type": "object"
+    },
+    "extraction": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "schemaVersion",
+    "bounds",
+    "spawns",
+    "exchange",
+    "package",
+    "extraction"
+  ]
+}

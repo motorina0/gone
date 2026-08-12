@@ -1,0 +1,1 @@
+export const showError=(error:unknown):void=>{const root=document.querySelector<HTMLElement>('#app');if(root)root.innerHTML=`<main class="error" role="alert"><h1>Unable to load Gone</h1><p>${error instanceof Error?error.message:'Unknown content error'}</p><button onclick="location.reload()">Retry</button></main>`};

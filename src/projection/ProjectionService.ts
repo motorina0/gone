@@ -1,0 +1,2 @@
+import {createProjection} from './Projection';import type {Projection,ProjectionDefinition} from './ProjectionTypes';
+export class ProjectionService{readonly projections=new Map<string,Projection>();constructor(definitions:ProjectionDefinition[]){for(const definition of definitions)this.projections.set(definition.id,createProjection(definition))}get(id:string):Projection{const projection=this.projections.get(id);if(!projection)throw new Error(`Projection not found: ${id}`);return projection}}

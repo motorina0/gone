@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "piata-unirii-environment",
+  "name": "Original schematic approximation of Piața Unirii",
+  "disclaimer": "Stylized placeholder; not geographically or architecturally exact.",
+  "landmarks": [
+    {
+      "id": "church",
+      "name": "St. Michael’s Church approximation",
+      "type": "building",
+      "x": 48,
+      "y": 24,
+      "width": 25,
+      "height": 38,
+      "color": "#5a5b57"
+    },
+    {
+      "id": "tower",
+      "name": "Church tower",
+      "type": "tower",
+      "x": 54,
+      "y": 17,
+      "width": 9,
+      "height": 11,
+      "color": "#77756c"
+    },
+    {
+      "id": "monument",
+      "name": "Matthias Corvinus monument approximation",
+      "type": "monument",
+      "x": 62,
+      "y": 54,
+      "width": 16,
+      "height": 8,
+      "color": "#4b5550"
+    }
+  ],
+  "trees": [
+    {
+      "x": 20,
+      "y": 15
+    },
+    {
+      "x": 36,
+      "y": 75
+    },
+    {
+      "x": 52,
+      "y": 15
+    },
+    {
+      "x": 68,
+      "y": 75
+    },
+    {
+      "x": 84,
+      "y": 15
+    },
+    {
+      "x": 100,
+      "y": 75
+    }
+  ],
+  "streetFurniture": [
+    {
+      "type": "bench",
+      "x": 25,
+      "y": 48
+    },
+    {
+      "type": "bench",
+      "x": 92,
+      "y": 55
+    },
+    {
+      "type": "car",
+      "x": 15,
+      "y": 84
+    },
+    {
+      "type": "car",
+      "x": 100,
+      "y": 8
+    }
+  ]
+}

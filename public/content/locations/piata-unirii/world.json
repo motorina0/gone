@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "piata-unirii-world",
+  "name": "Piața Unirii schematic world",
+  "bounds": {
+    "minX": 0,
+    "minY": 0,
+    "maxX": 120,
+    "maxY": 90
+  },
+  "spawns": {
+    "player": {
+      "x": 10,
+      "y": 75,
+      "elevation": 0
+    },
+    "courier": {
+      "x": 5,
+      "y": 45,
+      "elevation": 0
+    },
+    "recipient": {
+      "x": 110,
+      "y": 42,
+      "elevation": 0
+    }
+  },
+  "exchange": {
+    "x": 62,
+    "y": 45,
+    "elevation": 0
+  },
+  "package": {
+    "x": 62,
+    "y": 45,
+    "elevation": 0
+  },
+  "extraction": {
+    "x": 112,
+    "y": 78,
+    "elevation": 0
+  }
+}

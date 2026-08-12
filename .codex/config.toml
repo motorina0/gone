@@ -1,0 +1,6 @@
+[agents]
+max_threads = 4
+
+[agents.verifier]
+description = "Read-only independent verifier for Gone gameplay, content, mobile behavior, tests, and Pages compatibility."
+config_file = "agents/verifier.toml"

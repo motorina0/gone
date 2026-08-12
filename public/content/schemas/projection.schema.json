@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "isometric",
+        "top"
+      ]
+    },
+    "matrix": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "origin": {
+      "type": "object",
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "scale": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "azimuth": {
+      "type": "number"
+    },
+    "elevation": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "schemaVersion",
+    "kind",
+    "matrix",
+    "origin",
+    "scale",
+    "azimuth",
+    "elevation"
+  ]
+}

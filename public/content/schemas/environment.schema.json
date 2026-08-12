@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "landmarks": {
+      "type": "array"
+    },
+    "trees": {
+      "type": "array"
+    },
+    "streetFurniture": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "schemaVersion",
+    "landmarks",
+    "trees",
+    "streetFurniture"
+  ]
+}

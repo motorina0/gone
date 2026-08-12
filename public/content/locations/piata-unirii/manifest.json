@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "piata-unirii",
+  "name": "Piața Unirii — schematic",
+  "world": "world.json",
+  "environment": "environment.json",
+  "mission": "mission.json",
+  "navigation": {
+    "walkable": "navigation/walkable.json",
+    "blockers": "navigation/blockers.json",
+    "visionBlockers": "navigation/vision-blockers.json"
+  },
+  "entities": [
+    "entities/player.json",
+    "entities/courier.json",
+    "entities/recipient.json",
+    "entities/guard-01.json",
+    "entities/guard-02.json",
+    "entities/guard-03.json",
+    "entities/civilians.json"
+  ],
+  "patrols": [
+    "patrols/courier.json",
+    "patrols/recipient.json",
+    "patrols/guard-01.json",
+    "patrols/guard-02.json",
+    "patrols/guard-03.json",
+    "patrols/civilians.json",
+    "patrols/civilian-1.json",
+    "patrols/civilian-2.json",
+    "patrols/civilian-3.json",
+    "patrols/civilian-4.json"
+  ],
+  "interactions": {
+    "exchange": "interactions/exchange.json",
+    "package": "interactions/package.json",
+    "extraction": "interactions/extraction.json",
+    "observationZones": "interactions/observation-zones.json"
+  },
+  "projections": [
+    "projections/view-0.json",
+    "projections/view-90.json",
+    "projections/view-180.json",
+    "projections/view-270.json",
+    "projections/view-top.json"
+  ],
+  "views": [
+    "views/view-0.svg",
+    "views/view-90.svg",
+    "views/view-180.svg",
+    "views/view-270.svg",
+    "views/view-top.svg"
+  ],
+  "occlusion": [
+    "occlusion/view-0.svg",
+    "occlusion/view-90.svg",
+    "occlusion/view-180.svg",
+    "occlusion/view-270.svg",
+    "occlusion/view-top.svg"
+  ]
+}

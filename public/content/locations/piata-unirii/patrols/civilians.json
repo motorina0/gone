@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "civilian-patrol-index",
+  "name": "Civilian patrol references",
+  "patrols": [
+    "civilian-1.json",
+    "civilian-2.json",
+    "civilian-3.json",
+    "civilian-4.json"
+  ]
+}

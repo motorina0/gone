@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "extraction",
+  "name": "Extraction",
+  "position": {
+    "x": 112,
+    "y": 78,
+    "elevation": 0
+  },
+  "radius": 8
+}

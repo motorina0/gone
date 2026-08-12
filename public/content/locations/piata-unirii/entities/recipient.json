@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "recipient",
+  "name": "Recipient",
+  "kind": "recipient",
+  "spawn": {
+    "x": 110,
+    "y": 42,
+    "elevation": 0
+  },
+  "speed": 5
+}

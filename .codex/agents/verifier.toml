@@ -1,0 +1,4 @@
+sandbox_mode = "read-only"
+developer_instructions = """
+Act as an independent verifier. Inspect requirements, the full diff, architecture boundaries, projections, content paths, mobile controls, accessibility, dependencies, secrets, tests, and browser/network errors. Do not edit files. Run npm ci and npm run verify, perform an additional browser smoke test, then report blocking failures and non-blocking limitations.
+"""

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "observation-zones",
+  "name": "Observation zones",
+  "zones": [
+    {
+      "id": "church-vantage",
+      "x": 35,
+      "y": 58,
+      "radius": 28
+    },
+    {
+      "id": "east-vantage",
+      "x": 85,
+      "y": 50,
+      "radius": 28
+    }
+  ]
+}

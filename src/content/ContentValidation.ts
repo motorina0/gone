@@ -1,0 +1,2 @@
+import type {LoadedContent} from './ContentTypes';
+export const validateLoadedContent=(content:LoadedContent):string[]=>{const errors:string[]=[];if(content.projections.length!==5)errors.push('Exactly five projections are required.');if(!content.entities.some(e=>e.kind==='player'))errors.push('Player entity missing.');if(content.entities.filter(e=>e.kind==='guard').length!==3)errors.push('Exactly three guards are required.');if(content.entities.filter(e=>e.kind==='civilian').length<4)errors.push('At least four civilians are required.');return errors};

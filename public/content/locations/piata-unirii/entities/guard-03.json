@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "guard-03",
+  "name": "Guard Three",
+  "kind": "guard",
+  "spawn": {
+    "x": 88,
+    "y": 67,
+    "elevation": 0
+  },
+  "speed": 5
+}

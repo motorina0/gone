@@ -1,0 +1,1 @@
+import {it,expect} from 'vitest';import {execFileSync} from 'node:child_process';it('validates every content resource against its schema',()=>{expect(()=>execFileSync('npm',['run','validate:content'],{stdio:'pipe'})).not.toThrow()});
