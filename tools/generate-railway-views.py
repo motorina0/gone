@@ -24,7 +24,7 @@ for vid in ids:
    walls=''.join(f'<polygon points="{pts([base[i],base[(i+1)%4],roof[(i+1)%4],roof[i]])}" fill="url(#wall)" stroke="#454b49" stroke-width="1"/>' for i in range(4))
   else: walls=''
   roof_fill='url(#glass)' if l['type']=='bridge' else ('url(#brick)' if l['type']=='warehouse' else l['color'])
-  
+
   architectural=''
   if l['type']=='station':
    windows=[]
