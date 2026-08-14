@@ -9,7 +9,7 @@
       "kind": "civilian",
       "spawn": {
         "x": 210,
-        "y": 75,
+        "y": 150,
         "elevation": 0
       },
       "speed": 3
@@ -20,7 +20,7 @@
       "kind": "civilian",
       "spawn": {
         "x": 340,
-        "y": 100,
+        "y": 200,
         "elevation": 0
       },
       "speed": 3
@@ -31,7 +31,7 @@
       "kind": "civilian",
       "spawn": {
         "x": 510,
-        "y": 135,
+        "y": 270,
         "elevation": 0
       },
       "speed": 3
@@ -42,7 +42,7 @@
       "kind": "civilian",
       "spawn": {
         "x": 575,
-        "y": 110,
+        "y": 220,
         "elevation": 0
       },
       "speed": 3

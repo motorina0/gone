@@ -6,13 +6,13 @@
     {
       "id": "central-vantage",
       "x": 275,
-      "y": 105,
+      "y": 210,
       "radius": 28
     },
     {
       "id": "east-vantage",
       "x": 325,
-      "y": 105,
+      "y": 210,
       "radius": 28
     }
   ]

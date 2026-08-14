@@ -8,9 +8,9 @@
       "name": "Vatra Central Terminal",
       "type": "station",
       "x": 28,
-      "y": 18,
+      "y": 36,
       "width": 92,
-      "height": 35,
+      "height": 70,
       "color": "#a7a094"
     },
     {
@@ -18,9 +18,9 @@
       "name": "Clock Tower",
       "type": "tower",
       "x": 66,
-      "y": 27,
+      "y": 54,
       "width": 16,
-      "height": 16,
+      "height": 32,
       "color": "#857f74"
     },
     {
@@ -28,9 +28,9 @@
       "name": "Platform 1",
       "type": "platform",
       "x": 135,
-      "y": 22,
+      "y": 44,
       "width": 285,
-      "height": 18,
+      "height": 36,
       "color": "#8d918d"
     },
     {
@@ -38,9 +38,9 @@
       "name": "Platform 2",
       "type": "platform",
       "x": 135,
-      "y": 73,
+      "y": 146,
       "width": 310,
-      "height": 18,
+      "height": 36,
       "color": "#7c817e"
     },
     {
@@ -48,9 +48,9 @@
       "name": "Glass Footbridge",
       "type": "bridge",
       "x": 235,
-      "y": 38,
+      "y": 76,
       "width": 22,
-      "height": 55,
+      "height": 110,
       "color": "#68808a"
     },
     {
@@ -58,9 +58,9 @@
       "name": "Freight Platform",
       "type": "platform",
       "x": 360,
-      "y": 115,
+      "y": 230,
       "width": 155,
-      "height": 18,
+      "height": 36,
       "color": "#747975"
     },
     {
@@ -68,9 +68,9 @@
       "name": "Red Cargo Warehouse",
       "type": "warehouse",
       "x": 420,
-      "y": 137,
+      "y": 274,
       "width": 105,
-      "height": 30,
+      "height": 60,
       "color": "#6d4039"
     },
     {
@@ -78,9 +78,9 @@
       "name": "Operations Office",
       "type": "office",
       "x": 104,
-      "y": 47,
+      "y": 94,
       "width": 32,
-      "height": 24,
+      "height": 48,
       "color": "#89908b"
     },
     {
@@ -88,9 +88,9 @@
       "name": "Signal Annex",
       "type": "utility",
       "x": 535,
-      "y": 105,
+      "y": 210,
       "width": 30,
-      "height": 24,
+      "height": 48,
       "color": "#515b59"
     },
     {
@@ -98,86 +98,387 @@
       "name": "Maintenance Yard",
       "type": "yard",
       "x": 535,
-      "y": 135,
+      "y": 270,
       "width": 55,
-      "height": 33,
+      "height": 66,
       "color": "#4c5553"
+    },
+    {
+      "id": "north-hotel",
+      "name": "Station Hotel",
+      "type": "building",
+      "x": 135,
+      "y": 5,
+      "width": 82,
+      "height": 28,
+      "color": "#75685d"
+    },
+    {
+      "id": "north-shops",
+      "name": "Arcade Shops",
+      "type": "building",
+      "x": 230,
+      "y": 8,
+      "width": 92,
+      "height": 25,
+      "color": "#887b6d"
+    },
+    {
+      "id": "north-offices",
+      "name": "Rail Offices",
+      "type": "building",
+      "x": 338,
+      "y": 5,
+      "width": 78,
+      "height": 30,
+      "color": "#687176"
+    },
+    {
+      "id": "north-apartments",
+      "name": "North Apartments",
+      "type": "building",
+      "x": 430,
+      "y": 7,
+      "width": 110,
+      "height": 27,
+      "color": "#746b63"
+    },
+    {
+      "id": "west-cafe",
+      "name": "Forecourt Cafe",
+      "type": "building",
+      "x": 5,
+      "y": 274,
+      "width": 48,
+      "height": 30,
+      "color": "#7b6552"
+    },
+    {
+      "id": "west-parking",
+      "name": "Taxi Parking",
+      "type": "yard",
+      "x": 8,
+      "y": 190,
+      "width": 92,
+      "height": 74,
+      "color": "#485051"
+    },
+    {
+      "id": "south-workshops",
+      "name": "Service Workshops",
+      "type": "warehouse",
+      "x": 30,
+      "y": 314,
+      "width": 92,
+      "height": 36,
+      "color": "#604943"
+    },
+    {
+      "id": "south-houses",
+      "name": "Railway Houses",
+      "type": "building",
+      "x": 140,
+      "y": 326,
+      "width": 86,
+      "height": 26,
+      "color": "#71655d"
+    },
+    {
+      "id": "south-depot",
+      "name": "Parcel Depot",
+      "type": "warehouse",
+      "x": 245,
+      "y": 326,
+      "width": 96,
+      "height": 26,
+      "color": "#594541"
+    },
+    {
+      "id": "south-garage",
+      "name": "Bus Garage",
+      "type": "warehouse",
+      "x": 355,
+      "y": 322,
+      "width": 82,
+      "height": 30,
+      "color": "#4f5655"
+    },
+    {
+      "id": "east-admin",
+      "name": "Station Administration",
+      "type": "building",
+      "x": 518,
+      "y": 48,
+      "width": 70,
+      "height": 54,
+      "color": "#69716f"
+    },
+    {
+      "id": "east-hostel",
+      "name": "Crew Hostel",
+      "type": "building",
+      "x": 475,
+      "y": 220,
+      "width": 37,
+      "height": 60,
+      "color": "#706860"
     }
   ],
   "trees": [
     {
       "x": 18,
-      "y": 66
+      "y": 132
     },
     {
       "x": 35,
-      "y": 72
+      "y": 144
     },
     {
       "x": 52,
-      "y": 67
+      "y": 134
     },
     {
       "x": 70,
-      "y": 75
+      "y": 150
     },
     {
       "x": 92,
-      "y": 69
+      "y": 138
     },
     {
       "x": 112,
-      "y": 78
+      "y": 156
     },
     {
       "x": 558,
-      "y": 43
+      "y": 86
     },
     {
       "x": 580,
-      "y": 55
+      "y": 110
+    },
+    {
+      "x": 18,
+      "y": 180
+    },
+    {
+      "x": 34,
+      "y": 180
+    },
+    {
+      "x": 50,
+      "y": 180
+    },
+    {
+      "x": 66,
+      "y": 180
+    },
+    {
+      "x": 82,
+      "y": 180
+    },
+    {
+      "x": 112,
+      "y": 30
+    },
+    {
+      "x": 125,
+      "y": 30
+    },
+    {
+      "x": 555,
+      "y": 120
+    },
+    {
+      "x": 570,
+      "y": 130
+    },
+    {
+      "x": 500,
+      "y": 300
+    },
+    {
+      "x": 515,
+      "y": 305
+    },
+    {
+      "x": 460,
+      "y": 338
+    },
+    {
+      "x": 475,
+      "y": 338
+    },
+    {
+      "x": 490,
+      "y": 338
     }
   ],
   "streetFurniture": [
     {
       "type": "car",
       "x": 25,
-      "y": 92
+      "y": 184
     },
     {
       "type": "car",
       "x": 49,
-      "y": 96
+      "y": 192
     },
     {
       "type": "car",
       "x": 74,
-      "y": 92
+      "y": 184
     },
     {
       "type": "bench",
       "x": 170,
-      "y": 31
+      "y": 62
     },
     {
       "type": "bench",
       "x": 290,
-      "y": 82
+      "y": 164
     },
     {
       "type": "maintenance-vehicle",
       "x": 560,
-      "y": 151
+      "y": 302
     },
     {
       "type": "freight-wagon",
       "x": 405,
-      "y": 108
+      "y": 216
     },
     {
       "type": "regional-train",
       "x": 280,
-      "y": 60
+      "y": 120
+    },
+    {
+      "type": "car",
+      "x": 16,
+      "y": 210
+    },
+    {
+      "type": "car",
+      "x": 34,
+      "y": 210
+    },
+    {
+      "type": "car",
+      "x": 52,
+      "y": 210
+    },
+    {
+      "type": "car",
+      "x": 70,
+      "y": 210
+    },
+    {
+      "type": "car",
+      "x": 18,
+      "y": 238
+    },
+    {
+      "type": "car",
+      "x": 38,
+      "y": 238
+    },
+    {
+      "type": "car",
+      "x": 58,
+      "y": 238
+    },
+    {
+      "type": "car",
+      "x": 78,
+      "y": 238
+    },
+    {
+      "type": "car",
+      "x": 150,
+      "y": 300
+    },
+    {
+      "type": "car",
+      "x": 170,
+      "y": 300
+    },
+    {
+      "type": "car",
+      "x": 190,
+      "y": 300
+    },
+    {
+      "type": "car",
+      "x": 390,
+      "y": 300
+    },
+    {
+      "type": "car",
+      "x": 410,
+      "y": 300
+    },
+    {
+      "type": "car",
+      "x": 450,
+      "y": 292
+    },
+    {
+      "type": "car",
+      "x": 480,
+      "y": 292
+    },
+    {
+      "type": "car",
+      "x": 550,
+      "y": 190
+    },
+    {
+      "type": "car",
+      "x": 570,
+      "y": 190
+    },
+    {
+      "type": "bench",
+      "x": 118,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 155,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 205,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 265,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 330,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 395,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 455,
+      "y": 118
+    },
+    {
+      "type": "bench",
+      "x": 510,
+      "y": 118
     }
   ]
 }

@@ -5,7 +5,7 @@
   "kind": "player",
   "spawn": {
     "x": 300,
-    "y": 120,
+    "y": 240,
     "elevation": 0
   },
   "speed": 8

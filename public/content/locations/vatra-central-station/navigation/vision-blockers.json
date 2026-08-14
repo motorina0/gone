@@ -6,23 +6,100 @@
     {
       "id": "station-terminal",
       "x": 28,
-      "y": 18,
+      "y": 36,
       "width": 92,
-      "height": 35
+      "height": 70
     },
     {
       "id": "cargo-warehouse",
       "x": 420,
-      "y": 137,
+      "y": 274,
       "width": 105,
-      "height": 30
+      "height": 60
     },
     {
       "id": "signal-annex",
       "x": 535,
-      "y": 105,
+      "y": 210,
       "width": 30,
-      "height": 24
+      "height": 48
+    },
+    {
+      "id": "north-hotel",
+      "x": 135,
+      "y": 5,
+      "width": 82,
+      "height": 28
+    },
+    {
+      "id": "north-shops",
+      "x": 230,
+      "y": 8,
+      "width": 92,
+      "height": 25
+    },
+    {
+      "id": "north-offices",
+      "x": 338,
+      "y": 5,
+      "width": 78,
+      "height": 30
+    },
+    {
+      "id": "north-apartments",
+      "x": 430,
+      "y": 7,
+      "width": 110,
+      "height": 27
+    },
+    {
+      "id": "west-cafe",
+      "x": 5,
+      "y": 274,
+      "width": 48,
+      "height": 30
+    },
+    {
+      "id": "south-workshops",
+      "x": 30,
+      "y": 314,
+      "width": 92,
+      "height": 36
+    },
+    {
+      "id": "south-houses",
+      "x": 140,
+      "y": 326,
+      "width": 86,
+      "height": 26
+    },
+    {
+      "id": "south-depot",
+      "x": 245,
+      "y": 326,
+      "width": 96,
+      "height": 26
+    },
+    {
+      "id": "south-garage",
+      "x": 355,
+      "y": 322,
+      "width": 82,
+      "height": 30
+    },
+    {
+      "id": "east-admin",
+      "x": 518,
+      "y": 48,
+      "width": 70,
+      "height": 54
+    },
+    {
+      "id": "east-hostel",
+      "x": 475,
+      "y": 220,
+      "width": 37,
+      "height": 60
     }
   ]
 }

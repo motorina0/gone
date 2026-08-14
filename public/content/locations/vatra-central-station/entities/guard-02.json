@@ -5,7 +5,7 @@
   "kind": "guard",
   "spawn": {
     "x": 260,
-    "y": 140,
+    "y": 280,
     "elevation": 0
   },
   "speed": 5
