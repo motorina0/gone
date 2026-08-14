@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "civilian-1-patrol",
+  "name": "Civilian 1 loop",
+  "loop": true,
+  "points": [
+    {
+      "x": 210,
+      "y": 75,
+      "elevation": 0
+    },
+    {
+      "x": 205,
+      "y": 95,
+      "elevation": 0
+    },
+    {
+      "x": 220,
+      "y": 100,
+      "elevation": 0
+    }
+  ]
+}

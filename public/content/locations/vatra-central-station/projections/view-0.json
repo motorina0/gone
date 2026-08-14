@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "view-0",
+  "name": "0° isometric",
+  "kind": "isometric",
+  "azimuth": 0,
+  "elevation": 35.264,
+  "matrix": [
+    0.866,
+    -0.866,
+    0.5,
+    0.5
+  ],
+  "origin": {
+    "x": 253.8461538461538,
+    "y": 77.50577367205543
+  },
+  "scale": 1.2435601350151004
+}

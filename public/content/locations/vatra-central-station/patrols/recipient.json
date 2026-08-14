@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "recipient-patrol",
+  "name": "recipient route",
+  "loop": false,
+  "points": [
+    {
+      "x": 390,
+      "y": 90,
+      "elevation": 0
+    },
+    {
+      "x": 360,
+      "y": 95,
+      "elevation": 0
+    },
+    {
+      "x": 330,
+      "y": 90,
+      "elevation": 0
+    },
+    {
+      "x": 303,
+      "y": 90,
+      "elevation": 0
+    },
+    {
+      "x": 380,
+      "y": 105,
+      "elevation": 0
+    },
+    {
+      "x": 470,
+      "y": 105,
+      "elevation": 0
+    }
+  ]
+}

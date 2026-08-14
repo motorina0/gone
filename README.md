@@ -4,7 +4,7 @@ A production-oriented proof of concept for an original mobile 2.5D stealth-tacti
 
 ## Proof-of-concept scope
 
-Select one field agent, follow a courier, hold **Observe** during the exchange, collect the package with **Interact**, then reach the green extraction marker before the 60-second lockdown. Three guards patrol with exposure-based detection, four civilians animate the square, and foreground overlays provide simple occlusion. No combat, accounts, backend, commercial artwork, or map-provider data is used.
+Choose Piața Unirii or Vatra Central Station, select one field agent, follow a courier, hold **Observe** during the exchange, collect the package with **Interact**, then reach the green extraction marker before the 60-second lockdown. Three guards patrol with exposure-based detection, four civilians animate the square, and foreground overlays provide simple occlusion. No combat, accounts, backend, commercial artwork, or map-provider data is used.
 
 ## Stack and setup
 
@@ -28,6 +28,8 @@ Gameplay uses one canonical top-down world measured in approximate metres. Navig
 
 The content registry loads a location manifest, which references separate world, mission, navigation, entity, patrol, interaction, projection, background, occlusion, and sprite resources. JSON Schemas are checked with `npm run validate:content`.
 
+The opening location picker loads its choices from `public/content/index.json`; `?location=<id>` links directly to a registered location.
+
 ### Extend or replace content
 
 - Add a location by copying the location directory, assigning stable IDs, and registering its manifest in `public/content/index.json`.
@@ -41,4 +43,4 @@ More detail: [architecture](docs/architecture.md), [content format](docs/content
 
 `npm run verify` validates content, type-checks, lints, runs WebGL-free unit tests, builds at the `/gone/` base, then runs Chromium smoke tests at 1280×720, 390×844, and 844×390. The Pages workflow repeats those checks and deploys `dist` only after success. In **Settings → Pages**, set Source to **GitHub Actions** once. Expected URL: <https://motorina0.github.io/gone/>.
 
-For a blank page, inspect the browser console and confirm Pages deployed the workflow artifact rather than repository source. For asset 404s, verify the manifest-relative filename/case and that URLs retain the `/gone/` prefix. Current limitations include schematic art, grid navigation, overlay-based occlusion, no audio, and a single mission/location.
+For a blank page, inspect the browser console and confirm Pages deployed the workflow artifact rather than repository source. For asset 404s, verify the manifest-relative filename/case and that URLs retain the `/gone/` prefix. Current limitations include grid navigation, overlay-based occlusion, no audio, procedural station artwork awaiting final AI-assisted paint-over, and one mission per location.

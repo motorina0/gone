@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "last-connection",
+  "name": "Last Connection",
+  "description": "Track a courier through Vatra Central Station, document a freight-platform exchange, secure the ledger, and leave before lockdown.",
+  "objectives": [
+    {
+      "id": "locate",
+      "name": "Locate the courier"
+    },
+    {
+      "id": "observe",
+      "name": "Observe the exchange"
+    },
+    {
+      "id": "collect",
+      "name": "Collect the package"
+    },
+    {
+      "id": "extract",
+      "name": "Reach extraction before lockdown"
+    }
+  ],
+  "observationSeconds": 2,
+  "observationRadius": 28,
+  "interactionRadius": 8,
+  "lockdownSeconds": 60
+}

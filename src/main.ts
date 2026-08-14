@@ -1,2 +1,2 @@
-import './styles/app.css';import './styles/hud.css';import './styles/mobile.css';import {GameApp} from './app/GameApp';import {BUILD_ID} from './app/AppConfig';
-document.querySelector('[data-build]')!.textContent=BUILD_ID;new GameApp();
+import './styles/app.css';import './styles/hud.css';import './styles/mobile.css';import {GameApp} from './app/GameApp';import {BUILD_ID} from './app/AppConfig';import {initializeLocationPicker} from './ui/LocationPicker';import {showError} from './ui/ErrorOverlay';
+document.querySelector('[data-build]')!.textContent=BUILD_ID;void initializeLocationPicker(locationId=>new GameApp(locationId)).catch(showError);

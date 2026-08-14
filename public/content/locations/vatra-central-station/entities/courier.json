@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "courier",
+  "name": "Courier",
+  "kind": "courier",
+  "spawn": {
+    "x": 90,
+    "y": 90,
+    "elevation": 0
+  },
+  "speed": 5
+}

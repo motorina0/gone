@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "vatra-vision-blockers",
+  "name": "Station vision blockers",
+  "rectangles": [
+    {
+      "id": "station-terminal",
+      "x": 28,
+      "y": 18,
+      "width": 92,
+      "height": 35
+    },
+    {
+      "id": "cargo-warehouse",
+      "x": 420,
+      "y": 137,
+      "width": 105,
+      "height": 30
+    },
+    {
+      "id": "signal-annex",
+      "x": 535,
+      "y": 105,
+      "width": 30,
+      "height": 24
+    }
+  ]
+}

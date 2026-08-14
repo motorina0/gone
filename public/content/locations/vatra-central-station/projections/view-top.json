@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "view-top",
+  "name": "Satellite",
+  "kind": "top",
+  "azimuth": 0,
+  "elevation": 90,
+  "matrix": [
+    1,
+    0,
+    0,
+    1
+  ],
+  "origin": {
+    "x": 60.0,
+    "y": 194.0
+  },
+  "scale": 1.4
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "observation-zones",
+  "name": "Observation zones",
+  "zones": [
+    {
+      "id": "central-vantage",
+      "x": 275,
+      "y": 105,
+      "radius": 28
+    },
+    {
+      "id": "east-vantage",
+      "x": 325,
+      "y": 105,
+      "radius": 28
+    }
+  ]
+}

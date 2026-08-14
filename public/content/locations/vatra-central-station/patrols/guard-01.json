@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "guard-01-patrol",
+  "name": "guard-01 route",
+  "loop": true,
+  "points": [
+    {
+      "x": 20,
+      "y": 65,
+      "elevation": 0
+    },
+    {
+      "x": 80,
+      "y": 65,
+      "elevation": 0
+    },
+    {
+      "x": 100,
+      "y": 100,
+      "elevation": 0
+    },
+    {
+      "x": 25,
+      "y": 110,
+      "elevation": 0
+    }
+  ]
+}

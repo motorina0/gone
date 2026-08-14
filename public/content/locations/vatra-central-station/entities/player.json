@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "player",
+  "name": "Agent",
+  "kind": "player",
+  "spawn": {
+    "x": 300,
+    "y": 120,
+    "elevation": 0
+  },
+  "speed": 8
+}

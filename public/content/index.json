@@ -5,7 +5,15 @@
   "locations": [
     {
       "id": "piata-unirii",
+      "name": "Piața Unirii",
+      "description": "Open-square surveillance mission",
       "manifest": "locations/piata-unirii/manifest.json"
+    },
+    {
+      "id": "vatra-central-station",
+      "name": "Vatra Central Station",
+      "description": "Contemporary railway infiltration after rain",
+      "manifest": "locations/vatra-central-station/manifest.json"
     }
   ]
 }
