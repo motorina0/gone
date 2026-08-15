@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "id": "piata-unirii",
-  "name": "Piața Unirii — schematic",
+  "name": "Pia\u021ba Unirii \u2014 schematic",
   "world": "world.json",
   "environment": "environment.json",
   "mission": "mission.json",
@@ -65,5 +65,5 @@
     "textures/cathedral-270.png",
     "textures/cathedral-top.png"
   ],
-  "entityScale": 0.18
+  "entityScale": 0.9
 }
