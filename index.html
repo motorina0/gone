@@ -1,1 +1,106 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101820"><title>Gone — The Courier</title></head><body><div id="app"><section class="location-picker" data-location-picker><div><small>CHOOSE OPERATION AREA</small><h1>Gone — The Courier</h1><label for="location-select">Location</label><select id="location-select" data-location></select><p data-location-description>Loading locations…</p><button data-load-location disabled>Enter location</button></div></section><div id="game" aria-label="Tactical game map"></div><aside id="hud"><section class="status"><strong>THE COURIER</strong><span data-objective>Locate the courier</span><span data-message>Loading location…</span><b data-countdown></b></section><nav class="views" aria-label="Views"><button data-view="view-0">0°</button><button data-view="view-90">90°</button><button data-view="view-180">180°</button><button data-view="view-270">270°</button><button data-view="view-top">SAT</button><button data-zoom-out aria-label="Zoom out">−</button><button data-zoom-in aria-label="Zoom in">+</button><button data-fullscreen aria-label="Enter full screen" aria-pressed="false">FULL</button></nav><div class="actions"><button data-observe aria-label="Hold to observe">Observe</button><button data-interact>Interact</button><button data-pause>Pause</button><button data-restart>Restart</button></div><label class="setting"><input type="checkbox" data-cones checked> Vision fields</label><small class="build">build <span data-build>dev</span></small><section class="overlay" data-overlay><h1>Gone — The Courier</h1><p>Loading…</p><button data-start disabled>Start Mission</button></section></aside></div><script type="module" src="/src/main.ts"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#111612" />
+    <title>Gone — Field Operations</title>
+  </head>
+  <body>
+    <div id="app">
+      <section class="location-picker" data-location-picker>
+        <div>
+          <small>FIELD OPERATIONS / AREA SELECT</small>
+          <h1>Gone</h1>
+          <p class="picker-kicker">Single operative reconnaissance</p>
+          <label for="location-select">Operation area</label>
+          <select id="location-select" data-location></select>
+          <p data-location-description>Loading locations…</p>
+          <button data-load-location disabled>Deploy operative</button>
+        </div>
+      </section>
+
+      <div id="game" aria-label="Tactical exploration map"></div>
+
+      <p class="orientation-hint" role="note">
+        <span aria-hidden="true">↻</span> Rotate for a wider tactical view
+      </p>
+
+      <aside id="hud" aria-label="Field command console">
+        <header class="intel-strip">
+          <span class="intel-label">AREA</span>
+          <strong data-location-name>Loading…</strong>
+          <span class="intel-separator" aria-hidden="true"></span>
+          <span class="intel-label">POSITION</span>
+          <output data-coordinates>000.0 : 000.0</output>
+        </header>
+
+        <section class="command-console">
+          <section class="operative-card" aria-label="Selected operative">
+            <div class="portrait-frame">
+              <img data-portrait alt="Portrait of the selected field agent" />
+              <span class="selection-light" aria-hidden="true"></span>
+            </div>
+            <div class="operative-copy">
+              <small>OPERATIVE 01</small>
+              <strong>Agent</strong>
+              <span data-movement-status>READY</span>
+            </div>
+          </section>
+
+          <section class="console-bank movement-bank" aria-label="Movement pace">
+            <span class="bank-label">MOVEMENT</span>
+            <div class="button-row">
+              <button data-pace="walk" aria-label="Walk" aria-pressed="true">
+                <img data-icon="walk" alt="" /><span>Walk</span>
+              </button>
+              <button data-pace="run" aria-label="Run" aria-pressed="false">
+                <img data-icon="run" alt="" /><span>Run</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="console-bank view-bank" aria-label="Camera views">
+            <span class="bank-label">VIEW</span>
+            <div class="button-row view-buttons">
+              <button data-view="view-0" aria-label="View zero degrees">0°</button>
+              <button data-view="view-90" aria-label="View ninety degrees">90°</button>
+              <button data-view="view-180" aria-label="View one hundred eighty degrees">180°</button>
+              <button data-view="view-270" aria-label="View two hundred seventy degrees">270°</button>
+              <button data-view="view-top" aria-label="Satellite view">SAT</button>
+            </div>
+          </section>
+
+          <section class="console-bank camera-bank" aria-label="Camera controls">
+            <span class="bank-label">CAMERA</span>
+            <div class="button-row">
+              <button data-zoom-out aria-label="Zoom out"><img data-icon="zoom-out" alt="" /></button>
+              <button data-zoom-in aria-label="Zoom in"><img data-icon="zoom-in" alt="" /></button>
+              <button data-fullscreen aria-label="Enter full screen" aria-pressed="false">
+                <img data-icon="fullscreen" alt="" />
+              </button>
+            </div>
+          </section>
+
+          <section class="console-bank session-bank" aria-label="Session controls">
+            <span class="bank-label">SESSION</span>
+            <div class="button-row">
+              <button data-pause aria-label="Pause exploration" aria-pressed="false">
+                <img data-icon="pause" alt="" /><span>Pause</span>
+              </button>
+              <button data-restart aria-label="Reset operative position">
+                <img data-icon="reset" alt="" /><span>Reset</span>
+              </button>
+            </div>
+          </section>
+
+          <p class="command-message" data-message aria-live="polite">
+            Agent ready. Select a destination.
+          </p>
+          <small class="build">GONE // build <span data-build>dev</span></small>
+        </section>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

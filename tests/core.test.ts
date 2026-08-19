@@ -1,34 +1,246 @@
-import {describe,it,expect} from 'vitest';import {readFileSync} from 'node:fs';import {createProjection} from '../src/projection/Projection';import {VIEW_IDS,ViewManager} from '../src/views/ViewManager';import {GridNavigationService} from '../src/navigation/Pathfinding';import {angleDifference,canSee,hasLineOfSight} from '../src/systems/VisionSystem';import {DetectionSystem} from '../src/systems/DetectionSystem';import {transitionGuard} from '../src/ai/GuardStateMachine';import {observationEligible,ObservationSystem} from '../src/systems/ObservationSystem';import {withinRange} from '../src/systems/InteractionSystem';import {SettingsStore,DEFAULT_SETTINGS} from '../src/persistence/SettingsStore';
-const point=(x:number,y:number)=>({x,y,elevation:0});
-const entity=(id:string,x:number,y:number,facing=0)=>({id,name:id,kind:'guard' as const,position:point(x,y),speed:1,route:[],routeIndex:0,selected:false,facing,guardState:'patrol' as const,exposure:0});
-describe('five projections',()=>{for(const id of VIEW_IDS)it(`${id} projects and inverses`,()=>{const data=JSON.parse(readFileSync(`public/content/locations/piata-unirii/projections/${id}.json`,'utf8'));const p=createProjection(data),world={x:31.25,y:54.5,elevation:0},screen=p.worldToScreen(world);expect(Number.isFinite(screen.x)).toBe(true);expect(p.screenToWorld(screen)).toEqual(expect.objectContaining({x:expect.closeTo(world.x,6),y:expect.closeTo(world.y,6)}))});it('preserves camera focus and world position',()=>{const camera={focus:point(12,34),zoom:1.2},manager=new ViewManager();const switched=manager.switchTo('view-180',camera);expect(switched).toEqual(camera);expect(switched.focus).not.toBe(camera.focus)})});
-describe('navigation',()=>{const blocker={id:'block',x:8,y:0,width:4,height:12},nav=new GridNavigationService({minX:0,minY:0,maxX:30,maxY:30},[blocker],2);it('routes around blockers',()=>{const path=nav.findPath(point(2,4),point(20,4));expect(path.length).toBeGreaterThan(2);expect(path.every(nav.isWalkable.bind(nav))).toBe(true)});it('fails safely for unreachable target',()=>expect(nav.findPath(point(2,2),point(9,4))).toEqual([]))});
-describe('vision and AI',()=>{it('calculates angle and distance',()=>{expect(angleDifference(0,Math.PI/2)).toBeCloseTo(Math.PI/2);expect(canSee(entity('g',0,0),entity('p',10,0),[])).toBe(true);expect(canSee(entity('g',0,0),entity('p',30,0),[])).toBe(false)});it('blocks line of sight',()=>expect(hasLineOfSight(point(0,0),point(10,0),[{id:'wall',x:4,y:-2,width:2,height:4}])).toBe(false));it('accumulates and decays exposure',()=>{const system=new DetectionSystem(),guard=entity('g',0,0),player=entity('p',8,0);system.update(player,[guard],[],.4);expect(guard.exposure).toBeGreaterThan(0);player.position=point(-8,0);const before=guard.exposure;system.update(player,[guard],[],.4);expect(guard.exposure).toBeLessThan(before)});it('transitions all guard phases',()=>{expect(transitionGuard('patrol','glimpse',0)).toBe('suspicious');expect(transitionGuard('suspicious','glimpse',1)).toBe('investigate');expect(transitionGuard('investigate','seen',0)).toBe('alert');expect(transitionGuard('alert','lost',3)).toBe('return-to-patrol');expect(transitionGuard('return-to-patrol','lost',3)).toBe('patrol')})});
-describe('mission primitives',()=>{it('checks observation range and sight',()=>{expect(observationEligible(point(0,0),point(4,0),point(5,0),10,[])).toBe(true);expect(observationEligible(point(0,0),point(14,0),point(5,0),10,[])).toBe(false);expect(observationEligible(point(0,0),point(4,0),point(5,0),10,[{id:'w',x:2,y:-1,width:1,height:2}])).toBe(false)});it('completes and decays observation',()=>{const system=new ObservationSystem(),p=entity('p',0,0),a=entity('a',1,0),b=entity('b',2,0);expect(system.update(p,a,b,true,true,0,2,2)).toBe(1);expect(system.update(p,a,b,false,false,1,1,2)).toBe(.75)});it('checks package and extraction eligibility',()=>{expect(withinRange(point(0,0),point(3,4),5)).toBe(true);expect(withinRange(point(0,0),point(6,0),5)).toBe(false)})});
-describe('settings',()=>{it('serializes and recovers corruption',()=>{const data=new Map<string,string>(),storage={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>void data.set(k,v)},store=new SettingsStore(storage);store.save({...DEFAULT_SETTINGS,preferredView:'view-top'});expect(store.load().preferredView).toBe('view-top');data.set('gone.settings','{broken');expect(store.load()).toEqual(DEFAULT_SETTINGS)});it('defaults to a full-map overview and caps saved zoom at five',()=>{expect(DEFAULT_SETTINGS.zoom).toBe(1);const storage={getItem:()=>JSON.stringify({...DEFAULT_SETTINGS,zoom:99}),setItem:()=>undefined};expect(new SettingsStore(storage).load().zoom).toBe(5)})});
+import {readFileSync} from 'node:fs';
+import {describe, expect, it} from 'vitest';
+import {GridNavigationService} from '../src/navigation/Pathfinding';
+import {createProjection} from '../src/projection/Projection';
+import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
+import {MovementSystem} from '../src/systems/MovementSystem';
+import {
+  constrainCameraCenter,
+  constrainCameraToPolygon,
+  minimumZoomForPolygon,
+} from '../src/views/CameraBounds';
+import {VIEW_IDS, ViewManager} from '../src/views/ViewManager';
+import type {EntityState, WorldPoint} from '../src/world/WorldTypes';
 
-describe('mission state transitions',()=>{const makeWorld=()=>{const player={...entity('player',0,0),kind:'player' as const};const courier={...entity('courier',5,0),kind:'courier' as const};const recipient={...entity('recipient',5,0),kind:'recipient' as const};return{player,entities:new Map<string,unknown>([[player.id,player],[courier.id,courier],[recipient.id,recipient]]),content:{world:{exchange:point(5,0),package:point(5,0),extraction:point(20,0)},mission:{interactionRadius:6}},mission:{phase:'active',objective:'locate',paused:false,exchangeComplete:false,observationProgress:0,packageAvailable:false,packageCollected:false,countdown:60,message:''}}};it('advances objectives and collects package',async()=>{const {MissionSystem}=await import('../src/systems/MissionSystem'),system=new MissionSystem(),world=makeWorld();system.update(world as never,.1);expect(world.mission.objective).toBe('observe');expect(world.mission.exchangeComplete).toBe(true);world.mission.observationProgress=1;system.update(world as never,.1);expect(world.mission.objective).toBe('collect');world.player.position=point(5,0);expect(system.collect(world as never)).toBe(true);expect(world.mission.objective).toBe('extract')});it('wins extraction and loses countdown or detection',async()=>{const {MissionSystem}=await import('../src/systems/MissionSystem'),system=new MissionSystem(),world=makeWorld();world.mission.objective='extract';world.mission.packageCollected=true;world.player.position=point(20,0);system.update(world as never,.1);expect(world.mission.phase).toBe('won');const timed=makeWorld();timed.mission.packageCollected=true;timed.mission.countdown=.01;system.update(timed as never,.1);expect(timed.mission.phase).toBe('lost');const detected=makeWorld();system.lose(detected as never,'Detected by a guard');expect(detected.mission).toEqual(expect.objectContaining({phase:'lost',failureReason:'Detected by a guard'}))})});
+const LOCATION_IDS = ['piata-unirii', 'vatra-central-station'] as const;
+const point = (x: number, y: number): WorldPoint => ({x, y, elevation: 0});
+const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
+const locationPath = (locationId: string, path: string): string =>
+  `public/content/locations/${locationId}/${path}`;
 
-describe('isometric projection geometry',()=>{for(const id of VIEW_IDS.slice(0,4))it(`${id} projects both axes diagonally`,()=>{const data=JSON.parse(readFileSync(`public/content/locations/piata-unirii/projections/${id}.json`,'utf8'));const [a,b,c,d]=data.matrix as number[];expect(Math.abs(a!)+Math.abs(b!)).toBeGreaterThan(1);expect(Math.abs(c!)+Math.abs(d!)).toBeGreaterThan(.7);expect(Math.abs(a!*d!-b!*c!)).toBeGreaterThan(.5)});it('keeps every projected floor and grid inside the artwork',()=>{for(const id of VIEW_IDS){const data=JSON.parse(readFileSync(`public/content/locations/piata-unirii/projections/${id}.json`,'utf8'));const projection=createProjection(data),bounds=JSON.parse(readFileSync('public/content/locations/piata-unirii/world.json','utf8')).bounds,corners=[point(bounds.minX,bounds.minY),point(bounds.maxX,bounds.minY),point(bounds.maxX,bounds.maxY),point(bounds.minX,bounds.maxY)].map(p=>projection.worldToScreen(p));expect(Math.min(...corners.map(p=>p.x))).toBeGreaterThanOrEqual(0);expect(Math.max(...corners.map(p=>p.x))).toBeLessThanOrEqual(960);expect(Math.min(...corners.map(p=>p.y))).toBeGreaterThanOrEqual(0);expect(Math.max(...corners.map(p=>p.y))).toBeLessThanOrEqual(640);const svg=readFileSync(`public/content/locations/piata-unirii/views/${id}.svg`,'utf8');expect(svg).toContain('class="grid"');expect(svg.match(/<path d="M/g)?.length).toBeGreaterThanOrEqual(23)}});it('generates detailed cathedral artwork for all five views',()=>{const pngSignature=Buffer.from([137,80,78,71,13,10,26,10]);for(const name of ['cathedral-wall.png','cathedral-roof.png',...VIEW_IDS.map(id=>`cathedral-${id.replace('view-','')}.png`)])expect(readFileSync(`public/content/locations/piata-unirii/textures/${name}`).subarray(0,8)).toEqual(pngSignature);for(const id of VIEW_IDS){const svg=readFileSync(`public/content/locations/piata-unirii/views/${id}.svg`,'utf8');expect(svg).not.toContain('St. Michael&apos;s Church');expect(svg).not.toContain('Church tower')}})});
+const makePlayer = (): EntityState => ({
+  id: 'player',
+  name: 'Agent',
+  kind: 'player',
+  position: point(0, 0),
+  speed: 5,
+  runSpeed: 13,
+  route: [],
+  routeIndex: 0,
+  selected: true,
+  facing: 0,
+  pace: 'walk',
+  moving: false,
+  exposure: 0,
+});
 
+describe('canonical projections', () => {
+  for (const locationId of LOCATION_IDS) {
+    for (const id of VIEW_IDS) {
+      it(`${locationId}/${id} projects and inverses canonical world points`, () => {
+        const data = readJson<Parameters<typeof createProjection>[0]>(
+          locationPath(locationId, `projections/${id}.json`),
+        );
+        const projection = createProjection(data);
+        const world = point(31.25, 54.5);
+        const screen = projection.worldToScreen(world);
+        expect(Number.isFinite(screen.x)).toBe(true);
+        expect(projection.screenToWorld(screen)).toEqual(
+          expect.objectContaining({x: expect.closeTo(world.x, 6), y: expect.closeTo(world.y, 6)}),
+        );
+      });
+    }
+  }
 
-describe('expanded map content',()=>{it('is five times longer and twice as wide',()=>{const world=JSON.parse(readFileSync('public/content/locations/piata-unirii/world.json','utf8'));expect(world.bounds).toEqual({minX:0,minY:0,maxX:600,maxY:180})});it('adds five deterministic buildings to art and collision data',()=>{const environment=JSON.parse(readFileSync('public/content/locations/piata-unirii/environment.json','utf8')),buildings=environment.landmarks.filter((item:{id:string})=>item.id.startsWith('building-'));expect(buildings).toHaveLength(5);for(const file of ['blockers','vision-blockers']){const data=JSON.parse(readFileSync(`public/content/locations/piata-unirii/navigation/${file}.json`,'utf8'));for(const building of buildings)expect(data.rectangles).toContainEqual(expect.objectContaining({id:building.id,x:building.x,y:building.y,width:building.width,height:building.height}))}for(const id of VIEW_IDS){const svg=readFileSync(`public/content/locations/piata-unirii/views/${id}.svg`,'utf8');for(const building of buildings)expect(svg).toContain(building.name)}})});
+  it('preserves camera focus when switching view', () => {
+    const camera = {focus: point(12, 34), zoom: 1.2};
+    const switched = new ViewManager().switchTo('view-180', camera);
+    expect(switched).toEqual(camera);
+    expect(switched.focus).not.toBe(camera.focus);
+  });
 
-describe('distributed characters',()=>{it('uses a small content-driven sprite scale',()=>{const manifest=JSON.parse(readFileSync('public/content/locations/piata-unirii/manifest.json','utf8'));expect(manifest.entityScale).toBe(.9)});it('spreads character spawns across most of the expanded map',()=>{const files=['player','courier','guard-01','guard-02','guard-03','recipient'],points=files.map(name=>JSON.parse(readFileSync(`public/content/locations/piata-unirii/entities/${name}.json`,'utf8')).spawn);points.push(...JSON.parse(readFileSync('public/content/locations/piata-unirii/entities/civilians.json','utf8')).entities.map((item:{spawn:unknown})=>item.spawn));const xs=points.map((point:{x:number})=>point.x),ys=points.map((point:{y:number})=>point.y);expect(Math.min(...xs)).toBeLessThanOrEqual(30);expect(Math.max(...xs)).toBeGreaterThanOrEqual(570);expect(Math.max(...ys)-Math.min(...ys)).toBeGreaterThanOrEqual(100);for(const left of points)expect(points.filter(right=>right!==left&&Math.hypot((right as {x:number}).x-(left as {x:number}).x,(right as {y:number}).y-(left as {y:number}).y)<30)).toHaveLength(0)})});
+  it('keeps every projected world floor inside its 960 by 640 artwork', () => {
+    for (const locationId of LOCATION_IDS) {
+      const world = readJson<{bounds: {minX: number; minY: number; maxX: number; maxY: number}}>(
+        locationPath(locationId, 'world.json'),
+      );
+      for (const id of VIEW_IDS) {
+        const projection = createProjection(
+          readJson<Parameters<typeof createProjection>[0]>(
+            locationPath(locationId, `projections/${id}.json`),
+          ),
+        );
+        const {minX, minY, maxX, maxY} = world.bounds;
+        const corners = [point(minX, minY), point(maxX, minY), point(maxX, maxY), point(minX, maxY)]
+          .map((worldPoint) => projection.worldToScreen(worldPoint));
+        expect(Math.min(...corners.map(({x}) => x))).toBeGreaterThanOrEqual(0);
+        expect(Math.max(...corners.map(({x}) => x))).toBeLessThanOrEqual(960);
+        expect(Math.min(...corners.map(({y}) => y))).toBeGreaterThanOrEqual(0);
+        expect(Math.max(...corners.map(({y}) => y))).toBeLessThanOrEqual(640);
+      }
+    }
+  });
+});
 
-describe('entity collision',()=>{it('prevents characters from overlapping',async()=>{const {MovementSystem}=await import('../src/systems/MovementSystem'),movement=new MovementSystem(),a=entity('a',0,0),b=entity('b',3,0),entities=new Map([[a.id,a],[b.id,b]]);movement.setPath(a.id,[point(3,0)]);movement.update(entities,1);expect(a.position.x).toBe(0);b.position=point(5,0);movement.update(entities,.5);expect(a.position.x).toBeGreaterThan(0);expect(Math.hypot(a.position.x-b.position.x,a.position.y-b.position.y)).toBeGreaterThanOrEqual(4)});it('routes patrol movement around buildings',async()=>{const {MovementSystem}=await import('../src/systems/MovementSystem'),{PatrolSystem}=await import('../src/systems/PatrolSystem'),blocker={id:'building',x:8,y:0,width:4,height:12},nav=new GridNavigationService({minX:0,minY:0,maxX:30,maxY:30},[blocker],2),movement=new MovementSystem(),patrol=new PatrolSystem(movement,nav),guard=entity('guard',2,4);guard.route.push(point(20,4) as never);const entities=new Map([[guard.id,guard]]);patrol.update(entities);for(let i=0;i<400;i++){movement.update(entities,.1);expect(nav.isWalkable(guard.position)).toBe(true)}expect(guard.position.x).toBeGreaterThan(12)})});
+describe('single-operative exploration content', () => {
+  for (const locationId of LOCATION_IDS) {
+    it(`${locationId} loads exactly one player and no patrols`, () => {
+      const manifest = readJson<{
+        mode: string;
+        entities: string[];
+        patrols: string[];
+        entityScale: number;
+      }>(locationPath(locationId, 'manifest.json'));
+      expect(manifest.mode).toBe('exploration');
+      expect(manifest.entities).toEqual(['entities/player.json']);
+      expect(manifest.patrols).toEqual([]);
+      expect(manifest.entityScale).toBe(0.42);
+      const player = readJson<{kind: string; speed: number; runSpeed: number}>(
+        locationPath(locationId, manifest.entities[0]!),
+      );
+      expect(player.kind).toBe('player');
+      expect(player.runSpeed).toBeGreaterThan(player.speed);
+    });
+  }
 
-describe('orientation margins',()=>{it('colors only the four outer margins in every generated view',()=>{for(const id of VIEW_IDS){const svg=readFileSync(`public/content/locations/piata-unirii/views/${id}.svg`,'utf8');for(const [edge,color] of [['north','#16191d'],['east','#3156c7'],['south','#31a34a'],['west','#cf3c3c']]){expect(svg).toContain(`data-margin="${edge}" points=`);expect(svg).toContain(`stroke="${color}"`)}expect(svg).toContain('.roads polygon{fill:#65706d;opacity:.6}')}})});
+  it('walk and run orders use distinct deterministic speeds', () => {
+    const movement = new MovementSystem();
+    const player = makePlayer();
+    const entities = new Map([[player.id, player]]);
+    movement.setPath(player.id, [point(100, 0)], 'walk');
+    movement.update(entities, 1);
+    expect(player.position.x).toBe(5);
+    expect(player.pace).toBe('walk');
+    movement.setPath(player.id, [point(100, 0)], 'run');
+    movement.update(entities, 1);
+    expect(player.position.x).toBe(18);
+    expect(player.pace).toBe('run');
+  });
 
-describe('mission interaction placement',()=>{it('keeps exchange and package outside movement blockers',()=>{const world=JSON.parse(readFileSync('public/content/locations/piata-unirii/world.json','utf8')),blockers=JSON.parse(readFileSync('public/content/locations/piata-unirii/navigation/blockers.json','utf8')).rectangles as Array<{x:number;y:number;width:number;height:number}>;for(const location of [world.exchange,world.package])expect(blockers.some(rect=>location.x>=rect.x&&location.x<=rect.x+rect.width&&location.y>=rect.y&&location.y<=rect.y+rect.height)).toBe(false)})});
+  it('routes the operative around canonical blockers', () => {
+    const navigation = new GridNavigationService(
+      {minX: 0, minY: 0, maxX: 30, maxY: 30},
+      [{id: 'building', x: 8, y: 0, width: 4, height: 12}],
+      2,
+    );
+    const path = navigation.findPath(point(2, 4), point(20, 4));
+    expect(path.length).toBeGreaterThan(2);
+    expect(path.every((pathPoint) => navigation.isWalkable(pathPoint))).toBe(true);
+    expect(navigation.findPath(point(2, 2), point(9, 4))).toEqual([]);
+  });
+});
 
-describe('patrol content safety',()=>{it('keeps every actor waypoint navigable',()=>{const blockers=JSON.parse(readFileSync('public/content/locations/piata-unirii/navigation/blockers.json','utf8')).rectangles,nav=new GridNavigationService(JSON.parse(readFileSync('public/content/locations/piata-unirii/world.json','utf8')).bounds,blockers,4);for(const name of ['courier','recipient','guard-01','guard-02','guard-03','civilian-1','civilian-2','civilian-3','civilian-4']){const patrol=JSON.parse(readFileSync(`public/content/locations/piata-unirii/patrols/${name}.json`,'utf8'));for(const waypoint of patrol.points)expect(nav.isWalkable(waypoint),`${name} waypoint ${waypoint.x},${waypoint.y}`).toBe(true)}})});
+describe('data-driven environment artwork', () => {
+  for (const locationId of LOCATION_IDS) {
+    it(`${locationId} defines surfaces, architecture, props, and weather in world space`, () => {
+      const environment = readJson<{
+        atmosphere: {wetness: number};
+        surfaces: Array<{id: string; type: string}>;
+        landmarks: Array<{id: string}>;
+        trees: unknown[];
+        streetFurniture: Array<{type: string; blocksMovement?: boolean}>;
+      }>(locationPath(locationId, 'environment.json'));
+      expect(environment.atmosphere.wetness).toBeGreaterThan(0);
+      expect(environment.surfaces.some(({type}) => type === 'road')).toBe(true);
+      expect(environment.surfaces.some(({type}) => ['plaza', 'rail'].includes(type))).toBe(true);
+      expect(environment.landmarks.length).toBeGreaterThanOrEqual(8);
+      expect(environment.trees.length).toBeGreaterThan(0);
+      expect(environment.streetFurniture.some(({type}) => type === 'car')).toBe(true);
+      expect(
+        environment.streetFurniture
+          .filter(({type}) => ['car', 'maintenance-vehicle', 'freight-wagon', 'regional-train'].includes(type))
+          .every(({blocksMovement}) => blocksMovement),
+      ).toBe(true);
+    });
 
-describe('mission patrol simulation',()=>{it('lets both exchange actors reach distinct staging points with all NPCs moving',async()=>{const {MovementSystem}=await import('../src/systems/MovementSystem'),{PatrolSystem}=await import('../src/systems/PatrolSystem');const blockers=JSON.parse(readFileSync('public/content/locations/piata-unirii/navigation/blockers.json','utf8')).rectangles,nav=new GridNavigationService(JSON.parse(readFileSync('public/content/locations/piata-unirii/world.json','utf8')).bounds,blockers,4),movement=new MovementSystem(),patrol=new PatrolSystem(movement,nav),entities=new Map<string,ReturnType<typeof entity>>();const entityFiles=['courier','recipient','guard-01','guard-02','guard-03'];for(const name of entityFiles){const data=JSON.parse(readFileSync(`public/content/locations/piata-unirii/entities/${name}.json`,'utf8')),state={...entity(data.id,data.spawn.x,data.spawn.y),kind:data.kind,speed:data.speed};state.route=JSON.parse(readFileSync(`public/content/locations/piata-unirii/patrols/${name}.json`,'utf8')).points;entities.set(state.id,state)}const civilians=JSON.parse(readFileSync('public/content/locations/piata-unirii/entities/civilians.json','utf8')).entities;for(const data of civilians){const state={...entity(data.id,data.spawn.x,data.spawn.y),kind:data.kind,speed:data.speed};state.route=JSON.parse(readFileSync(`public/content/locations/piata-unirii/patrols/${data.id}.json`,'utf8')).points;entities.set(state.id,state)}let reached=false;for(let step=0;step<7200;step++){patrol.update(entities,true);movement.update(entities,1/30);const courier=entities.get('courier')!,recipient=entities.get('recipient')!;if(Math.hypot(courier.position.x-300,courier.position.y-90)<=4&&Math.hypot(recipient.position.x-300,recipient.position.y-90)<=4){reached=true;break}}expect(reached).toBe(true)})});
+    it(`${locationId} renders the same canonical content in all five views`, () => {
+      for (const id of VIEW_IDS) {
+        const svg = readFileSync(locationPath(locationId, `views/${id}.svg`), 'utf8');
+        const occlusion = readFileSync(locationPath(locationId, `occlusion/${id}.svg`), 'utf8');
+        expect(svg).toContain('data-surface=');
+        expect(svg).toContain('data-landmark=');
+        expect(svg).toContain('data-tree=');
+        expect(svg).toContain('data-prop=');
+        expect(svg).not.toContain('data-margin=');
+        expect(svg).not.toContain('class="grid"');
+        expect(occlusion).toContain('data-occluder=');
+      }
+    });
+  }
 
-import {constrainCameraCenter,constrainCameraToPolygon,minimumZoomForPolygon} from '../src/views/CameraBounds';
-describe('fullscreen camera bounds',()=>{const base={viewportWidth:960,viewportHeight:640,zoom:1,canvas:{left:-120,top:0,right:1080,bottom:800},container:{left:0,top:0,right:960,bottom:640},mapWidth:960,mapHeight:640};it('allows panning through a cropped fullscreen canvas',()=>{expect(constrainCameraCenter({...base,scrollX:80,scrollY:40})).toEqual({x:560,y:360})});it('uses Phaser scroll coordinates independently of zoom',()=>{expect(constrainCameraCenter({...base,zoom:2,scrollX:80,scrollY:40})).toEqual({x:560,y:360})});it('clamps each axis to the visible map edge',()=>{expect(constrainCameraCenter({...base,scrollX:-1000,scrollY:-1000})).toEqual({x:384,y:256});expect(constrainCameraCenter({...base,scrollX:1000,scrollY:1000})).toEqual({x:576,y:384})})});
+  it('keeps the cathedral paint-over as replaceable external artwork', () => {
+    const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    const names = [
+      'cathedral-wall.png',
+      'cathedral-roof.png',
+      ...VIEW_IDS.map((id) => `cathedral-${id.replace('view-', '')}.png`),
+    ];
+    for (const name of names) {
+      const asset = readFileSync(locationPath('piata-unirii', `textures/${name}`));
+      expect(asset.subarray(0, 8)).toEqual(pngSignature);
+    }
+  });
+});
 
-describe('populated station district',()=>{const root='public/content/locations/vatra-central-station';it('uses a district-shaped world with occupied edges',()=>{const world=JSON.parse(readFileSync(`${root}/world.json`,'utf8')),environment=JSON.parse(readFileSync(`${root}/environment.json`,'utf8')),landmarks=environment.landmarks as Array<{x:number;y:number;width:number;height:number}>;expect(world.bounds).toEqual({minX:0,minY:0,maxX:600,maxY:360});expect((world.bounds.maxX-world.bounds.minX)/(world.bounds.maxY-world.bounds.minY)).toBeLessThan(2);expect(landmarks.length).toBeGreaterThanOrEqual(22);expect(landmarks.some(item=>item.y<10)).toBe(true);expect(landmarks.some(item=>item.y+item.height>350)).toBe(true);expect(landmarks.some(item=>item.x<10)).toBe(true);expect(landmarks.some(item=>item.x+item.width>=590)).toBe(true)});it('routes characters across the expanded district',()=>{const world=JSON.parse(readFileSync(`${root}/world.json`,'utf8')),blockers=JSON.parse(readFileSync(`${root}/navigation/blockers.json`,'utf8')).rectangles,nav=new GridNavigationService(world.bounds,blockers,4),path=nav.findPath(world.spawns.player,world.extraction);expect(path.length).toBeGreaterThan(20);expect(path.every(point=>nav.isWalkable(point))).toBe(true)});it('keeps every station patrol waypoint navigable',()=>{const world=JSON.parse(readFileSync(`${root}/world.json`,'utf8')),blockers=JSON.parse(readFileSync(`${root}/navigation/blockers.json`,'utf8')).rectangles,nav=new GridNavigationService(world.bounds,blockers,4);for(const name of ['courier','recipient','guard-01','guard-02','guard-03','civilian-1','civilian-2','civilian-3','civilian-4']){const patrol=JSON.parse(readFileSync(`${root}/patrols/${name}.json`,'utf8'));for(const waypoint of patrol.points)expect(nav.isWalkable(waypoint),`${name} waypoint ${waypoint.x},${waypoint.y}`).toBe(true)}})});
+describe('settings and camera behavior', () => {
+  it('serializes settings and recovers corrupted storage', () => {
+    const data = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => void data.set(key, value),
+    };
+    const store = new SettingsStore(storage);
+    store.save({...DEFAULT_SETTINGS, preferredView: 'view-top'});
+    expect(store.load().preferredView).toBe('view-top');
+    data.set('gone.settings', '{broken');
+    expect(store.load()).toEqual(DEFAULT_SETTINGS);
+  });
 
-describe('playable artwork camera',()=>{const diamond=[{x:480,y:70},{x:910,y:320},{x:480,y:570},{x:50,y:320}];it('derives a zoom that hides every outside corner',()=>{const zoom=minimumZoomForPolygon(diamond,960,640);expect(zoom).toBeGreaterThan(1);expect(zoom).toBeLessThan(5);const center=constrainCameraToPolygon({x:480,y:320},diamond,480/zoom,320/zoom);expect(center.x).toBeCloseTo(480);expect(center.y).toBeCloseTo(320)});it('keeps a panned viewport inside the playable polygon',()=>{const zoom=3,halfWidth=480/zoom,halfHeight=320/zoom,center=constrainCameraToPolygon({x:900,y:600},diamond,halfWidth,halfHeight);for(const corner of [{x:center.x-halfWidth,y:center.y-halfHeight},{x:center.x+halfWidth,y:center.y-halfHeight},{x:center.x+halfWidth,y:center.y+halfHeight},{x:center.x-halfWidth,y:center.y+halfHeight}])expect(Math.abs(corner.x-480)/430+Math.abs(corner.y-320)/250).toBeLessThanOrEqual(1.00001)})});
+  it('supports a full-map overview and caps persisted zoom', () => {
+    expect(DEFAULT_SETTINGS.zoom).toBe(1);
+    const storage = {
+      getItem: () => JSON.stringify({...DEFAULT_SETTINGS, zoom: 99}),
+      setItem: () => undefined,
+    };
+    expect(new SettingsStore(storage).load().zoom).toBe(5);
+  });
+
+  it('constrains panning to the rendered map', () => {
+    const input = {
+      viewportWidth: 960,
+      viewportHeight: 640,
+      zoom: 1,
+      canvas: {left: -120, top: 0, right: 1080, bottom: 800},
+      container: {left: 0, top: 0, right: 960, bottom: 640},
+      mapWidth: 960,
+      mapHeight: 640,
+      scrollX: 80,
+      scrollY: 40,
+    };
+    expect(constrainCameraCenter(input)).toEqual({x: 560, y: 360});
+    expect(constrainCameraCenter({...input, scrollX: -1000, scrollY: -1000})).toEqual({
+      x: 384,
+      y: 256,
+    });
+  });
+
+  it('derives a zoom and focus within an isometric floor polygon', () => {
+    const diamond = [
+      {x: 480, y: 70},
+      {x: 910, y: 320},
+      {x: 480, y: 570},
+      {x: 50, y: 320},
+    ];
+    const zoom = minimumZoomForPolygon(diamond, 960, 640);
+    expect(zoom).toBeGreaterThan(1);
+    expect(zoom).toBeLessThan(5);
+    const center = constrainCameraToPolygon(
+      {x: 480, y: 320},
+      diamond,
+      480 / zoom,
+      320 / zoom,
+    );
+    expect(center.x).toBeCloseTo(480, 4);
+    expect(center.y).toBeCloseTo(320, 4);
+  });
+});

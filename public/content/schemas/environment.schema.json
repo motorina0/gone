@@ -1,33 +1,100 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
+    "positiveNumber": {"type": "number", "exclusiveMinimum": 0}
+  },
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string",
-      "minLength": 1
+    "id": {"type": "string", "minLength": 1},
+    "schemaVersion": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "name": {"type": "string", "minLength": 1},
+    "disclaimer": {"type": "string"},
+    "atmosphere": {
+      "type": "object",
+      "properties": {
+        "sky": {"$ref": "#/$defs/color"},
+        "horizon": {"$ref": "#/$defs/color"},
+        "ground": {"$ref": "#/$defs/color"},
+        "groundDark": {"$ref": "#/$defs/color"},
+        "wetness": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "required": ["sky", "horizon", "ground", "groundDark", "wetness"]
     },
-    "schemaVersion": {
-      "type": "string",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
-    },
-    "name": {
-      "type": "string"
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["road", "sidewalk", "plaza", "yard", "rail"]},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "width": {"$ref": "#/$defs/positiveNumber"},
+          "height": {"$ref": "#/$defs/positiveNumber"},
+          "color": {"$ref": "#/$defs/color"}
+        },
+        "required": ["id", "type", "x", "y", "width", "height"]
+      }
     },
     "landmarks": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "name": {"type": "string", "minLength": 1},
+          "type": {"type": "string", "minLength": 1},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "width": {"$ref": "#/$defs/positiveNumber"},
+          "height": {"$ref": "#/$defs/positiveNumber"},
+          "color": {"$ref": "#/$defs/color"},
+          "elevation": {"type": "number", "minimum": 0},
+          "roof": {"enum": ["flat", "pitched", "glass", "open"]},
+          "material": {"enum": ["stone", "brick", "concrete", "metal", "glass"]},
+          "floors": {"type": "integer", "minimum": 1},
+          "renderInDetailOverlay": {"type": "boolean"},
+          "occludes": {"type": "boolean"}
+        },
+        "required": ["id", "name", "type", "x", "y", "width", "height", "color"]
+      }
     },
     "trees": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "elevation": {"type": "number"},
+          "size": {"$ref": "#/$defs/positiveNumber"}
+        },
+        "required": ["x", "y"]
+      }
     },
     "streetFurniture": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"type": "string", "minLength": 1},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "elevation": {"type": "number"},
+          "rotation": {"type": "number"},
+          "width": {"$ref": "#/$defs/positiveNumber"},
+          "depth": {"$ref": "#/$defs/positiveNumber"},
+          "height": {"$ref": "#/$defs/positiveNumber"},
+          "color": {"$ref": "#/$defs/color"},
+          "blocksMovement": {"type": "boolean"}
+        },
+        "required": ["type", "x", "y"]
+      }
     }
   },
-  "required": [
-    "id",
-    "schemaVersion",
-    "landmarks",
-    "trees",
-    "streetFurniture"
-  ]
+  "required": ["id", "schemaVersion", "name", "atmosphere", "surfaces", "landmarks", "trees", "streetFurniture"]
 }

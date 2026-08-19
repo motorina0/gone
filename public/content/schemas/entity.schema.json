@@ -12,6 +12,10 @@
     },
     "name": {
       "type": "string"
+    },
+    "runSpeed": {
+      "type": "number",
+      "exclusiveMinimum": 0
     }
   },
   "required": [

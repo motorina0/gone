@@ -1,7 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "id": "piata-unirii",
-  "name": "Pia\u021ba Unirii \u2014 schematic",
+  "name": "Pia\u021ba Unirii \u2014 Overcast",
+  "mode": "exploration",
   "world": "world.json",
   "environment": "environment.json",
   "mission": "mission.json",
@@ -11,26 +12,9 @@
     "visionBlockers": "navigation/vision-blockers.json"
   },
   "entities": [
-    "entities/player.json",
-    "entities/courier.json",
-    "entities/recipient.json",
-    "entities/guard-01.json",
-    "entities/guard-02.json",
-    "entities/guard-03.json",
-    "entities/civilians.json"
+    "entities/player.json"
   ],
-  "patrols": [
-    "patrols/courier.json",
-    "patrols/recipient.json",
-    "patrols/guard-01.json",
-    "patrols/guard-02.json",
-    "patrols/guard-03.json",
-    "patrols/civilians.json",
-    "patrols/civilian-1.json",
-    "patrols/civilian-2.json",
-    "patrols/civilian-3.json",
-    "patrols/civilian-4.json"
-  ],
+  "patrols": [],
   "interactions": {
     "exchange": "interactions/exchange.json",
     "package": "interactions/package.json",
@@ -65,5 +49,5 @@
     "textures/cathedral-270.png",
     "textures/cathedral-top.png"
   ],
-  "entityScale": 0.9
+  "entityScale": 0.42
 }

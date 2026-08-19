@@ -1,3 +1,13 @@
+CURRENT PHASE OVERRIDE (2026-08-19)
+
+The active product direction replaces the courier mission below with free exploration in both locations. The runtime must load exactly one user-controlled character and must not load or update guards, civilians, couriers, recipients, patrol AI, detection, observation, mission objectives, or interactions. Keep dormant reusable resources and systems available for later work, but do not expose them in the public experience.
+
+Use the high-level composition of a classic 2001 tactical command console while retaining original Gone panels, icons, fonts, characters, maps, and artwork. Environments should richly render data-driven buildings, streets, static vehicles, trees, street furniture, atmosphere, and occlusion in all five canonical projections. The explicit prohibition on copying Commandos or other commercial UI/art/assets remains absolute.
+
+The original brief below is retained as architectural and historical context where it does not conflict with this override.
+
+---
+
 You are implementing the first production-quality proof of concept for an
 original browser-based stealth tactics game.
 

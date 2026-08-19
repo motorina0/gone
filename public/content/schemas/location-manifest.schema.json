@@ -13,6 +13,12 @@
     "name": {
       "type": "string"
     },
+    "mode": {
+      "enum": [
+        "exploration",
+        "mission"
+      ]
+    },
     "world": {
       "type": "string"
     },
@@ -31,7 +37,7 @@
     },
     "patrols": {
       "type": "array",
-      "minItems": 1
+      "minItems": 0
     },
     "projections": {
       "type": "array",
@@ -65,6 +71,7 @@
   "required": [
     "id",
     "schemaVersion",
+    "mode",
     "world",
     "environment",
     "mission",

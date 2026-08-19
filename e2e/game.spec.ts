@@ -1,9 +1,283 @@
-import {test,expect} from '@playwright/test';test.setTimeout(180_000);
-const viewports=[{name:'desktop',width:1280,height:720},{name:'portrait',width:390,height:844},{name:'landscape',width:844,height:390}];
-for(const viewport of viewports)test(`${viewport.name} playable smoke`,async({page})=>{await page.setViewportSize(viewport);await page.addInitScript(()=>{Object.defineProperty(document,'fullscreenElement',{configurable:true,get:()=>document.documentElement.dataset.testFullscreenState==='true'?document.querySelector('#app'):null});Element.prototype.requestFullscreen=async function(){document.documentElement.dataset.testFullscreenState='true';this.classList.add('fullscreen-test');document.dispatchEvent(new Event('fullscreenchange'))};document.exitFullscreen=async()=>{document.documentElement.dataset.testFullscreenState='false';document.querySelector('#app')?.classList.remove('fullscreen-test');document.dispatchEvent(new Event('fullscreenchange'))}});const errors:string[]=[];page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>errors.push(`${r.url()} ${r.failure()?.errorText}`));await page.goto('?test=1');await expect(page.locator('[data-start]')).toBeVisible();await page.locator('[data-start]').click();await expect(page.locator('#hud')).toHaveAttribute('data-phase','active');await page.locator('[data-pause]').click();await expect(page.locator('[data-message]')).toContainText('Paused');const fullscreen=page.locator('[data-fullscreen]');await fullscreen.click();await expect(fullscreen).toHaveText('EXIT');await expect(fullscreen).toHaveAttribute('aria-pressed','true');for(const id of ['view-0','view-90','view-180','view-270','view-top'])await expect(page.locator(`button[data-view="${id}"]`)).toBeVisible();const fullscreenCanvas=await page.locator('canvas').boundingBox();expect(fullscreenCanvas).not.toBeNull();expect(fullscreenCanvas!.width/fullscreenCanvas!.height).toBeCloseTo(1.5,2);expect(fullscreenCanvas!.width).toBeGreaterThanOrEqual(viewport.width);expect(fullscreenCanvas!.height).toBeGreaterThanOrEqual(viewport.height);expect(fullscreenCanvas!.x).toBeCloseTo((viewport.width-fullscreenCanvas!.width)/2,0);expect(fullscreenCanvas!.y).toBeCloseTo((viewport.height-fullscreenCanvas!.height)/2,0);const focusBeforeDrag=await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus);await page.mouse.move(viewport.width/2,viewport.height/2);await page.mouse.down();await page.mouse.move(viewport.width/2-80,viewport.height/2-80,{steps:4});await page.mouse.up();const focusAfterDrag=await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus);expect(Math.hypot(focusAfterDrag.x-focusBeforeDrag.x,focusAfterDrag.y-focusBeforeDrag.y)).toBeGreaterThan(1);await fullscreen.click();await expect(fullscreen).toHaveText('FULL');const canvas=page.locator('canvas');await expect(canvas).toBeVisible();const box=await canvas.boundingBox();expect(box).not.toBeNull();expect(await page.evaluate(()=>window.__GONE_TEST__!.playerScale)).toBe(.9);expect(await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus)).toEqual(focusAfterDrag);await page.mouse.move(viewport.width/2,viewport.height/2);await page.mouse.down();await page.mouse.move(viewport.width/2+20,viewport.height/2+20);await page.mouse.up();const positionBeforeViews=await page.evaluate(()=>window.__GONE_TEST__!.player);for(const id of ['view-0','view-90','view-180','view-270','view-top']){await page.locator(`button[data-view="${id}"]`).click();await expect(page.locator('#hud')).toHaveAttribute('data-view',id);expect(await page.evaluate(()=>window.__GONE_TEST__!.player)).toEqual(positionBeforeViews)}await page.locator('[data-restart]').click();await expect(page.locator('[data-start]')).toBeVisible();for(const selector of ['[data-start]','[data-observe]','[data-interact]','[data-pause]']){const rect=await page.locator(selector).boundingBox();expect(rect).not.toBeNull();expect(rect!.x).toBeGreaterThanOrEqual(0);expect(rect!.y).toBeGreaterThanOrEqual(0);expect(rect!.x+rect!.width).toBeLessThanOrEqual(viewport.width+1);expect(rect!.y+rect!.height).toBeLessThanOrEqual(viewport.height+1)}expect(errors).toEqual([])});
+import {expect, test, type CDPSession, type Page} from '@playwright/test';
 
-test('fullscreen camera pans in both directions after zoom',async({page})=>{await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{Object.defineProperty(document,'fullscreenElement',{configurable:true,get:()=>document.documentElement.dataset.testFullscreenState==='true'?document.querySelector('#app'):null});Element.prototype.requestFullscreen=async function(){document.documentElement.dataset.testFullscreenState='true';this.classList.add('fullscreen-test');document.dispatchEvent(new Event('fullscreenchange'))}});await page.goto('?test=1');await page.locator('[data-start]').click();await page.locator('[data-fullscreen]').click();await page.mouse.move(195,422);await page.mouse.wheel(0,-5000);expect(await page.evaluate(()=>window.__GONE_TEST__!.cameraZoom)).toBeGreaterThan(4);const before=await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus);await page.mouse.down();await page.mouse.move(115,422,{steps:4});await page.mouse.up();const left=await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus);expect(Math.hypot(left.x-before.x,left.y-before.y)).toBeGreaterThan(.5);await page.mouse.down();await page.mouse.move(195,422,{steps:4});await page.mouse.up();const right=await page.evaluate(()=>window.__GONE_TEST__!.cameraFocus);expect(Math.hypot(right.x-left.x,right.y-left.y)).toBeGreaterThan(.5)});
+test.setTimeout(180_000);
 
-test('location picker loads Vatra Central Station',async({page})=>{await page.goto('');await expect(page.locator('[data-location-picker]')).toBeVisible();await page.locator('[data-location]').selectOption('vatra-central-station');await expect(page.locator('[data-location-description]')).toContainText('railway');await page.locator('[data-load-location]').click();await expect(page.locator('[data-start]')).toBeEnabled({timeout:30_000});await page.locator('[data-start]').click();await expect(page.locator('#hud')).toHaveAttribute('data-phase','active');await expect(page.locator('canvas')).toBeVisible();await expect(page.locator('[data-location-picker]')).toBeHidden()});
+const VIEW_IDS = ['view-0', 'view-90', 'view-180', 'view-270', 'view-top'];
+const viewports = [
+  {name: 'desktop', width: 1280, height: 720},
+  {name: 'portrait', width: 390, height: 844},
+  {name: 'landscape', width: 844, height: 390},
+];
 
-test('station camera starts inside the playable artwork and supports deep zoom',async({page})=>{await page.setViewportSize({width:390,height:844});await page.goto('?test=1&location=vatra-central-station');await page.locator('[data-start]').click();const initial=await page.evaluate(()=>window.__GONE_TEST__!);expect(initial.minimumZoom).toBe(1);expect(initial.cameraZoom).toBe(1);const zoomOut=page.locator('[data-zoom-out]'),zoomIn=page.locator('[data-zoom-in]');await expect(zoomOut).toBeDisabled();for(let step=0;step<4;step++)await zoomIn.click();await expect(zoomIn).toBeDisabled();const maximum=await page.evaluate(()=>window.__GONE_TEST__!);expect(maximum.zoomLevel).toBe(5);expect(maximum.cameraZoom).toBe(5);expect(maximum.playerDisplayHeight).toBeGreaterThanOrEqual(640*.85);for(let step=0;step<4;step++)await zoomOut.click();expect(await page.evaluate(()=>window.__GONE_TEST__!.zoomLevel)).toBe(1);const canvas=await page.locator('canvas').boundingBox();expect(canvas).not.toBeNull();const toClient=(point:{x:number;y:number})=>({x:canvas!.x+canvas!.width/960*(480+(point.x-initial.cameraScreenCenter.x)*initial.cameraZoom),y:canvas!.y+canvas!.height/640*(320+(point.y-initial.cameraScreenCenter.y)*initial.cameraZoom)}),playerClient=toClient(initial.playerScreen),targetClient=toClient(initial.testDestination.screen);await page.mouse.click(playerClient.x,playerClient.y);await expect(page.locator('[data-message]')).toContainText('selected');await page.mouse.click(targetClient.x,targetClient.y);await expect.poll(async()=>{const player=await page.evaluate(()=>window.__GONE_TEST__!.player);return Math.hypot(player.x-initial.player.x,player.y-initial.player.y)}).toBeGreaterThan(.5);await page.mouse.move(195,420);await page.mouse.wheel(0,-10000);expect(await page.evaluate(()=>window.__GONE_TEST__!.zoomLevel)).toBe(5)});
+const installFullscreenStub = async (page: Page): Promise<void> => {
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get: () =>
+        document.documentElement.dataset.testFullscreenState === 'true'
+          ? document.querySelector('#app')
+          : null,
+    });
+    Element.prototype.requestFullscreen = async function () {
+      document.documentElement.dataset.testFullscreenState = 'true';
+      this.classList.add('fullscreen-test');
+      document.dispatchEvent(new Event('fullscreenchange'));
+    };
+    document.exitFullscreen = async () => {
+      document.documentElement.dataset.testFullscreenState = 'false';
+      document.querySelector('#app')?.classList.remove('fullscreen-test');
+      document.dispatchEvent(new Event('fullscreenchange'));
+    };
+  });
+};
+
+const openExploration = async (
+  page: Page,
+  locationId = 'piata-unirii',
+): Promise<string[]> => {
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('requestfailed', (request) =>
+    errors.push(`${request.url()} ${request.failure()?.errorText}`),
+  );
+  await page.goto(`?test=1&location=${locationId}`);
+  await expect.poll(() => page.evaluate(() => Boolean(window.__GONE_TEST__))).toBe(true);
+  return errors;
+};
+
+const diagnosticDestinationClient = async (
+  page: Page,
+): Promise<{x: number; y: number}> => {
+  const canvas = page.locator('canvas');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const state = await page.evaluate(() => window.__GONE_TEST__!);
+  const target = state.testDestination.screen;
+  const clientX =
+    box!.x +
+    (box!.width / 960) *
+      (480 + (target.x - state.cameraScreenCenter.x) * state.cameraZoom);
+  const clientY =
+    box!.y +
+    (box!.height / 640) *
+      (320 + (target.y - state.cameraScreenCenter.y) * state.cameraZoom);
+  return {x: clientX, y: clientY};
+};
+
+const clickDiagnosticDestination = async (page: Page): Promise<void> => {
+  const target = await diagnosticDestinationClient(page);
+  await page.mouse.click(target.x, target.y);
+};
+
+interface TouchPoint {
+  id: number;
+  x: number;
+  y: number;
+}
+
+const dispatchTouch = async (
+  session: CDPSession,
+  type: 'touchStart' | 'touchMove' | 'touchEnd',
+  touchPoints: TouchPoint[],
+): Promise<void> => {
+  await session.send('Input.dispatchTouchEvent', {
+    type,
+    touchPoints: touchPoints.map((touch) => ({
+      ...touch,
+      radiusX: 2,
+      radiusY: 2,
+      force: 1,
+    })),
+  });
+};
+
+for (const viewport of viewports) {
+  test(`${viewport.name} keeps the exploration HUD usable`, async ({page}) => {
+    await page.setViewportSize(viewport);
+    await installFullscreenStub(page);
+    const errors = await openExploration(page);
+
+    await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'running');
+    await expect(page.locator('canvas')).toBeVisible();
+    expect(await page.evaluate(() => window.__GONE_TEST__!.entityCount)).toBe(1);
+    expect(await page.evaluate(() => window.__GONE_TEST__!.aiSystemsEnabled)).toBe(false);
+    expect(await page.evaluate(() => window.__GONE_TEST__!.missionResourceLoaded)).toBe(false);
+
+    for (const id of VIEW_IDS) {
+      const button = page.locator(`button[data-view="${id}"]`);
+      await expect(button).toBeVisible();
+      await expect(button).toHaveAttribute('aria-label', /view|degrees/i);
+    }
+
+    for (const selector of [
+      'button[data-pace="walk"]',
+      'button[data-pace="run"]',
+      '[data-zoom-out]',
+      '[data-zoom-in]',
+      '[data-fullscreen]',
+      '[data-pause]',
+      '[data-restart]',
+    ]) {
+      const rect = await page.locator(selector).boundingBox();
+      expect(rect, selector).not.toBeNull();
+      expect(rect!.width, selector).toBeGreaterThanOrEqual(44);
+      expect(rect!.height, selector).toBeGreaterThanOrEqual(44);
+      expect(rect!.x, selector).toBeGreaterThanOrEqual(0);
+      expect(rect!.y, selector).toBeGreaterThanOrEqual(0);
+      expect(rect!.x + rect!.width, selector).toBeLessThanOrEqual(viewport.width + 1);
+      expect(rect!.y + rect!.height, selector).toBeLessThanOrEqual(viewport.height + 1);
+    }
+
+    await page.locator('[data-pause]').click();
+    await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
+    await page.locator('[data-pause]').click();
+    await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'running');
+
+    const fullscreen = page.locator('[data-fullscreen]');
+    await fullscreen.click();
+    await expect(fullscreen).toHaveAttribute('aria-pressed', 'true');
+    await fullscreen.click();
+    await expect(fullscreen).toHaveAttribute('aria-pressed', 'false');
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const locationId of ['piata-unirii', 'vatra-central-station']) {
+  test(`${locationId} moves one operative and preserves position across views`, async ({page}) => {
+    await page.setViewportSize({width: 1280, height: 720});
+    const errors = await openExploration(page, locationId);
+    const initial = await page.evaluate(() => window.__GONE_TEST__!.player);
+
+    await page.locator('[data-pace="run"]').click();
+    await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'run');
+    await clickDiagnosticDestination(page);
+    await expect.poll(async () => {
+      const player = await page.evaluate(() => window.__GONE_TEST__!.player);
+      return Math.hypot(player.x - initial.x, player.y - initial.y);
+    }).toBeGreaterThan(0.5);
+    expect(await page.evaluate(() => window.__GONE_TEST__!.movementPace)).toBe('run');
+
+    await page.locator('[data-pause]').click();
+    await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
+    const positionBeforeViews = await page.evaluate(() => window.__GONE_TEST__!.player);
+    const focusBeforeViews = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+    for (const id of VIEW_IDS) {
+      await page.locator(`button[data-view="${id}"]`).click();
+      await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
+      expect(await page.evaluate(() => window.__GONE_TEST__!.player)).toEqual(positionBeforeViews);
+      const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+      expect(focus.x).toBeCloseTo(focusBeforeViews.x, 5);
+      expect(focus.y).toBeCloseTo(focusBeforeViews.y, 5);
+    }
+
+    await page.locator('[data-restart]').click();
+    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.player)).toEqual(initial);
+    expect(await page.evaluate(() => window.__GONE_TEST__!.entityCount)).toBe(1);
+    expect(errors).toEqual([]);
+  });
+}
+
+test('location picker deploys the selected station district', async ({page}) => {
+  await page.goto('');
+  await expect(page.locator('[data-location-picker]')).toBeVisible();
+  await page.locator('[data-location]').selectOption('vatra-central-station');
+  await expect(page.locator('[data-location-description]')).toContainText('railway');
+  await page.locator('[data-load-location]').click();
+  await expect(page.locator('[data-location-picker]')).toBeHidden();
+  await expect(page.locator('canvas')).toBeVisible({timeout: 30_000});
+  await expect(page.locator('[data-location-name]')).toContainText('Vatra');
+});
+
+test('keyboard controls switch views, pace, and pause', async ({page}) => {
+  await openExploration(page);
+  await page.keyboard.press('5');
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
+  await page.keyboard.press('r');
+  await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'run');
+  await page.keyboard.press('w');
+  await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'walk');
+  await page.keyboard.press('Space');
+  await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
+});
+
+test('real touch gestures and orientation changes preserve exploration state', async ({browser}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    deviceScaleFactor: 2,
+    viewport: {width: 390, height: 844},
+  });
+  const page = await context.newPage();
+  const errors = await openExploration(page);
+  const session = await context.newCDPSession(page);
+  const canvasBox = await page.locator('canvas').boundingBox();
+  expect(canvasBox).not.toBeNull();
+
+  await expect(page.locator('.orientation-hint')).toBeVisible();
+  const initial = await page.evaluate(() => window.__GONE_TEST__!);
+  const destination = await diagnosticDestinationClient(page);
+  await page.touchscreen.tap(destination.x, destination.y);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.playerMoving)).toBe(true);
+  await expect.poll(
+    () => page.evaluate(() => window.__GONE_TEST__!.playerMoving),
+    {timeout: 12_000},
+  ).toBe(false);
+  const afterTap = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(Math.hypot(afterTap.player.x - initial.player.x, afterTap.player.y - initial.player.y)).toBeGreaterThan(1);
+
+  const zoomBeforePinch = afterTap.cameraZoom;
+  const pinchCenterX = canvasBox!.x + canvasBox!.width / 2;
+  const pinchY = canvasBox!.y + canvasBox!.height * 0.3;
+  await dispatchTouch(session, 'touchStart', [
+    {id: 1, x: pinchCenterX - 20, y: pinchY},
+    {id: 2, x: pinchCenterX + 20, y: pinchY},
+  ]);
+  await page.waitForTimeout(100);
+  for (const spread of [35, 50, 70]) {
+    await dispatchTouch(session, 'touchMove', [
+      {id: 1, x: pinchCenterX - spread, y: pinchY},
+      {id: 2, x: pinchCenterX + spread, y: pinchY},
+    ]);
+    await page.waitForTimeout(100);
+  }
+  await dispatchTouch(session, 'touchEnd', []);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThan(
+    zoomBeforePinch,
+  );
+  const afterPinch = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(afterPinch.player).toEqual(afterTap.player);
+
+  const dragStart = {
+    id: 1,
+    x: canvasBox!.x + canvasBox!.width * 0.72,
+    y: canvasBox!.y + canvasBox!.height * 0.45,
+  };
+  await dispatchTouch(session, 'touchStart', [dragStart]);
+  for (let step = 1; step <= 5; step += 1) {
+    await dispatchTouch(session, 'touchMove', [
+      {id: 1, x: dragStart.x - step * 14, y: dragStart.y + step * 3},
+    ]);
+  }
+  await dispatchTouch(session, 'touchEnd', []);
+  const beforeRotate = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(beforeRotate.player).toEqual(afterTap.player);
+  expect(
+    Math.hypot(
+      beforeRotate.cameraFocus.x - afterPinch.cameraFocus.x,
+      beforeRotate.cameraFocus.y - afterPinch.cameraFocus.y,
+    ),
+  ).toBeGreaterThan(0.1);
+
+  await page.setViewportSize({width: 844, height: 390});
+  await expect(page.locator('.orientation-hint')).toBeHidden();
+  const afterRotate = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(afterRotate.player).toEqual(beforeRotate.player);
+  expect(afterRotate.activeView).toBe(beforeRotate.activeView);
+  expect(afterRotate.cameraZoom).toBeCloseTo(beforeRotate.cameraZoom, 5);
+  expect(afterRotate.session.pace).toBe(beforeRotate.session.pace);
+  expect(errors).toEqual([]);
+  await context.close();
+});

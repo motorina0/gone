@@ -3,6 +3,25 @@
   "id": "piata-unirii-environment",
   "name": "Original schematic approximation of Piața Unirii",
   "disclaimer": "Stylized placeholder; not geographically or architecturally exact.",
+  "atmosphere": {
+    "sky": "#606b69",
+    "horizon": "#202b2a",
+    "ground": "#77786f",
+    "groundDark": "#414b48",
+    "wetness": 0.32
+  },
+  "surfaces": [
+    {"id": "central-plaza", "type": "plaza", "x": 4, "y": 13, "width": 112, "height": 63, "color": "#90897a"},
+    {"id": "north-road", "type": "road", "x": 0, "y": 0, "width": 600, "height": 14},
+    {"id": "central-road", "type": "road", "x": 0, "y": 76, "width": 600, "height": 29},
+    {"id": "south-road", "type": "road", "x": 0, "y": 155, "width": 600, "height": 25},
+    {"id": "west-crossing", "type": "road", "x": 118, "y": 0, "width": 27, "height": 180},
+    {"id": "central-crossing", "type": "road", "x": 278, "y": 0, "width": 34, "height": 180},
+    {"id": "east-crossing", "type": "road", "x": 482, "y": 0, "width": 27, "height": 180},
+    {"id": "north-pavement", "type": "sidewalk", "x": 0, "y": 14, "width": 600, "height": 5},
+    {"id": "square-pavement", "type": "sidewalk", "x": 0, "y": 69, "width": 600, "height": 7},
+    {"id": "south-pavement", "type": "sidewalk", "x": 0, "y": 105, "width": 600, "height": 6}
+  ],
   "landmarks": [
     {
       "id": "church",
@@ -12,7 +31,12 @@
       "y": 24,
       "width": 25,
       "height": 38,
-      "color": "#5a5b57"
+      "color": "#5a5b57",
+      "elevation": 20,
+      "roof": "pitched",
+      "material": "stone",
+      "floors": 4,
+      "renderInDetailOverlay": true
     },
     {
       "id": "tower",
@@ -22,7 +46,12 @@
       "y": 17,
       "width": 9,
       "height": 11,
-      "color": "#77756c"
+      "color": "#77756c",
+      "elevation": 32,
+      "roof": "pitched",
+      "material": "stone",
+      "floors": 6,
+      "renderInDetailOverlay": true
     },
     {
       "id": "monument",
@@ -42,7 +71,11 @@
       "y": 24,
       "width": 34,
       "height": 27,
-      "color": "#68645d"
+      "color": "#68645d",
+      "elevation": 13,
+      "roof": "pitched",
+      "material": "stone",
+      "floors": 4
     },
     {
       "id": "building-02",
@@ -52,7 +85,11 @@
       "y": 108,
       "width": 29,
       "height": 39,
-      "color": "#656b68"
+      "color": "#656b68",
+      "elevation": 15,
+      "roof": "pitched",
+      "material": "stone",
+      "floors": 5
     },
     {
       "id": "building-03",
@@ -62,7 +99,11 @@
       "y": 35,
       "width": 46,
       "height": 31,
-      "color": "#74675b"
+      "color": "#74675b",
+      "elevation": 11,
+      "roof": "pitched",
+      "material": "brick",
+      "floors": 3
     },
     {
       "id": "building-04",
@@ -72,7 +113,11 @@
       "y": 119,
       "width": 37,
       "height": 34,
-      "color": "#606b70"
+      "color": "#606b70",
+      "elevation": 14,
+      "roof": "flat",
+      "material": "stone",
+      "floors": 4
     },
     {
       "id": "building-05",
@@ -82,7 +127,11 @@
       "y": 51,
       "width": 33,
       "height": 47,
-      "color": "#71645f"
+      "color": "#71645f",
+      "elevation": 16,
+      "roof": "pitched",
+      "material": "brick",
+      "floors": 5
     }
   ],
   "trees": [
@@ -113,24 +162,40 @@
   ],
   "streetFurniture": [
     {
+      "id": "piata-bench-west",
       "type": "bench",
       "x": 25,
       "y": 48
     },
     {
+      "id": "piata-bench-east",
       "type": "bench",
       "x": 92,
       "y": 55
     },
     {
+      "id": "piata-car-west",
       "type": "car",
       "x": 15,
-      "y": 84
+      "y": 84,
+      "width": 5,
+      "depth": 2.2,
+      "height": 1.5,
+      "rotation": 4,
+      "color": "#554844",
+      "blocksMovement": true
     },
     {
+      "id": "piata-car-north",
       "type": "car",
       "x": 100,
-      "y": 8
+      "y": 8,
+      "width": 4.7,
+      "depth": 2.1,
+      "height": 1.45,
+      "rotation": -3,
+      "color": "#4b5c61",
+      "blocksMovement": true
     }
   ]
 }

@@ -8,5 +8,6 @@
     "y": 120,
     "elevation": 0
   },
-  "speed": 8
+  "speed": 8,
+  "runSpeed": 13
 }
