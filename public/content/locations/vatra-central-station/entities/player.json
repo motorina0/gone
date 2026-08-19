@@ -4,8 +4,8 @@
   "name": "Agent",
   "kind": "player",
   "spawn": {
-    "x": 300,
-    "y": 240,
+    "x": 200,
+    "y": 165,
     "elevation": 0
   },
   "speed": 8,

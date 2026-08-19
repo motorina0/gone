@@ -5,6 +5,7 @@ import type {
   LoadedContent,
   Manifest,
   MissionResource,
+  NavigationResource,
   PatrolResource,
   ProjectionResource,
   Rect,
@@ -51,13 +52,24 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     manifest.mode === 'mission'
       ? read<MissionResource>(new URL(manifest.mission, baseUrl))
       : Promise.resolve(undefined);
-  const [world, environment, mission, entitiesRaw, patrolsRaw, blockers, visionBlockers, projections] =
+  const [
+    world,
+    environment,
+    mission,
+    entitiesRaw,
+    patrolsRaw,
+    walkable,
+    blockers,
+    visionBlockers,
+    projections,
+  ] =
     await Promise.all([
       read<WorldResource>(new URL(manifest.world, baseUrl)),
       read<EnvironmentResource>(new URL(manifest.environment, baseUrl)),
       missionPromise,
       Promise.all(manifest.entities.map((path) => read<EntityResource>(new URL(path, baseUrl)))),
       Promise.all(manifest.patrols.map((path) => read<PatrolResource>(new URL(path, baseUrl)))),
+      read<NavigationResource>(new URL(manifest.navigation.walkable, baseUrl)),
       read<{rectangles: Rect[]}>(new URL(manifest.navigation.blockers, baseUrl)),
       read<{rectangles: Rect[]}>(new URL(manifest.navigation.visionBlockers, baseUrl)),
       Promise.all(
@@ -79,6 +91,7 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     mission,
     entities,
     patrols,
+    walkable,
     blockers: [...blockers.rectangles, ...environmentBlockers],
     visionBlockers: visionBlockers.rectangles,
     projections,

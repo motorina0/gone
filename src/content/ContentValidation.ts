@@ -3,9 +3,23 @@ import type {LoadedContent} from './ContentTypes';
 export const validateLoadedContent = (content: LoadedContent): string[] => {
   const errors: string[] = [];
   if (content.projections.length !== 5) errors.push('Exactly five projections are required.');
+  if (content.walkable.areas.length === 0) {
+    errors.push('At least one authored walkable area is required.');
+  }
 
   const players = content.entities.filter((entity) => entity.kind === 'player');
   if (players.length !== 1) errors.push('Exactly one player entity is required.');
+  const playerSpawn = players[0]?.spawn;
+  const worldSpawn = content.world.spawns.player;
+  if (
+    playerSpawn &&
+    worldSpawn &&
+    (playerSpawn.x !== worldSpawn.x ||
+      playerSpawn.y !== worldSpawn.y ||
+      playerSpawn.elevation !== worldSpawn.elevation)
+  ) {
+    errors.push('Player entity spawn must match the canonical world player spawn.');
+  }
 
   if (content.manifest.mode === 'exploration') {
     if (content.mission !== undefined) {

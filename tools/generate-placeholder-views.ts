@@ -1,5 +1,7 @@
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import {Resvg} from '@resvg/resvg-js';
+import sharp from 'sharp';
 
 interface Point {
   x: number;
@@ -67,6 +69,7 @@ interface Manifest {
   world: string;
   environment: string;
   projections: string[];
+  sourceViews: string[];
   views: string[];
   occlusion: string[];
   detailOverlays: string[];
@@ -219,7 +222,7 @@ for (const location of index.locations) {
                     {x: surface.x + surface.width / 2 + offset, y: surface.y},
                     {x: surface.x + surface.width / 2 + offset, y: surface.y + surface.height},
                   ];
-              return `<polyline points="${points(line)}" fill="none" stroke="#abb0a7" stroke-width="1.4"/>`;
+              return `<polyline points="${points(line)}" fill="none" stroke="#777d78" stroke-width="1.05"/><polyline points="${points(line)}" fill="none" stroke="#c2c4b8" stroke-width=".25" opacity=".65"/>`;
             })
             .join('');
           const length = horizontal ? surface.width : surface.height;
@@ -227,15 +230,17 @@ for (const location of index.locations) {
             const sleeper = horizontal
               ? rectangle(surface.x + offset, surface.y, 1, surface.height, 0.03)
               : rectangle(surface.x, surface.y + offset, surface.width, 1, 0.03);
-            detail += `<polygon points="${points(sleeper)}" fill="#252a28" opacity=".8"/>`;
+            detail += `<polygon points="${points(sleeper)}" fill="#292724" opacity=".92"/>`;
           }
         }
         const texture =
           surface.type === 'sidewalk' || surface.type === 'plaza'
-            ? 'url(#pavers)'
-            : surface.type === 'yard'
-              ? 'url(#yard)'
-              : fill;
+            ? 'url(#paversReal)'
+            : surface.type === 'road' || surface.type === 'yard'
+              ? 'url(#asphaltReal)'
+              : surface.type === 'rail'
+                ? 'url(#ballast)'
+                : fill;
         return `<g data-surface="${escapeXml(surface.id)}"><polygon points="${points(shape)}" fill="${texture}" stroke="${shade(fill, 24)}" stroke-width="1"/>${detail}</g>`;
       })
       .join('');
@@ -260,7 +265,10 @@ for (const location of index.locations) {
         );
         const shadow = base.map((point) => ({x: point.x + 4, y: point.y + 5}));
         const material = landmark.material ?? 'stone';
-        const wallFill = `url(#${material === 'glass' ? 'glass' : material})`;
+        const wallFill =
+          material === 'glass' || material === 'metal'
+            ? `url(#${material})`
+            : 'url(#masonryReal)';
         const walls = elevation
           ? [0, 1, 2, 3]
               .map(
@@ -277,24 +285,91 @@ for (const location of index.locations) {
         };
         const roofSvg =
           roofStyle === 'pitched' && !top
-            ? `<polygon points="${points([roof[0]!, roof[1]!, apex, roof[3]!])}" fill="url(#roofTile)" stroke="#3b403a"/><polygon points="${points([roof[1]!, roof[2]!, roof[3]!, apex])}" fill="url(#roofTileDark)" stroke="#3b403a"/>`
-            : `<polygon points="${points(roof)}" fill="${roofStyle === 'glass' ? 'url(#glass)' : landmark.color}" stroke="${shade(landmark.color, 30)}" stroke-width="1.2"/>`;
+            ? `<polygon points="${points([roof[0]!, roof[1]!, apex, roof[3]!])}" fill="url(#roofReal)" stroke="#272a25"/><polygon points="${points([roof[1]!, roof[2]!, roof[3]!, apex])}" fill="url(#roofRealDark)" stroke="#272a25"/>`
+            : `<polygon points="${points(roof)}" fill="${roofStyle === 'glass' ? 'url(#glass)' : 'url(#flatRoof)'}" stroke="${shade(landmark.color, 30)}" stroke-width="1.2"/>`;
         let facade = '';
         if (elevation >= 5 && !top) {
           const floors = landmark.floors ?? Math.max(1, Math.round(elevation / 4));
           for (let floor = 1; floor <= floors; floor += 1) {
             const z = (elevation * floor) / (floors + 1);
             for (const side of [1, 2]) {
-              const from = project({...base[side]!, elevation: z});
-              const to = project({...base[(side + 1) % 4]!, elevation: z});
-              facade += `<line x1="${from.x.toFixed(1)}" y1="${from.y.toFixed(1)}" x2="${to.x.toFixed(1)}" y2="${to.y.toFixed(1)}" stroke="#d2c79e" stroke-width="2.5" stroke-dasharray="5 5" opacity=".55"/>`;
-              highlights.push(
-                `<line x1="${from.x.toFixed(1)}" y1="${from.y.toFixed(1)}" x2="${to.x.toFixed(1)}" y2="${to.y.toFixed(1)}" stroke="#dfb96f" stroke-width="2" stroke-dasharray="4 7" opacity=".28"/>`,
-              );
+              const start = base[side]!;
+              const end = base[(side + 1) % 4]!;
+              const edgeLength = Math.hypot(end.x - start.x, end.y - start.y);
+              const columns = Math.max(2, Math.min(9, Math.floor(edgeLength / 7)));
+              for (let column = 0; column < columns; column += 1) {
+                const center = (column + 0.5) / columns;
+                const half = Math.min(0.035, 0.28 / columns);
+                const window = [
+                  {x: start.x + (end.x - start.x) * (center - half), y: start.y + (end.y - start.y) * (center - half), elevation: z - 0.7},
+                  {x: start.x + (end.x - start.x) * (center + half), y: start.y + (end.y - start.y) * (center + half), elevation: z - 0.7},
+                  {x: start.x + (end.x - start.x) * (center + half), y: start.y + (end.y - start.y) * (center + half), elevation: z + 0.7},
+                  {x: start.x + (end.x - start.x) * (center - half), y: start.y + (end.y - start.y) * (center - half), elevation: z + 0.7},
+                ];
+                facade += `<polygon points="${points(window)}" fill="url(#windowGlass)" stroke="#171c1b" stroke-width=".35"/>`;
+                highlights.push(`<polygon points="${points(window)}" fill="#dfb96f" opacity=".18"/>`);
+              }
             }
           }
         }
-        return `<g data-landmark="${escapeXml(landmark.id)}"><polygon points="${points(shadow)}" fill="#070b09" opacity=".34"/>${walls}${roofSvg}${facade}</g>`;
+        let roofEquipment = '';
+        if (elevation >= 6 && !top) {
+          const equipmentCount = roofStyle === 'flat' ? Math.min(4, Math.max(1, Math.floor(landmark.width / 24))) : 1;
+          for (let item = 0; item < equipmentCount; item += 1) {
+            const fraction = (item + 1) / (equipmentCount + 1);
+            const equipmentWidth = roofStyle === 'flat' ? 3.2 : 1.8;
+            const equipmentDepth = roofStyle === 'flat' ? 2.6 : 1.8;
+            const equipmentBase = rectangle(
+              landmark.x + landmark.width * fraction - equipmentWidth / 2,
+              landmark.y + landmark.height * (0.38 + (item % 2) * 0.24) - equipmentDepth / 2,
+              equipmentWidth,
+              equipmentDepth,
+              elevation + 0.15,
+            );
+            const equipmentTop = equipmentBase.map((point) => ({
+              ...point,
+              elevation: (point.elevation ?? elevation) + (roofStyle === 'flat' ? 1.4 : 2.4),
+            }));
+            roofEquipment += [0, 1, 2, 3]
+              .map(
+                (side) =>
+                  `<polygon points="${points([equipmentBase[side]!, equipmentBase[(side + 1) % 4]!, equipmentTop[(side + 1) % 4]!, equipmentTop[side]!])}" fill="#494b46" stroke="#272b28" stroke-width=".4"/>`,
+              )
+              .join('');
+            roofEquipment += `<polygon points="${points(equipmentTop)}" fill="#77786d" stroke="#242926" stroke-width=".5"/>`;
+          }
+        }
+        const roofInset = rectangle(
+          landmark.x + Math.min(2, landmark.width * 0.08),
+          landmark.y + Math.min(2, landmark.height * 0.08),
+          landmark.width - Math.min(4, landmark.width * 0.16),
+          landmark.height - Math.min(4, landmark.height * 0.16),
+          elevation + 0.06,
+        );
+        const roofWeathering =
+          roofStyle === 'flat'
+            ? `<polygon points="${points(roofInset)}" fill="none" stroke="#282e2b" stroke-width=".65" opacity=".7"/>`
+            : '';
+        const roofPanels = ['platform', 'warehouse', 'station'].includes(landmark.type)
+          ? [0.2, 0.4, 0.6, 0.8]
+              .map((fraction) => {
+                const line = [
+                  {
+                    x: landmark.x + landmark.width * fraction,
+                    y: landmark.y + 1,
+                    elevation: elevation + 0.08,
+                  },
+                  {
+                    x: landmark.x + landmark.width * fraction,
+                    y: landmark.y + landmark.height - 1,
+                    elevation: elevation + 0.08,
+                  },
+                ];
+                return `<polyline points="${points(line)}" fill="none" stroke="#c1c0ad" stroke-width=".42" opacity=".44"/>`;
+              })
+              .join('')
+          : '';
+        return `<g data-landmark="${escapeXml(landmark.id)}"><polygon points="${points(shadow)}" fill="#070b09" opacity=".42"/>${walls}${roofSvg}${roofWeathering}${roofPanels}${roofEquipment}${facade}</g>`;
       })
       .join('');
 
@@ -378,12 +453,34 @@ for (const location of index.locations) {
           .join('')
       : '';
 
-    const defs = `<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="${atmosphere.sky}"/><stop offset="1" stop-color="${atmosphere.horizon}"/></linearGradient><linearGradient id="ground" x2="0" y2="1"><stop stop-color="${atmosphere.ground}"/><stop offset="1" stop-color="${atmosphere.groundDark}"/></linearGradient><linearGradient id="stone"><stop stop-color="#aaa598"/><stop offset="1" stop-color="#777a70"/></linearGradient><linearGradient id="concrete"><stop stop-color="#a2a69e"/><stop offset="1" stop-color="#666f6c"/></linearGradient><linearGradient id="metal"><stop stop-color="#758183"/><stop offset="1" stop-color="#465153"/></linearGradient><linearGradient id="glass" x2="1" y2="1"><stop stop-color="#9bb5b6"/><stop offset=".5" stop-color="#49636a"/><stop offset="1" stop-color="#c5d0c9"/></linearGradient><pattern id="brick" width="12" height="7" patternUnits="userSpaceOnUse"><rect width="12" height="7" fill="#744b43"/><path d="M0 3.5h12M6 0v3.5M0 3.5v3.5" stroke="#9a6e61" stroke-width=".7"/></pattern><pattern id="roofTile" width="9" height="6" patternUnits="userSpaceOnUse"><rect width="9" height="6" fill="#685a50"/><path d="M0 3h9M4.5 0v3" stroke="#8b7668" stroke-width=".7"/></pattern><pattern id="roofTileDark" width="9" height="6" patternUnits="userSpaceOnUse"><rect width="9" height="6" fill="#4e4a45"/><path d="M0 3h9M4.5 0v3" stroke="#6d665e" stroke-width=".7"/></pattern><pattern id="pavers" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#777a70"/><path d="M0 4h8M4 0v4M0 4v4" stroke="#94978b" stroke-width=".55"/></pattern><pattern id="yard" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#414b48"/><path d="M-2 10L10-2M3 12L12 3" stroke="#6c7772" stroke-width="1" opacity=".4"/></pattern><pattern id="district" width="100" height="74" patternUnits="userSpaceOnUse"><rect width="100" height="74" fill="#18211f"/><rect x="6" y="7" width="38" height="25" fill="#2b3633" stroke="#46514d"/><rect x="53" y="13" width="40" height="18" fill="#25302e" stroke="#424d49"/><path d="M0 42h100M48 0v74" stroke="#65706c" stroke-width="5" opacity=".22"/></pattern><filter id="grain"><feTurbulence baseFrequency=".35" numOctaves="3" seed="19" result="n"/><feColorMatrix in="n" values=".13 0 0 0 .6 0 .13 0 0 .58 0 0 .13 0 .55 0 0 0 .18 0"/><feBlend in="SourceGraphic" mode="multiply"/></filter></defs>`;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<rect width="960" height="640" fill="url(#sky)"/><rect width="960" height="640" fill="url(#district)" opacity=".78"/><polygon points="${points(ground)}" fill="url(#ground)" stroke="#89948b" stroke-width="2" filter="url(#grain)"/>${surfaceSvg}${puddles}${buildingSvg}${treeSvg}${propSvg}<text x="22" y="620" fill="#d8d4bd" opacity=".54" font-family="ui-monospace,monospace" font-size="10" letter-spacing="2">${escapeXml(manifest.name.toUpperCase())} // ${escapeXml(projection.name.toUpperCase())}</text></svg>`;
+    const materialRoot = '../../../materials';
+    const defs = `<defs>
+      <linearGradient id="sky" x2="0" y2="1"><stop stop-color="${atmosphere.sky}"/><stop offset="1" stop-color="${atmosphere.horizon}"/></linearGradient>
+      <linearGradient id="metal"><stop stop-color="#758183"/><stop offset="1" stop-color="#384344"/></linearGradient>
+      <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#9bb5b6"/><stop offset=".5" stop-color="#314b52"/><stop offset="1" stop-color="#c5d0c9"/></linearGradient>
+      <linearGradient id="windowGlass" x2="0" y2="1"><stop stop-color="#9eaaa4"/><stop offset=".42" stop-color="#303b3a"/><stop offset="1" stop-color="#171d1c"/></linearGradient>
+      <linearGradient id="flatRoof" x2="0" y2="1"><stop stop-color="#77796f"/><stop offset="1" stop-color="#4b514d"/></linearGradient>
+      <pattern id="asphaltReal" width="192" height="192" patternUnits="userSpaceOnUse"><image href="${materialRoot}/industrial-wet-asphalt.png" width="192" height="192" preserveAspectRatio="none"/></pattern>
+      <pattern id="paversReal" width="150" height="150" patternUnits="userSpaceOnUse"><image href="${materialRoot}/old-town-pavers.png" width="150" height="150" preserveAspectRatio="none"/></pattern>
+      <pattern id="masonryReal" width="180" height="180" patternUnits="userSpaceOnUse"><image href="${materialRoot}/weathered-masonry.png" width="180" height="180" preserveAspectRatio="none"/></pattern>
+      <pattern id="roofReal" width="144" height="144" patternUnits="userSpaceOnUse"><image href="${materialRoot}/weathered-roof.png" width="144" height="144" preserveAspectRatio="none"/></pattern>
+      <pattern id="roofRealDark" width="144" height="144" patternUnits="userSpaceOnUse"><rect width="144" height="144" fill="#1c1b19"/><image href="${materialRoot}/weathered-roof.png" width="144" height="144" preserveAspectRatio="none" opacity=".66"/></pattern>
+      <pattern id="ballast" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#3b403d"/><circle cx="2" cy="3" r="1.6" fill="#77776d"/><circle cx="8" cy="7" r="2" fill="#5b5d56"/><circle cx="11" cy="1" r="1" fill="#8b887d"/></pattern>
+      <radialGradient id="vignette"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#020604" stop-opacity=".55"/></radialGradient>
+      <filter id="grain"><feTurbulence baseFrequency=".45" numOctaves="2" seed="19" result="n"/><feColorMatrix in="n" values=".08 0 0 0 .55 0 .08 0 0 .54 0 0 .08 0 .5 0 0 0 .13 0"/><feBlend in="SourceGraphic" mode="multiply"/></filter>
+    </defs>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1280" viewBox="0 0 960 640">${defs}<rect width="960" height="640" fill="#1c2926"/><rect width="960" height="640" fill="url(#asphaltReal)" opacity=".72"/><rect width="960" height="640" fill="url(#sky)" opacity=".18"/><polygon points="${points(ground)}" fill="url(#asphaltReal)" opacity=".96" filter="url(#grain)"/>${surfaceSvg}${puddles}${buildingSvg}${treeSvg}${propSvg}<rect width="960" height="640" fill="url(#vignette)" pointer-events="none"/></svg>`;
 
-    const viewPath = path.join(locationRoot, manifest.views[viewIndex]!);
-    await mkdir(path.dirname(viewPath), {recursive: true});
-    await writeFile(viewPath, svg);
+    const sourceViewPath = path.join(locationRoot, manifest.sourceViews[viewIndex]!);
+    await mkdir(path.dirname(sourceViewPath), {recursive: true});
+    await writeFile(sourceViewPath, svg);
+    const runtimeViewPath = path.join(locationRoot, manifest.views[viewIndex]!);
+    const absoluteMaterialRoot = `${path.join(contentRoot, 'materials')}${path.sep}`;
+    const renderableSvg = svg.replaceAll(`${materialRoot}/`, absoluteMaterialRoot);
+    const renderedView = new Resvg(renderableSvg).render().asPng();
+    await sharp(renderedView)
+      .webp({quality: 86, smartSubsample: true})
+      .toFile(runtimeViewPath);
 
     const occluders = environment.landmarks
       .filter(

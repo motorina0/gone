@@ -12,6 +12,59 @@
     },
     "name": {
       "type": "string"
+    },
+    "cellSize": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "bounds": {
+      "type": "object",
+      "properties": {
+        "minX": {"type": "number"},
+        "minY": {"type": "number"},
+        "maxX": {"type": "number"},
+        "maxY": {"type": "number"}
+      },
+      "required": ["minX", "minY", "maxX", "maxY"]
+    },
+    "rectangles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "width": {"type": "number", "exclusiveMinimum": 0},
+          "height": {"type": "number", "exclusiveMinimum": 0}
+        },
+        "required": ["id", "x", "y", "width", "height"]
+      }
+    },
+    "areas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "elevation": {"type": "number"},
+          "points": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {"type": "number"},
+                "y": {"type": "number"},
+                "elevation": {"type": "number"}
+              },
+              "required": ["x", "y", "elevation"]
+            }
+          }
+        },
+        "required": ["id", "elevation", "points"]
+      }
     }
   },
   "required": [

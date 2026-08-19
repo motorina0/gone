@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
+import type {NavigationResource} from '../src/content/ContentTypes';
 import {GridNavigationService} from '../src/navigation/Pathfinding';
 import {createProjection} from '../src/projection/Projection';
 import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
@@ -7,6 +8,7 @@ import {MovementSystem} from '../src/systems/MovementSystem';
 import {
   constrainCameraCenter,
   constrainCameraToPolygon,
+  constrainCameraToPolygonBounds,
   minimumZoomForPolygon,
 } from '../src/views/CameraBounds';
 import {VIEW_IDS, ViewManager} from '../src/views/ViewManager';
@@ -53,7 +55,7 @@ describe('canonical projections', () => {
   }
 
   it('preserves camera focus when switching view', () => {
-    const camera = {focus: point(12, 34), zoom: 1.2};
+    const camera = {focus: point(12, 34), zoom: 1.2, minimumZoom: 1};
     const switched = new ViewManager().switchTo('view-180', camera);
     expect(switched).toEqual(camera);
     expect(switched.focus).not.toBe(camera.focus);
@@ -94,7 +96,7 @@ describe('single-operative exploration content', () => {
       expect(manifest.mode).toBe('exploration');
       expect(manifest.entities).toEqual(['entities/player.json']);
       expect(manifest.patrols).toEqual([]);
-      expect(manifest.entityScale).toBe(0.42);
+      expect(manifest.entityScale).toBe(0.07);
       const player = readJson<{kind: string; speed: number; runSpeed: number}>(
         locationPath(locationId, manifest.entities[0]!),
       );
@@ -128,6 +130,43 @@ describe('single-operative exploration content', () => {
     expect(path.every((pathPoint) => navigation.isWalkable(pathPoint))).toBe(true);
     expect(navigation.findPath(point(2, 2), point(9, 4))).toEqual([]);
   });
+
+  it('never leaves authored walkable surfaces and smooths clear diagonal routes', () => {
+    const areas = [
+      {
+        id: 'square',
+        elevation: 0,
+        points: [point(0, 0), point(10, 0), point(10, 10), point(0, 10)],
+      },
+    ];
+    const navigation = new GridNavigationService(
+      {minX: 0, minY: 0, maxX: 20, maxY: 20},
+      [],
+      2,
+      areas,
+    );
+    expect(navigation.isWalkable(point(5, 5))).toBe(true);
+    expect(navigation.isWalkable(point(15, 5))).toBe(false);
+    expect(navigation.isWalkable({x: 5, y: 5, elevation: 7})).toBe(false);
+    expect(navigation.findPath(point(2, 2), point(8, 8))).toHaveLength(2);
+    expect(navigation.findPath(point(2, 2), point(15, 5))).toEqual([]);
+    expect(navigation.findPath(point(5, 5), {x: 5, y: 5, elevation: 7})).toEqual([]);
+  });
+
+  for (const locationId of LOCATION_IDS) {
+    it(`${locationId} keeps its deployment point on an authored navigation surface`, () => {
+      const resource = readJson<NavigationResource>(locationPath(locationId, 'navigation/walkable.json'));
+      const world = readJson<{spawns: {player: WorldPoint}}>(locationPath(locationId, 'world.json'));
+      const navigation = new GridNavigationService(
+        resource.bounds,
+        [],
+        resource.cellSize,
+        resource.areas,
+      );
+      expect(resource.areas.length).toBeGreaterThan(0);
+      expect(navigation.isWalkable(world.spawns.player)).toBe(true);
+    });
+  }
 });
 
 describe('data-driven environment artwork', () => {
@@ -178,6 +217,29 @@ describe('data-driven environment artwork', () => {
     for (const name of names) {
       const asset = readFileSync(locationPath('piata-unirii', `textures/${name}`));
       expect(asset.subarray(0, 8)).toEqual(pngSignature);
+    }
+  });
+
+  it('keeps original raster materials and operative sprites as external assets', () => {
+    const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    for (const name of [
+      'industrial-wet-asphalt.png',
+      'old-town-pavers.png',
+      'weathered-masonry.png',
+      'weathered-roof.png',
+    ]) {
+      expect(readFileSync(`public/content/materials/${name}`).subarray(0, 8)).toEqual(pngSignature);
+    }
+    for (const locationId of LOCATION_IDS) {
+      expect(
+        readFileSync(locationPath(locationId, 'sprites/agent-isometric.png')).subarray(0, 8),
+      ).toEqual(pngSignature);
+      expect(readFileSync(locationPath(locationId, 'views/view-0.svg'), 'utf8')).toContain(
+        '../../../materials/industrial-wet-asphalt.png',
+      );
+      const rendered = readFileSync(locationPath(locationId, 'views/view-0.webp'));
+      expect(rendered.subarray(0, 4).toString()).toBe('RIFF');
+      expect(rendered.subarray(8, 12).toString()).toBe('WEBP');
     }
   });
 });
@@ -242,5 +304,18 @@ describe('settings and camera behavior', () => {
     );
     expect(center.x).toBeCloseTo(480, 4);
     expect(center.y).toBeCloseTo(320, 4);
+  });
+
+  it('keeps a close tactical camera inside the projected world bounds', () => {
+    const diamond = [
+      {x: 480, y: 70},
+      {x: 910, y: 320},
+      {x: 480, y: 570},
+      {x: 50, y: 320},
+    ];
+    expect(constrainCameraToPolygonBounds({x: 20, y: 900}, diamond, 200, 130)).toEqual({
+      x: 250,
+      y: 440,
+    });
   });
 });

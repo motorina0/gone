@@ -28,12 +28,19 @@
     "projections/view-270.json",
     "projections/view-top.json"
   ],
-  "views": [
+  "sourceViews": [
     "views/view-0.svg",
     "views/view-90.svg",
     "views/view-180.svg",
     "views/view-270.svg",
     "views/view-top.svg"
+  ],
+  "views": [
+    "views/view-0.webp",
+    "views/view-90.webp",
+    "views/view-180.webp",
+    "views/view-270.webp",
+    "views/view-top.webp"
   ],
   "occlusion": [
     "occlusion/view-0.svg",
@@ -49,5 +56,5 @@
     "textures/cathedral-270.png",
     "textures/cathedral-top.png"
   ],
-  "entityScale": 0.42
+  "entityScale": 0.07
 }

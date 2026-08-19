@@ -4,6 +4,8 @@ The active product direction replaces the courier mission below with free explor
 
 Use the high-level composition of a classic 2001 tactical command console while retaining original Gone panels, icons, fonts, characters, maps, and artwork. Environments should richly render data-driven buildings, streets, static vehicles, trees, street furniture, atmosphere, and occlusion in all five canonical projections. The explicit prohibition on copying Commandos or other commercial UI/art/assets remains absolute.
 
+Tactical views must use close, cropped, full-bleed framing rather than presenting the complete projected floor as a floating board. Support drag, edge, keyboard, wheel, and pinch camera input, while SAT remains the full-map overview. Movement destinations and routes must stay on explicit authored streets, plazas, platforms, crossings, and yards, avoiding buildings and blocking props with deterministic smoothed routing.
+
 The original brief below is retained as architectural and historical context where it does not conflict with this override.
 
 ---

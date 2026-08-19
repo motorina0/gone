@@ -193,8 +193,23 @@ test('location picker deploys the selected station district', async ({page}) => 
 
 test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await openExploration(page);
+  const tactical = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(tactical.cameraZoom).toBeGreaterThanOrEqual(2.4);
+  expect(tactical.cameraZoom).toBe(tactical.minimumZoom);
+  const focusBeforePan = tactical.cameraFocus;
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(450);
+  await page.keyboard.up('ArrowRight');
+  await expect.poll(async () => {
+    const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+    return Math.hypot(focus.x - focusBeforePan.x, focus.y - focusBeforePan.y);
+  }).toBeGreaterThan(0.1);
   await page.keyboard.press('5');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBe(1);
+  await page.keyboard.press('1');
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThanOrEqual(2.4);
   await page.keyboard.press('r');
   await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'run');
   await page.keyboard.press('w');

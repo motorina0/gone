@@ -49,6 +49,12 @@
       "minItems": 5,
       "maxItems": 5
     },
+    "sourceViews": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 5,
+      "maxItems": 5
+    },
     "occlusion": {
       "type": "array",
       "minItems": 5,
@@ -79,6 +85,7 @@
     "entities",
     "patrols",
     "projections",
+    "sourceViews",
     "views",
     "occlusion",
     "detailOverlays",

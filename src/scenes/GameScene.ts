@@ -12,14 +12,17 @@ import {SettingsStore, type Settings} from '../persistence/SettingsStore';
 import {APP_HEIGHT, APP_WIDTH} from '../app/AppConfig';
 import {
   constrainCameraCenter,
-  constrainCameraToPolygon,
+  constrainCameraToPolygonBounds,
   type ScreenPoint,
 } from '../views/CameraBounds';
 
-const MIN_ZOOM_LEVEL = 1;
+const SATELLITE_MIN_ZOOM = 1;
+const TACTICAL_MIN_ZOOM = 2.4;
 const MAX_ZOOM_LEVEL = 5;
 const TAP_DISTANCE = 10;
 const DOUBLE_TAP_MS = 360;
+const EDGE_SCROLL_ZONE = 24;
+const CAMERA_PAN_SPEED = 260;
 
 interface TapRecord {
   at: number;
@@ -47,8 +50,12 @@ export class GameScene extends Phaser.Scene {
   private pinchDistance = 0;
   private settingsStore = new SettingsStore();
   private settings!: Settings;
-  private zoomLevel = MIN_ZOOM_LEVEL;
+  private zoomLevel = TACTICAL_MIN_ZOOM;
+  private tacticalZoomLevel = TACTICAL_MIN_ZOOM;
+  private minimumZoom = TACTICAL_MIN_ZOOM;
   private mapPolygon: ScreenPoint[] = [];
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private edgePointer?: {x: number; y: number};
 
   constructor() {
     super('game');
@@ -58,21 +65,33 @@ export class GameScene extends Phaser.Scene {
     const content = this.registry.get('content') as LoadedContent;
     this.world = new WorldState(content);
     this.projections = new ProjectionService(content.projections);
-    this.navigation = new GridNavigationService(content.world.bounds, content.blockers);
+    this.navigation = new GridNavigationService(
+      content.walkable.bounds,
+      content.blockers,
+      content.walkable.cellSize,
+      content.walkable.areas,
+    );
     this.settings = this.settingsStore.load();
     this.world.activeView = this.settings.preferredView;
-    this.zoomLevel = Phaser.Math.Clamp(
-      Math.round(this.settings.zoom),
-      MIN_ZOOM_LEVEL,
+    this.tacticalZoomLevel = Phaser.Math.Clamp(
+      this.settings.zoom,
+      TACTICAL_MIN_ZOOM,
       MAX_ZOOM_LEVEL,
     );
+    this.zoomLevel = this.world.activeView === 'view-top' ? 1 : this.tacticalZoomLevel;
     this.world.camera.zoom = this.zoomLevel;
+    this.world.camera.minimumZoom = this.minimumZoom;
 
-    this.background = this.add.image(0, 0, 'background-0').setOrigin(0).setDepth(0);
+    this.background = this.add
+      .image(0, 0, 'background-0')
+      .setOrigin(0)
+      .setDisplaySize(APP_WIDTH, APP_HEIGHT)
+      .setDepth(0);
     this.detail = this.add.image(0, 0, 'detail-0').setOrigin(0).setDepth(1);
     this.markers = this.add.graphics().setDepth(2);
     this.sprite = this.add
       .image(0, 0, 'agent-isometric')
+      .setOrigin(0.5, 0.92)
       .setDepth(3)
       .setName(this.world.player.id)
       .setScale(content.manifest.entityScale);
@@ -80,6 +99,7 @@ export class GameScene extends Phaser.Scene {
 
     this.input.mouse?.disableContextMenu();
     this.input.addPointer(2);
+    this.cursors = this.input.keyboard?.createCursorKeys();
     this.cameras.main.setZoom(this.world.camera.zoom);
     this.installInput();
     this.hud = new HudController({
@@ -99,6 +119,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
+    this.updateCameraNavigation(Math.min(delta / 1000, 0.1));
     this.clock.advance(Math.min(delta / 1000, 0.1), (dt) => this.step(dt));
     this.renderWorld();
     this.hud.render(this.world);
@@ -116,12 +137,14 @@ export class GameScene extends Phaser.Scene {
 
   private installInput(): void {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      this.trackEdgePointer(pointer);
       this.pointerStart = {x: pointer.x, y: pointer.y, time: performance.now()};
       this.pointerLast = {x: pointer.x, y: pointer.y};
       this.panning = pointer.middleButtonDown() || pointer.rightButtonDown();
     });
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      this.trackEdgePointer(pointer);
       const touches = this.input.manager.pointers.filter((item) => item.isDown);
       if (touches.length >= 2) {
         this.updatePinch(touches);
@@ -163,20 +186,23 @@ export class GameScene extends Phaser.Scene {
       if (tap) this.issueOrder(pointer);
     });
 
+    this.input.on('gameout', () => {
+      this.edgePointer = undefined;
+    });
+
     this.input.on(
       'wheel',
       (_pointer: unknown, _objects: unknown, _dx: number, dy: number) => {
         const next = Phaser.Math.Clamp(
           this.zoomLevel - dy * 0.002,
-          MIN_ZOOM_LEVEL,
+          this.minimumZoom,
           MAX_ZOOM_LEVEL,
         );
         this.zoomLevel = next;
         this.world.camera.zoom = next;
         this.cameras.main.setZoom(next);
         this.constrainCamera();
-        this.settings.zoom = next;
-        this.saveSettings();
+        this.rememberTacticalZoom();
       },
     );
   }
@@ -189,11 +215,12 @@ export class GameScene extends Phaser.Scene {
     if (this.pinchDistance > 0) {
       this.zoomLevel = Phaser.Math.Clamp(
         this.zoomLevel + (distance - this.pinchDistance) * 0.01,
-        MIN_ZOOM_LEVEL,
+        this.minimumZoom,
         MAX_ZOOM_LEVEL,
       );
       this.world.camera.zoom = this.zoomLevel;
       this.cameras.main.setZoom(this.zoomLevel);
+      this.rememberTacticalZoom();
     }
     this.pinchDistance = distance;
     this.panning = true;
@@ -263,18 +290,21 @@ export class GameScene extends Phaser.Scene {
       .setPosition(point.x, point.y + bob)
       .setTexture(this.world.activeView === 'view-top' ? 'agent-top' : 'agent-isometric')
       .setFlipX(heading.x < point.x)
-      .setScale(this.world.content.manifest.entityScale);
+      .setScale(
+        this.world.content.manifest.entityScale *
+          (this.world.activeView === 'view-top' ? 2 : 1),
+      );
 
     this.markers.clear();
-    this.markers.fillStyle(0x07100a, 0.55).fillEllipse(point.x, point.y + 8, 25, 10);
-    this.markers.lineStyle(2, 0xb9d879, 0.95).strokeCircle(point.x, point.y + 4, 16);
+    this.markers.fillStyle(0x07100a, 0.55).fillEllipse(point.x, point.y + 2, 9, 4);
+    this.markers.lineStyle(1, 0xb9d879, 0.95).strokeEllipse(point.x, point.y + 1, 12, 6);
 
     if (this.destination) {
       const destination = projection.worldToScreen(this.destination);
       const walkable = this.navigation.isWalkable(this.destination);
-      const pulse = 8 + Math.sin(this.world.simulationTime * 5) * 2;
+      const pulse = 4 + Math.sin(this.world.simulationTime * 5);
       this.markers
-        .lineStyle(2, walkable ? 0xd9c373 : 0xc65c4b, 0.95)
+        .lineStyle(1, walkable ? 0xd9c373 : 0xc65c4b, 0.95)
         .strokeCircle(destination.x, destination.y, pulse);
       this.markers.fillStyle(walkable ? 0xd9c373 : 0xc65c4b, 0.75).fillCircle(
         destination.x,
@@ -300,9 +330,9 @@ export class GameScene extends Phaser.Scene {
       mapHeight: APP_HEIGHT,
     });
     const bounded =
-      this.zoomLevel === MIN_ZOOM_LEVEL
+      this.world.activeView === 'view-top' && this.zoomLevel === SATELLITE_MIN_ZOOM
         ? center
-        : constrainCameraToPolygon(
+        : constrainCameraToPolygonBounds(
             center,
             this.mapPolygon,
             camera.width / (2 * camera.zoom),
@@ -317,7 +347,7 @@ export class GameScene extends Phaser.Scene {
   private adjustZoom(delta: number): void {
     this.zoomLevel = Phaser.Math.Clamp(
       Math.round(this.zoomLevel) + delta,
-      MIN_ZOOM_LEVEL,
+      this.minimumZoom,
       MAX_ZOOM_LEVEL,
     );
     this.world.camera.zoom = this.zoomLevel;
@@ -329,14 +359,19 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.centerOn(player.x, player.y);
     }
     this.constrainCamera();
-    this.settings.zoom = this.zoomLevel;
-    this.saveSettings();
+    this.rememberTacticalZoom();
   }
 
   private switchView(id: ViewId): void {
     const index = VIEW_IDS.indexOf(id);
     if (index < 0) return;
+    const canonicalFocus = {...this.world.camera.focus};
     this.world.activeView = id;
+    this.minimumZoom = id === 'view-top' ? SATELLITE_MIN_ZOOM : TACTICAL_MIN_ZOOM;
+    this.zoomLevel = id === 'view-top' ? SATELLITE_MIN_ZOOM : this.tacticalZoomLevel;
+    this.world.camera.zoom = this.zoomLevel;
+    this.world.camera.minimumZoom = this.minimumZoom;
+    this.cameras.main.setZoom(this.zoomLevel);
     const projection = this.projections.get(id);
     const bounds = this.world.content.world.bounds;
     this.mapPolygon = [
@@ -348,12 +383,45 @@ export class GameScene extends Phaser.Scene {
     const focus = projection.worldToScreen(this.world.camera.focus);
     this.cameras.main.centerOn(focus.x, focus.y);
     this.constrainCamera();
-    this.background.setTexture(`background-${index}`);
+    this.world.camera.focus = canonicalFocus;
+    this.background
+      .setTexture(`background-${index}`)
+      .setDisplaySize(APP_WIDTH, APP_HEIGHT);
     this.detail.setTexture(`detail-${index}`);
     this.foreground.setTexture(`occlusion-${index}`);
     this.settings.preferredView = id;
     this.saveSettings();
     this.renderWorld();
+  }
+
+  private trackEdgePointer(pointer: Phaser.Input.Pointer): void {
+    if (pointer.wasTouch) return;
+    this.edgePointer = {x: pointer.x, y: pointer.y};
+  }
+
+  private updateCameraNavigation(dt: number): void {
+    let horizontal = Number(Boolean(this.cursors?.right.isDown)) - Number(Boolean(this.cursors?.left.isDown));
+    let vertical = Number(Boolean(this.cursors?.down.isDown)) - Number(Boolean(this.cursors?.up.isDown));
+    if (this.edgePointer && !this.pointerStart) {
+      if (this.edgePointer.x <= EDGE_SCROLL_ZONE) horizontal -= 1;
+      if (this.edgePointer.x >= APP_WIDTH - EDGE_SCROLL_ZONE) horizontal += 1;
+      if (this.edgePointer.y <= EDGE_SCROLL_ZONE) vertical -= 1;
+      if (this.edgePointer.y >= APP_HEIGHT - EDGE_SCROLL_ZONE) vertical += 1;
+    }
+    const magnitude = Math.hypot(horizontal, vertical);
+    if (magnitude === 0) return;
+    const camera = this.cameras.main;
+    const travel = (CAMERA_PAN_SPEED * dt) / camera.zoom;
+    camera.scrollX += (horizontal / magnitude) * travel;
+    camera.scrollY += (vertical / magnitude) * travel;
+    this.constrainCamera();
+  }
+
+  private rememberTacticalZoom(): void {
+    if (this.world.activeView === 'view-top') return;
+    this.tacticalZoomLevel = this.zoomLevel;
+    this.settings.zoom = this.zoomLevel;
+    this.saveSettings();
   }
 
   private setPace(pace: MovementPace): void {
@@ -424,7 +492,7 @@ export class GameScene extends Phaser.Scene {
           cameraFocus: {...this.world.camera.focus},
           cameraScreenCenter: {x: this.cameras.main.midPoint.x, y: this.cameras.main.midPoint.y},
           cameraZoom: this.world.camera.zoom,
-          minimumZoom: MIN_ZOOM_LEVEL,
+          minimumZoom: this.minimumZoom,
           zoomLevel: this.zoomLevel,
           playerDisplayHeight: this.sprite.displayHeight * this.cameras.main.zoom,
           session: {...this.world.session},

@@ -57,7 +57,7 @@ export class WorldState {
       countdown: content.mission?.lockdownSeconds ?? 0,
       message: 'Mission systems disabled in exploration mode.',
     };
-    this.camera = {focus: clone(this.player.position), zoom: 1};
+    this.camera = {focus: clone(this.player.position), zoom: 1, minimumZoom: 1};
   }
 
   get player(): EntityState {

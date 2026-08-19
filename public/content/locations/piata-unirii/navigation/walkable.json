@@ -8,5 +8,77 @@
     "minY": 0,
     "maxX": 600,
     "maxY": 180
-  }
+  },
+  "areas": [
+    {
+      "id": "north-boulevard",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 7, "elevation": 0},
+        {"x": 600, "y": 7, "elevation": 0},
+        {"x": 600, "y": 20, "elevation": 0},
+        {"x": 0, "y": 20, "elevation": 0}
+      ]
+    },
+    {
+      "id": "old-town-plaza",
+      "elevation": 0,
+      "points": [
+        {"x": 4, "y": 13, "elevation": 0},
+        {"x": 116, "y": 13, "elevation": 0},
+        {"x": 116, "y": 76, "elevation": 0},
+        {"x": 4, "y": 76, "elevation": 0}
+      ]
+    },
+    {
+      "id": "central-boulevard",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 68, "elevation": 0},
+        {"x": 600, "y": 68, "elevation": 0},
+        {"x": 600, "y": 112, "elevation": 0},
+        {"x": 0, "y": 112, "elevation": 0}
+      ]
+    },
+    {
+      "id": "south-boulevard",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 150, "elevation": 0},
+        {"x": 600, "y": 150, "elevation": 0},
+        {"x": 600, "y": 180, "elevation": 0},
+        {"x": 0, "y": 180, "elevation": 0}
+      ]
+    },
+    {
+      "id": "west-crossing",
+      "elevation": 0,
+      "points": [
+        {"x": 116, "y": 0, "elevation": 0},
+        {"x": 147, "y": 0, "elevation": 0},
+        {"x": 147, "y": 180, "elevation": 0},
+        {"x": 116, "y": 180, "elevation": 0}
+      ]
+    },
+    {
+      "id": "central-crossing",
+      "elevation": 0,
+      "points": [
+        {"x": 276, "y": 0, "elevation": 0},
+        {"x": 314, "y": 0, "elevation": 0},
+        {"x": 314, "y": 180, "elevation": 0},
+        {"x": 276, "y": 180, "elevation": 0}
+      ]
+    },
+    {
+      "id": "east-crossing",
+      "elevation": 0,
+      "points": [
+        {"x": 480, "y": 0, "elevation": 0},
+        {"x": 511, "y": 0, "elevation": 0},
+        {"x": 511, "y": 180, "elevation": 0},
+        {"x": 480, "y": 180, "elevation": 0}
+      ]
+    }
+  ]
 }

@@ -8,6 +8,20 @@ export interface Rect {
   height: number;
 }
 
+export interface WalkableArea {
+  id: string;
+  elevation: number;
+  points: WorldPoint[];
+}
+
+export interface NavigationResource {
+  id: string;
+  name: string;
+  cellSize: number;
+  bounds: {minX: number; minY: number; maxX: number; maxY: number};
+  areas: WalkableArea[];
+}
+
 export interface ProjectionResource {
   id: string;
   name: string;
@@ -109,6 +123,7 @@ export interface Manifest {
   patrols: string[];
   interactions: Record<string, string>;
   projections: string[];
+  sourceViews: string[];
   views: string[];
   occlusion: string[];
   detailOverlays: string[];
@@ -122,6 +137,7 @@ export interface LoadedContent {
   mission?: MissionResource;
   entities: EntityResource[];
   patrols: PatrolResource[];
+  walkable: NavigationResource;
   blockers: Rect[];
   visionBlockers: Rect[];
   projections: ProjectionResource[];

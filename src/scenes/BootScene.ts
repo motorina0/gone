@@ -21,9 +21,11 @@ export class BootScene extends Phaser.Scene {
       content.views.forEach((url, index) => this.load.image(`background-${index}`, url));
       content.occlusion.forEach((url, index) => this.load.image(`occlusion-${index}`, url));
       content.detailOverlays.forEach((url, index) => this.load.image(`detail-${index}`, url));
-      for (const name of ['agent-isometric', 'agent-top']) {
-        this.load.image(name, new URL(`sprites/${name}.svg`, content.baseUrl).href);
-      }
+      this.load.image(
+        'agent-isometric',
+        new URL('sprites/agent-isometric.png', content.baseUrl).href,
+      );
+      this.load.image('agent-top', new URL('sprites/agent-top.svg', content.baseUrl).href);
       this.load.once(Phaser.Loader.Events.COMPLETE, () => this.scene.start('game'));
       this.load.start();
     } catch (error) {

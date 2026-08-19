@@ -50,4 +50,5 @@ export interface ExplorationState {
 export interface CameraState {
   focus: WorldPoint;
   zoom: number;
+  minimumZoom: number;
 }

@@ -10,8 +10,8 @@
   },
   "spawns": {
     "player": {
-      "x": 300,
-      "y": 240,
+      "x": 200,
+      "y": 165,
       "elevation": 0
     },
     "courier": {

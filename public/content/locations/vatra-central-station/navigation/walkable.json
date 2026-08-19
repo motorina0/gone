@@ -8,5 +8,77 @@
     "minY": 0,
     "maxX": 600,
     "maxY": 360
-  }
+  },
+  "areas": [
+    {
+      "id": "north-pavement",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 28, "elevation": 0},
+        {"x": 600, "y": 28, "elevation": 0},
+        {"x": 600, "y": 41, "elevation": 0},
+        {"x": 0, "y": 41, "elevation": 0}
+      ]
+    },
+    {
+      "id": "platform-one",
+      "elevation": 0,
+      "points": [
+        {"x": 128, "y": 40, "elevation": 0},
+        {"x": 426, "y": 40, "elevation": 0},
+        {"x": 426, "y": 84, "elevation": 0},
+        {"x": 128, "y": 84, "elevation": 0}
+      ]
+    },
+    {
+      "id": "terminal-forecourt",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 102, "elevation": 0},
+        {"x": 134, "y": 102, "elevation": 0},
+        {"x": 134, "y": 270, "elevation": 0},
+        {"x": 0, "y": 270, "elevation": 0}
+      ]
+    },
+    {
+      "id": "platform-two",
+      "elevation": 0,
+      "points": [
+        {"x": 128, "y": 138, "elevation": 0},
+        {"x": 450, "y": 138, "elevation": 0},
+        {"x": 450, "y": 186, "elevation": 0},
+        {"x": 128, "y": 186, "elevation": 0}
+      ]
+    },
+    {
+      "id": "station-pavement",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 164, "elevation": 0},
+        {"x": 600, "y": 164, "elevation": 0},
+        {"x": 600, "y": 186, "elevation": 0},
+        {"x": 0, "y": 186, "elevation": 0}
+      ]
+    },
+    {
+      "id": "south-apron-and-service-road",
+      "elevation": 0,
+      "points": [
+        {"x": 0, "y": 222, "elevation": 0},
+        {"x": 600, "y": 222, "elevation": 0},
+        {"x": 600, "y": 316, "elevation": 0},
+        {"x": 0, "y": 316, "elevation": 0}
+      ]
+    },
+    {
+      "id": "east-access-road",
+      "elevation": 0,
+      "points": [
+        {"x": 530, "y": 0, "elevation": 0},
+        {"x": 600, "y": 0, "elevation": 0},
+        {"x": 600, "y": 360, "elevation": 0},
+        {"x": 530, "y": 360, "elevation": 0}
+      ]
+    }
+  ]
 }
