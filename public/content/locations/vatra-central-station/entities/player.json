@@ -4,7 +4,7 @@
   "name": "Agent",
   "kind": "player",
   "spawn": {
-    "x": 200,
+    "x": 150,
     "y": 165,
     "elevation": 0
   },

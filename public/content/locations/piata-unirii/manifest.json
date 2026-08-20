@@ -56,5 +56,16 @@
     "textures/cathedral-270.png",
     "textures/cathedral-top.png"
   ],
-  "entityScale": 0.07
+  "agentAtlas": "sprites/agent-atlas.png",
+  "agentAnimation": {
+    "frameWidth": 128,
+    "frameHeight": 160,
+    "directions": 8,
+    "idle": [0],
+    "walk": [1, 2, 3, 4],
+    "run": [5, 6, 7, 8],
+    "walkFrameRate": 8,
+    "runFrameRate": 12
+  },
+  "entityScale": 0.12
 }

@@ -68,6 +68,27 @@
       "minItems": 5,
       "maxItems": 5
     },
+    "depthMaps": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "agentAtlas": {"type": "string"},
+    "agentAnimation": {
+      "type": "object",
+      "properties": {
+        "frameWidth": {"type": "integer", "minimum": 32},
+        "frameHeight": {"type": "integer", "minimum": 32},
+        "directions": {"const": 8},
+        "idle": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 1},
+        "walk": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2},
+        "run": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2},
+        "walkFrameRate": {"type": "number", "exclusiveMinimum": 0},
+        "runFrameRate": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "required": ["frameWidth", "frameHeight", "directions", "idle", "walk", "run", "walkFrameRate", "runFrameRate"]
+    },
     "entityScale": {
       "type": "number",
       "exclusiveMinimum": 0,
@@ -89,6 +110,8 @@
     "views",
     "occlusion",
     "detailOverlays",
+    "agentAtlas",
+    "agentAnimation",
     "entityScale"
   ]
 }

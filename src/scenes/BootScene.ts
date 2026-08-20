@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import {loadLocation} from '../content/ContentLoader';
 import {validateLoadedContent} from '../content/ContentValidation';
+import {SettingsStore} from '../persistence/SettingsStore';
+import {VIEW_IDS} from '../views/ViewManager';
 
 export class BootScene extends Phaser.Scene {
   constructor(private locationId: string) {
@@ -18,14 +20,19 @@ export class BootScene extends Phaser.Scene {
       if (errors.length) throw new Error(errors.join(' '));
 
       this.registry.set('content', content);
-      content.views.forEach((url, index) => this.load.image(`background-${index}`, url));
-      content.occlusion.forEach((url, index) => this.load.image(`occlusion-${index}`, url));
-      content.detailOverlays.forEach((url, index) => this.load.image(`detail-${index}`, url));
-      this.load.image(
-        'agent-isometric',
-        new URL('sprites/agent-isometric.png', content.baseUrl).href,
+      const preferredView = new SettingsStore().load().preferredView;
+      const initialViewIndex = Math.max(
+        0,
+        VIEW_IDS.findIndex((viewId) => viewId === preferredView),
       );
-      this.load.image('agent-top', new URL('sprites/agent-top.svg', content.baseUrl).href);
+      this.registry.set('initialViewIndex', initialViewIndex);
+      this.load.image(`background-${initialViewIndex}`, content.views[initialViewIndex]!);
+      this.load.image(`occlusion-${initialViewIndex}`, content.occlusion[initialViewIndex]!);
+      this.load.image(`detail-${initialViewIndex}`, content.detailOverlays[initialViewIndex]!);
+      this.load.spritesheet('agent-atlas', content.agentAtlas, {
+        frameWidth: content.manifest.agentAnimation.frameWidth,
+        frameHeight: content.manifest.agentAnimation.frameHeight,
+      });
       this.load.once(Phaser.Loader.Events.COMPLETE, () => this.scene.start('game'));
       this.load.start();
     } catch (error) {

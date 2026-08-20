@@ -12,6 +12,10 @@ declare global {
         world: {x: number; y: number; elevation: number};
         screen: {x: number; y: number};
       };
+      testBlockedDestination?: {
+        world: {x: number; y: number; elevation: number};
+        screen: {x: number; y: number};
+      };
       playerScale: number;
       playerMoving: boolean;
       movementPace?: string;
@@ -26,6 +30,23 @@ declare global {
       playerDisplayHeight: number;
       session: {paused: boolean; pace: string; message: string};
       loadedResources: boolean;
+      loadedViewCount: number;
+      loadedViews: number[];
+      following: boolean;
+      routePreviewLength: number;
+      activeRouteLength: number;
+      animation: string;
+      animationFrame: number;
+      cameraVelocity: {x: number; y: number};
+      projectedWorldBounds: Array<{x: number; y: number}>;
+      visibleStage: {
+        left: number;
+        top: number;
+        right: number;
+        bottom: number;
+        width: number;
+        height: number;
+      };
     };
   }
 }

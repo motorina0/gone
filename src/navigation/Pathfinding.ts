@@ -36,6 +36,39 @@ const insidePolygon = (point: WorldPoint, polygon: WorldPoint[]): boolean => {
   return inside;
 };
 
+const cross = (ax: number, ay: number, bx: number, by: number): number => ax * by - ay * bx;
+
+const boundaryParameters = (
+  start: WorldPoint,
+  end: WorldPoint,
+  edgeStart: WorldPoint,
+  edgeEnd: WorldPoint,
+): number[] => {
+  const rx = end.x - start.x;
+  const ry = end.y - start.y;
+  const sx = edgeEnd.x - edgeStart.x;
+  const sy = edgeEnd.y - edgeStart.y;
+  const qx = edgeStart.x - start.x;
+  const qy = edgeStart.y - start.y;
+  const denominator = cross(rx, ry, sx, sy);
+  if (Math.abs(denominator) > 1e-9) {
+    const t = cross(qx, qy, sx, sy) / denominator;
+    const u = cross(qx, qy, rx, ry) / denominator;
+    return t >= -1e-9 && t <= 1 + 1e-9 && u >= -1e-9 && u <= 1 + 1e-9
+      ? [Math.min(1, Math.max(0, t))]
+      : [];
+  }
+  if (Math.abs(cross(qx, qy, rx, ry)) > 1e-9) return [];
+  const lengthSquared = rx * rx + ry * ry;
+  if (lengthSquared < 1e-12) return [0];
+  return [
+    (qx * rx + qy * ry) / lengthSquared,
+    ((edgeEnd.x - start.x) * rx + (edgeEnd.y - start.y) * ry) / lengthSquared,
+  ]
+    .filter((value) => value >= -1e-9 && value <= 1 + 1e-9)
+    .map((value) => Math.min(1, Math.max(0, value)));
+};
+
 export class GridNavigationService implements NavigationService {
   constructor(
     private readonly bounds: {minX: number; minY: number; maxX: number; maxY: number},
@@ -84,7 +117,7 @@ export class GridNavigationService implements NavigationService {
       openKeys.delete(key(current));
 
       if (current.x === goal.x && current.y === goal.y) {
-        return this.buildPath(start, current, to, cameFrom);
+        return this.buildPath(start, current, from, to, cameFrom);
       }
 
       for (const [dx, dy] of [
@@ -150,7 +183,9 @@ export class GridNavigationService implements NavigationService {
 
   private nearestNode(point: WorldPoint): GridPoint | undefined {
     const center = this.toGrid(point);
-    if (this.nodeWalkable(center)) return center;
+    if (this.nodeWalkable(center) && this.segmentWalkable(point, this.toWorld(center))) {
+      return center;
+    }
     for (let radius = 1; radius <= 3; radius += 1) {
       const candidates: GridPoint[] = [];
       for (let x = -radius; x <= radius; x += 1) {
@@ -162,7 +197,10 @@ export class GridNavigationService implements NavigationService {
         candidates.push({x: center.x + radius, y: center.y + y});
       }
       const nearest = candidates
-        .filter((candidate) => this.nodeWalkable(candidate))
+        .filter(
+          (candidate) =>
+            this.nodeWalkable(candidate) && this.segmentWalkable(point, this.toWorld(candidate)),
+        )
         .sort(
           (left, right) =>
             Math.hypot(this.toWorld(left).x - point.x, this.toWorld(left).y - point.y) -
@@ -176,6 +214,7 @@ export class GridNavigationService implements NavigationService {
   private buildPath(
     start: GridPoint,
     goal: GridPoint,
+    origin: WorldPoint,
     destination: WorldPoint,
     cameFrom: Map<string, GridPoint>,
   ): WorldPoint[] {
@@ -185,27 +224,57 @@ export class GridNavigationService implements NavigationService {
       cursor = cameFrom.get(key(cursor))!;
       nodes.unshift(cursor);
     }
-    const route = nodes.map((node) => this.toWorld(node));
+    const route = [{...origin}, ...nodes.map((node) => this.toWorld(node))];
     if (route.length > 0) route[route.length - 1] = {...destination};
-    return this.smooth(route);
+    return this.smooth(route).slice(1);
   }
 
   private segmentWalkable(start: WorldPoint, end: WorldPoint): boolean {
-    const distance = Math.hypot(end.x - start.x, end.y - start.y);
-    const steps = Math.max(1, Math.ceil(distance / (this.cellSize * 0.4)));
-    for (let step = 0; step <= steps; step += 1) {
-      const amount = step / steps;
-      if (
-        !this.isWalkable({
-          x: start.x + (end.x - start.x) * amount,
-          y: start.y + (end.y - start.y) * amount,
-          elevation: start.elevation + (end.elevation - start.elevation) * amount,
-        })
-      ) {
-        return false;
+    if (Math.abs(start.elevation - end.elevation) > 1e-7) return false;
+    const parameters = [0, 1];
+    for (const area of this.areas) {
+      for (let index = 0; index < area.points.length; index += 1) {
+        parameters.push(
+          ...boundaryParameters(
+            start,
+            end,
+            area.points[index]!,
+            area.points[(index + 1) % area.points.length]!,
+          ),
+        );
       }
     }
-    return true;
+    for (const blocker of this.blockers) {
+      const left = blocker.x - 1;
+      const top = blocker.y - 1;
+      const right = blocker.x + blocker.width + 1;
+      const bottom = blocker.y + blocker.height + 1;
+      const corners: WorldPoint[] = [
+        {x: left, y: top, elevation: start.elevation},
+        {x: right, y: top, elevation: start.elevation},
+        {x: right, y: bottom, elevation: start.elevation},
+        {x: left, y: bottom, elevation: start.elevation},
+      ];
+      for (let index = 0; index < corners.length; index += 1) {
+        parameters.push(
+          ...boundaryParameters(start, end, corners[index]!, corners[(index + 1) % 4]!),
+        );
+      }
+    }
+    const sorted = [...new Set(parameters.map((value) => Number(value.toFixed(12))))].sort(
+      (left, right) => left - right,
+    );
+    const checkpoints = [...sorted];
+    for (let index = 0; index < sorted.length - 1; index += 1) {
+      checkpoints.push((sorted[index]! + sorted[index + 1]!) / 2);
+    }
+    return checkpoints.every((amount) =>
+      this.isWalkable({
+        x: start.x + (end.x - start.x) * amount,
+        y: start.y + (end.y - start.y) * amount,
+        elevation: start.elevation,
+      }),
+    );
   }
 
   private smooth(path: WorldPoint[]): WorldPoint[] {

@@ -54,17 +54,6 @@ body {
   height: 100vh;
 }
 
-#app:fullscreen #game canvas,
-#app.fullscreen-test #game canvas {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: max(100vw, 150vh) !important;
-  height: auto !important;
-  margin: 0 !important;
-  transform: translate(-50%, -50%);
-}
-
 #game {
   position: relative;
   width: 100%;

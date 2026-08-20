@@ -1,0 +1,11 @@
+{
+  "stageWidth": 960,
+  "stageHeight": 640,
+  "isometric": {
+    "backZ": 0.7071067811865476,
+    "orthoScale": 505.1554214102879
+  },
+  "top": {
+    "orthoScale": 446.51162790697674
+  }
+}

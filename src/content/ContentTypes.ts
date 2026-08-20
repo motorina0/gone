@@ -127,6 +127,18 @@ export interface Manifest {
   views: string[];
   occlusion: string[];
   detailOverlays: string[];
+  depthMaps?: string[];
+  agentAtlas: string;
+  agentAnimation: {
+    frameWidth: number;
+    frameHeight: number;
+    directions: number;
+    idle: number[];
+    walk: number[];
+    run: number[];
+    walkFrameRate: number;
+    runFrameRate: number;
+  };
 }
 
 export interface LoadedContent {
@@ -144,4 +156,6 @@ export interface LoadedContent {
   views: string[];
   occlusion: string[];
   detailOverlays: string[];
+  depthMaps: string[];
+  agentAtlas: string;
 }

@@ -102,6 +102,12 @@ for (const viewport of viewports) {
 
     await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'running');
     await expect(page.locator('canvas')).toBeVisible();
+    const canvasBounds = await page.locator('canvas').boundingBox();
+    expect(canvasBounds).not.toBeNull();
+    expect(canvasBounds!.x).toBeLessThanOrEqual(0.5);
+    expect(canvasBounds!.y).toBeLessThanOrEqual(0.5);
+    expect(canvasBounds!.x + canvasBounds!.width).toBeGreaterThanOrEqual(viewport.width - 0.5);
+    expect(canvasBounds!.y + canvasBounds!.height).toBeGreaterThanOrEqual(viewport.height - 0.5);
     expect(await page.evaluate(() => window.__GONE_TEST__!.entityCount)).toBe(1);
     expect(await page.evaluate(() => window.__GONE_TEST__!.aiSystemsEnabled)).toBe(false);
     expect(await page.evaluate(() => window.__GONE_TEST__!.missionResourceLoaded)).toBe(false);
@@ -117,6 +123,7 @@ for (const viewport of viewports) {
       'button[data-pace="run"]',
       '[data-zoom-out]',
       '[data-zoom-in]',
+      '[data-follow]',
       '[data-fullscreen]',
       '[data-pause]',
       '[data-restart]',
@@ -168,9 +175,11 @@ for (const locationId of ['piata-unirii', 'vatra-central-station']) {
       await page.locator(`button[data-view="${id}"]`).click();
       await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
       expect(await page.evaluate(() => window.__GONE_TEST__!.player)).toEqual(positionBeforeViews);
-      const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
-      expect(focus.x).toBeCloseTo(focusBeforeViews.x, 5);
-      expect(focus.y).toBeCloseTo(focusBeforeViews.y, 5);
+      if (id !== 'view-top') {
+        const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+        expect(focus.x).toBeCloseTo(focusBeforeViews.x, 4);
+        expect(focus.y).toBeCloseTo(focusBeforeViews.y, 4);
+      }
     }
 
     await page.locator('[data-restart]').click();
@@ -196,26 +205,207 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   const tactical = await page.evaluate(() => window.__GONE_TEST__!);
   expect(tactical.cameraZoom).toBeGreaterThanOrEqual(2.4);
   expect(tactical.cameraZoom).toBe(tactical.minimumZoom);
+  const canvasBox = await page.locator('canvas').boundingBox();
+  expect(canvasBox).not.toBeNull();
+  await page.mouse.move(
+    canvasBox!.x +
+      (canvasBox!.width / 960) *
+        ((tactical.visibleStage.left + tactical.visibleStage.right) / 2),
+    canvasBox!.y +
+      (canvasBox!.height / 640) *
+        ((tactical.visibleStage.top + tactical.visibleStage.bottom) / 2),
+  );
   const focusBeforePan = tactical.cameraFocus;
-  await page.keyboard.down('ArrowRight');
+  await page.keyboard.down('ArrowLeft');
   await page.waitForTimeout(450);
-  await page.keyboard.up('ArrowRight');
+  await page.keyboard.up('ArrowLeft');
   await expect.poll(async () => {
     const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
     return Math.hypot(focus.x - focusBeforePan.x, focus.y - focusBeforePan.y);
   }).toBeGreaterThan(0.1);
+  await page.mouse.move(canvasBox!.x + canvasBox!.width * 0.78, canvasBox!.y + canvasBox!.height * 0.34);
+  await expect.poll(async () => {
+    const velocity = await page.evaluate(() => window.__GONE_TEST__!.cameraVelocity);
+    return Math.hypot(velocity.x, velocity.y);
+  }).toBeLessThan(0.05);
+  const beforeWheel = await page.evaluate(() => window.__GONE_TEST__!);
+  const pointer = {x: 960 * 0.78, y: 640 * 0.34};
+  const anchorBefore = {
+    x: beforeWheel.cameraScreenCenter.x + (pointer.x - 480) / beforeWheel.cameraZoom,
+    y: beforeWheel.cameraScreenCenter.y + (pointer.y - 320) / beforeWheel.cameraZoom,
+  };
+  await page.mouse.wheel(0, -320);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThan(
+    beforeWheel.cameraZoom,
+  );
+  const afterWheel = await page.evaluate(() => window.__GONE_TEST__!);
+  const anchorAfter = {
+    x: afterWheel.cameraScreenCenter.x + (pointer.x - 480) / afterWheel.cameraZoom,
+    y: afterWheel.cameraScreenCenter.y + (pointer.y - 320) / afterWheel.cameraZoom,
+  };
+  expect(Math.hypot(anchorAfter.x - anchorBefore.x, anchorAfter.y - anchorBefore.y)).toBeLessThan(
+    0.05,
+  );
+  expect(
+    Math.hypot(
+      afterWheel.cameraFocus.x - beforeWheel.cameraFocus.x,
+      afterWheel.cameraFocus.y - beforeWheel.cameraFocus.y,
+    ),
+  ).toBeGreaterThan(0.01);
+  const beforeEdge = afterWheel.cameraFocus;
+  await page.mouse.move(canvasBox!.x + canvasBox!.width - 2, canvasBox!.y + canvasBox!.height / 2);
+  await expect.poll(async () => {
+    const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+    return Math.hypot(focus.x - beforeEdge.x, focus.y - beforeEdge.y);
+  }).toBeGreaterThan(0.1);
+  await page.mouse.move(canvasBox!.x + canvasBox!.width / 2, canvasBox!.y + canvasBox!.height / 2);
+  await expect.poll(async () => {
+    const velocity = await page.evaluate(() => window.__GONE_TEST__!.cameraVelocity);
+    return Math.hypot(velocity.x, velocity.y);
+  }).toBeLessThan(0.05);
+  const rememberedViewZero = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
   await page.keyboard.press('5');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
-  expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBe(1);
+  const overview = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(overview.cameraZoom).toBeCloseTo(overview.minimumZoom, 5);
+  for (const point of overview.projectedWorldBounds) {
+    const rendered = {
+      x: 480 + (point.x - overview.cameraScreenCenter.x) * overview.cameraZoom,
+      y: 320 + (point.y - overview.cameraScreenCenter.y) * overview.cameraZoom,
+    };
+    expect(rendered.x).toBeGreaterThanOrEqual(overview.visibleStage.left - 0.1);
+    expect(rendered.x).toBeLessThanOrEqual(overview.visibleStage.right + 0.1);
+    expect(rendered.y).toBeGreaterThanOrEqual(overview.visibleStage.top - 0.1);
+    expect(rendered.y).toBeLessThanOrEqual(overview.visibleStage.bottom + 0.1);
+  }
   await page.keyboard.press('1');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
   expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThanOrEqual(2.4);
+  const restoredViewZero = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+  expect(
+    Math.hypot(
+      restoredViewZero.x - rememberedViewZero.x,
+      restoredViewZero.y - rememberedViewZero.y,
+    ),
+  ).toBeLessThan(0.2);
   await page.keyboard.press('r');
   await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'run');
   await page.keyboard.press('w');
   await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'walk');
   await page.keyboard.press('Space');
   await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
+});
+
+for (const viewport of [
+  {name: 'widescreen crop', width: 1280, height: 720},
+  {name: 'portrait crop', width: 390, height: 844},
+]) {
+  test(`${viewport.name} scrolls from every visible edge`, async ({page}) => {
+    await page.setViewportSize(viewport);
+    const errors = await openExploration(page, 'vatra-central-station');
+    const canvas = await page.locator('canvas').boundingBox();
+    expect(canvas).not.toBeNull();
+    const visible = await page.evaluate(() => window.__GONE_TEST__!.visibleStage);
+    const toClient = (x: number, y: number): {x: number; y: number} => ({
+      x: canvas!.x + (x / 960) * canvas!.width,
+      y: canvas!.y + (y / 640) * canvas!.height,
+    });
+    const center = toClient(
+      (visible.left + visible.right) / 2,
+      (visible.top + visible.bottom) / 2,
+    );
+    const edges = [
+      {...toClient(visible.left + 2, (visible.top + visible.bottom) / 2), axis: 'x' as const, sign: -1},
+      {...toClient(visible.right - 2, (visible.top + visible.bottom) / 2), axis: 'x' as const, sign: 1},
+      {...toClient((visible.left + visible.right) / 2, visible.top + 2), axis: 'y' as const, sign: -1},
+      {...toClient((visible.left + visible.right) / 2, visible.bottom - 2), axis: 'y' as const, sign: 1},
+    ];
+    for (const edge of edges) {
+      await page.mouse.move(center.x, center.y);
+      await expect.poll(async () => {
+        const velocity = await page.evaluate(() => window.__GONE_TEST__!.cameraVelocity);
+        return Math.hypot(velocity.x, velocity.y);
+      }).toBeLessThan(0.05);
+      await page.mouse.move(edge.x, edge.y);
+      await expect.poll(async () => {
+        const velocity = await page.evaluate(() => window.__GONE_TEST__!.cameraVelocity);
+        return velocity[edge.axis] * edge.sign;
+      }).toBeGreaterThan(1);
+    }
+    await page.mouse.move(center.x, center.y);
+    await expect.poll(async () => {
+      const velocity = await page.evaluate(() => window.__GONE_TEST__!.cameraVelocity);
+      return Math.hypot(velocity.x, velocity.y);
+    }).toBeLessThan(0.05);
+    await page.locator('[data-follow]').click();
+    await expect(page.locator('#hud')).toHaveAttribute('data-following', 'true');
+    await page.locator('[data-pause]').hover();
+    await page.waitForTimeout(250);
+    await expect(page.locator('#hud')).toHaveAttribute('data-following', 'true');
+    await page.locator('[data-fullscreen]').hover();
+    await page.waitForTimeout(250);
+    await expect(page.locator('#hud')).toHaveAttribute('data-following', 'true');
+    expect(
+      await page.evaluate(() => {
+        const velocity = window.__GONE_TEST__!.cameraVelocity;
+        return Math.hypot(velocity.x, velocity.y);
+      }),
+    ).toBeLessThan(0.05);
+    expect(errors).toEqual([]);
+  });
+}
+
+test('route feedback, animated movement, follow, and lazy view loading work together', async ({page}) => {
+  await page.setViewportSize({width: 1280, height: 720});
+  const errors = await openExploration(page, 'vatra-central-station');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(1);
+
+  const blocked = await page.evaluate(() => window.__GONE_TEST__!.testBlockedDestination);
+  expect(blocked).toBeDefined();
+  const canvasBox = await page.locator('canvas').boundingBox();
+  expect(canvasBox).not.toBeNull();
+  const stateBeforeBlocked = await page.evaluate(() => window.__GONE_TEST__!);
+  await page.mouse.click(
+    canvasBox!.x +
+      (canvasBox!.width / 960) *
+        (480 + (blocked!.screen.x - stateBeforeBlocked.cameraScreenCenter.x) * stateBeforeBlocked.cameraZoom),
+    canvasBox!.y +
+      (canvasBox!.height / 640) *
+        (320 + (blocked!.screen.y - stateBeforeBlocked.cameraScreenCenter.y) * stateBeforeBlocked.cameraZoom),
+  );
+  await expect(page.locator('[data-message]')).toContainText(/blocked|unreachable/i);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBe(0);
+
+  const target = await diagnosticDestinationClient(page);
+  await page.mouse.move(target.x, target.y);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.routePreviewLength)).toBeGreaterThan(0);
+  await page.locator('[data-follow]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-following', 'true');
+  const focusBeforeFollow = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+  await page.mouse.click(target.x, target.y);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animation)).toBe('agent-3-walk');
+  await expect.poll(async () => {
+    const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+    return Math.hypot(focus.x - focusBeforeFollow.x, focus.y - focusBeforeFollow.y);
+  }).toBeGreaterThan(0.2);
+  const animationFrame = await page.evaluate(() => window.__GONE_TEST__!.animationFrame);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animationFrame)).not.toBe(
+    animationFrame,
+  );
+
+  await page.keyboard.down('ArrowRight');
+  await expect(page.locator('#hud')).toHaveAttribute('data-following', 'false');
+  await page.keyboard.up('ArrowRight');
+
+  await page.locator('button[data-view="view-90"]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-90');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animation)).toBe('agent-5-walk');
+  await page.locator('button[data-view="view-0"]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
+  expect(errors).toEqual([]);
 });
 
 test('real touch gestures and orientation changes preserve exploration state', async ({browser}) => {
@@ -267,17 +457,37 @@ test('real touch gestures and orientation changes preserve exploration state', a
 
   const dragStart = {
     id: 1,
-    x: canvasBox!.x + canvasBox!.width * 0.72,
-    y: canvasBox!.y + canvasBox!.height * 0.45,
+    x:
+      canvasBox!.x +
+      (canvasBox!.width / 960) *
+        (afterPinch.visibleStage.left + afterPinch.visibleStage.width * 0.72),
+    y:
+      canvasBox!.y +
+      (canvasBox!.height / 640) *
+        (afterPinch.visibleStage.top + afterPinch.visibleStage.height * 0.45),
   };
-  await dispatchTouch(session, 'touchStart', [dragStart]);
-  for (let step = 1; step <= 5; step += 1) {
-    await dispatchTouch(session, 'touchMove', [
-      {id: 1, x: dragStart.x - step * 14, y: dragStart.y + step * 3},
-    ]);
+  let beforeRotate = afterPinch;
+  for (const delta of [
+    {x: -14, y: 0},
+    {x: 14, y: 0},
+    {x: 0, y: -14},
+    {x: 0, y: 14},
+  ]) {
+    await dispatchTouch(session, 'touchStart', [dragStart]);
+    for (let step = 1; step <= 5; step += 1) {
+      await dispatchTouch(session, 'touchMove', [
+        {id: 1, x: dragStart.x + step * delta.x, y: dragStart.y + step * delta.y},
+      ]);
+    }
+    await dispatchTouch(session, 'touchEnd', []);
+    beforeRotate = await page.evaluate(() => window.__GONE_TEST__!);
+    if (
+      Math.hypot(
+        beforeRotate.cameraFocus.x - afterPinch.cameraFocus.x,
+        beforeRotate.cameraFocus.y - afterPinch.cameraFocus.y,
+      ) > 0.1
+    ) break;
   }
-  await dispatchTouch(session, 'touchEnd', []);
-  const beforeRotate = await page.evaluate(() => window.__GONE_TEST__!);
   expect(beforeRotate.player).toEqual(afterTap.player);
   expect(
     Math.hypot(

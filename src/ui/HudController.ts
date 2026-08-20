@@ -7,6 +7,7 @@ export interface HudActions {
   pace(value: MovementPace): void;
   view(id: string): void;
   zoom(delta: number): void;
+  follow(): void;
 }
 
 export class HudController {
@@ -41,6 +42,11 @@ export class HudController {
       () => actions.zoom(1),
       options,
     );
+    this.root.querySelector<HTMLButtonElement>('[data-follow]')!.addEventListener(
+      'click',
+      actions.follow,
+      options,
+    );
     this.root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) =>
       button.addEventListener('click', () => actions.view(button.dataset.view!), options),
     );
@@ -73,7 +79,7 @@ export class HudController {
     );
   }
 
-  render(world: WorldState): void {
+  render(world: WorldState, following = false): void {
     const player = world.player;
     const pace = player.moving ? (player.pace ?? world.session.pace) : world.session.pace;
     this.location.textContent = world.content.manifest.name;
@@ -90,6 +96,10 @@ export class HudController {
     this.root.dataset.view = world.activeView;
     this.root.dataset.pace = world.session.pace;
     this.root.dataset.moving = String(Boolean(player.moving));
+    this.root.dataset.following = String(following);
+    const follow = this.root.querySelector<HTMLButtonElement>('[data-follow]')!;
+    follow.setAttribute('aria-pressed', String(following));
+    follow.setAttribute('aria-label', following ? 'Stop following operative' : 'Follow operative');
 
     const zoom = Math.round(world.camera.zoom * 10) / 10;
     const zoomOut = this.root.querySelector<HTMLButtonElement>('[data-zoom-out]')!;

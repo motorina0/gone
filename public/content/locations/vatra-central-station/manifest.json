@@ -43,18 +43,36 @@
     "views/view-top.webp"
   ],
   "occlusion": [
-    "occlusion/view-0.svg",
-    "occlusion/view-90.svg",
-    "occlusion/view-180.svg",
-    "occlusion/view-270.svg",
-    "occlusion/view-top.svg"
+    "occlusion-3d/view-0.webp",
+    "occlusion-3d/view-90.webp",
+    "occlusion-3d/view-180.webp",
+    "occlusion-3d/view-270.webp",
+    "occlusion-3d/view-top.webp"
   ],
   "detailOverlays": [
-    "details/view-0.svg",
-    "details/view-90.svg",
-    "details/view-180.svg",
-    "details/view-270.svg",
-    "details/view-top.svg"
+    "details/empty.svg",
+    "details/empty.svg",
+    "details/empty.svg",
+    "details/empty.svg",
+    "details/empty.svg"
   ],
-  "entityScale": 0.07
+  "depthMaps": [
+    "depth/view-0.webp",
+    "depth/view-90.webp",
+    "depth/view-180.webp",
+    "depth/view-270.webp",
+    "depth/view-top.webp"
+  ],
+  "agentAtlas": "sprites/agent-atlas.png",
+  "agentAnimation": {
+    "frameWidth": 128,
+    "frameHeight": 160,
+    "directions": 8,
+    "idle": [0],
+    "walk": [1, 2, 3, 4],
+    "run": [5, 6, 7, 8],
+    "walkFrameRate": 8,
+    "runFrameRate": 12
+  },
+  "entityScale": 0.12
 }

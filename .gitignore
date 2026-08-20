@@ -11,3 +11,7 @@ playwright-report/
 *.swp
 .DS_Store
 *.tsbuildinfo
+art/vatra/renders/
+art/agent/renders/
+*.blend1
+__pycache__/

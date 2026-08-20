@@ -38,6 +38,10 @@ export class MovementSystem {
     return points?.at(-1);
   }
 
+  getRemainingPath(entityId: string): WorldPoint[] {
+    return (this.orders.get(entityId)?.points ?? []).map((point) => ({...point}));
+  }
+
   clear(): void {
     this.orders.clear();
   }
