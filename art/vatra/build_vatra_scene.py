@@ -16,6 +16,7 @@ import random
 import sys
 from pathlib import Path
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 
@@ -34,6 +35,70 @@ DISTRICT_BASE_SIZE = 4000
 BACKDROP_SCALE = 4
 RANDOM = random.Random(27081989)
 BOX_MESHES: dict[str, bpy.types.Mesh] = {}
+CYLINDER_MESHES: dict[tuple[int, str], bpy.types.Mesh] = {}
+ICOSPHERE_MESHES: dict[tuple[int, str], bpy.types.Mesh] = {}
+CONE_MESHES: dict[tuple[int, float, float, str], bpy.types.Mesh] = {}
+
+
+def cylinder_mesh(vertices: int, mat: bpy.types.Material) -> bpy.types.Mesh:
+    key = (vertices, mat.name)
+    cached = CYLINDER_MESHES.get(key)
+    if cached:
+        return cached
+    points = []
+    for z in (-0.5, 0.5):
+        points.extend(
+            (0.5 * math.cos(math.tau * index / vertices), 0.5 * math.sin(math.tau * index / vertices), z)
+            for index in range(vertices)
+        )
+    faces = [tuple(range(vertices - 1, -1, -1)), tuple(range(vertices, vertices * 2))]
+    faces.extend(
+        (index, (index + 1) % vertices, vertices + (index + 1) % vertices, vertices + index)
+        for index in range(vertices)
+    )
+    mesh = bpy.data.meshes.new(f"Gone unit cylinder {vertices} — {mat.name}")
+    mesh.from_pydata(points, [], faces)
+    mesh.materials.append(mat)
+    CYLINDER_MESHES[key] = mesh
+    return mesh
+
+
+def icosphere_mesh(subdivisions: int, mat: bpy.types.Material) -> bpy.types.Mesh:
+    key = (subdivisions, mat.name)
+    cached = ICOSPHERE_MESHES.get(key)
+    if cached:
+        return cached
+    mesh = bpy.data.meshes.new(f"Gone unit icosphere {subdivisions} — {mat.name}")
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=subdivisions, radius=1.0)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.materials.append(mat)
+    ICOSPHERE_MESHES[key] = mesh
+    return mesh
+
+
+def cone_mesh(vertices: int, radius1: float, radius2: float, mat: bpy.types.Material) -> bpy.types.Mesh:
+    key = (vertices, radius1, radius2, mat.name)
+    cached = CONE_MESHES.get(key)
+    if cached:
+        return cached
+    points = []
+    for radius, z in ((radius1, -0.5), (radius2, 0.5)):
+        points.extend(
+            (radius * math.cos(math.tau * index / vertices), radius * math.sin(math.tau * index / vertices), z)
+            for index in range(vertices)
+        )
+    faces = [tuple(range(vertices - 1, -1, -1)), tuple(range(vertices, vertices * 2))]
+    faces.extend(
+        (index, (index + 1) % vertices, vertices + (index + 1) % vertices, vertices + index)
+        for index in range(vertices)
+    )
+    mesh = bpy.data.meshes.new(f"Gone tapered cylinder {vertices} — {mat.name}")
+    mesh.from_pydata(points, [], faces)
+    mesh.materials.append(mat)
+    CONE_MESHES[key] = mesh
+    return mesh
 
 
 def clear_scene() -> None:
@@ -204,17 +269,11 @@ def add_beam_between(
     start_vector = Vector(start)
     end_vector = Vector(end)
     direction = end_vector - start_vector
-    bpy.ops.mesh.primitive_cylinder_add(
-        vertices=vertices,
-        radius=radius,
-        depth=direction.length,
-        location=tuple((start_vector + end_vector) / 2),
-    )
-    obj = bpy.context.object
-    obj.name = name
+    obj = bpy.data.objects.new(name, cylinder_mesh(vertices, mat))
+    obj.location = tuple((start_vector + end_vector) / 2)
+    obj.scale = (radius * 2, radius * 2, direction.length)
     obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
-    obj.data.materials.append(mat)
-    move_to_collection(obj, target)
+    target.objects.link(obj)
     return obj
 
 
@@ -261,12 +320,10 @@ def add_ico_sphere(
     scale: tuple[float, float, float] = (1.0, 1.0, 1.0),
     subdivisions: int = 2,
 ) -> bpy.types.Object:
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=subdivisions, radius=radius, location=location)
-    obj = bpy.context.object
-    obj.name = name
-    obj.scale = scale
-    obj.data.materials.append(mat)
-    move_to_collection(obj, target)
+    obj = bpy.data.objects.new(name, icosphere_mesh(subdivisions, mat))
+    obj.location = location
+    obj.scale = tuple(radius * component for component in scale)
+    target.objects.link(obj)
     return obj
 
 
@@ -280,17 +337,18 @@ def add_text_sign(
     *,
     rotation: tuple[float, float, float] = (math.pi / 2, 0.0, 0.0),
 ) -> bpy.types.Object:
-    bpy.ops.object.text_add(location=location, rotation=rotation)
-    obj = bpy.context.object
-    obj.name = name
-    obj.data.body = text
-    obj.data.align_x = "CENTER"
-    obj.data.align_y = "CENTER"
-    obj.data.size = size
-    obj.data.extrude = max(0.015, size * 0.035)
-    obj.data.bevel_depth = max(0.008, size * 0.012)
-    obj.data.materials.append(mat)
-    move_to_collection(obj, target)
+    data = bpy.data.curves.new(f"{name}-font", type="FONT")
+    data.body = text
+    data.align_x = "CENTER"
+    data.align_y = "CENTER"
+    data.size = size
+    data.extrude = max(0.015, size * 0.035)
+    data.bevel_depth = max(0.008, size * 0.012)
+    data.materials.append(mat)
+    obj = bpy.data.objects.new(name, data)
+    obj.location = location
+    obj.rotation_euler = rotation
+    target.objects.link(obj)
     return obj
 
 
@@ -305,17 +363,11 @@ def add_cylinder(
     vertices: int = 12,
     rotation: tuple[float, float, float] = (0.0, 0.0, 0.0),
 ) -> bpy.types.Object:
-    bpy.ops.mesh.primitive_cylinder_add(
-        vertices=vertices,
-        radius=radius,
-        depth=depth,
-        location=location,
-        rotation=rotation,
-    )
-    obj = bpy.context.object
-    obj.name = name
-    obj.data.materials.append(mat)
-    move_to_collection(obj, target)
+    obj = bpy.data.objects.new(name, cylinder_mesh(vertices, mat))
+    obj.location = location
+    obj.scale = (radius * 2, radius * 2, depth)
+    obj.rotation_euler = rotation
+    target.objects.link(obj)
     return obj
 
 
@@ -1148,17 +1200,13 @@ def add_tree(index: int, tree: dict, mats: dict[str, bpy.types.Material], target
     size = tree.get("size", 1.0)
     local_random = random.Random(9817 + index * 193)
     trunk_height = local_random.uniform(5.2, 6.4) * size
-    bpy.ops.mesh.primitive_cone_add(
-        vertices=12,
-        radius1=0.62 * size,
-        radius2=0.34 * size,
-        depth=trunk_height,
-        location=(x, y, trunk_height / 2),
+    trunk = bpy.data.objects.new(
+        f"tree-{index}-tapered-trunk",
+        cone_mesh(12, 0.62, 0.34, mats["bark"]),
     )
-    trunk = bpy.context.object
-    trunk.name = f"tree-{index}-tapered-trunk"
-    trunk.data.materials.append(mats["bark"])
-    move_to_collection(trunk, target)
+    trunk.location = (x, y, trunk_height / 2)
+    trunk.scale = (size, size, trunk_height)
+    target.objects.link(trunk)
     branch_ends: list[tuple[float, float, float]] = []
     for branch_index in range(9):
         angle = local_random.uniform(0, math.tau)
@@ -1391,13 +1439,14 @@ def add_station_furniture(
             lamp_x, lamp_y = local_point(x, y, side, 0, rotation)
             add_box(f"lamp-{index}-light-{side}", (lamp_x, lamp_y, height - 0.40), (0.62, 0.42, 0.26), mats["lamp"], target, bevel=0.18, rotation=rotation)
         if prop.get("castsLight", True):
-            bpy.ops.object.light_add(type="POINT", location=(x, y, height - 0.65))
-            light = bpy.context.object
-            light.name = f"Gone platform lamp {index}"
-            light.data.energy = prop.get("energy", 92)
-            light.data.color = (1.0, 0.64, 0.32)
-            light.data.shadow_soft_size = 3.4
-            move_to_collection(light, lights)
+            add_point_light(
+                f"Gone platform lamp {index}",
+                (x, y, height - 0.65),
+                prop.get("energy", 92),
+                (1.0, 0.64, 0.32),
+                lights,
+                radius=3.4,
+            )
     elif kind == "bin":
         add_cylinder(f"bin-{index}", (x, y, 0.55), 0.36, 1.10, mats["steel"], target, vertices=16)
         add_cylinder(f"bin-{index}-rim", (x, y, 1.14), 0.40, 0.10, mats["trim"], target, vertices=16)

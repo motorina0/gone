@@ -396,8 +396,10 @@ test('every tactical view zooms out to a complete portrait map', async ({page}) 
     expect(closeView.cameraZoom).toBeGreaterThan(closeView.minimumZoom);
     expect(await tacticalTopBandVariation(page, id)).toBeGreaterThan(4);
     const visualMetrics = await tacticalVisualMetrics(page, id);
-    expect(visualMetrics.deviation).toBeGreaterThan(17);
-    expect(visualMetrics.meanHorizontalEdge).toBeGreaterThan(4);
+    // The blue-hour grade is intentionally low-key; local edge energy protects
+    // authored surface/architecture detail better than a bright-scene variance floor.
+    expect(visualMetrics.deviation).toBeGreaterThan(12);
+    expect(visualMetrics.meanHorizontalEdge).toBeGreaterThan(4.8);
     await zoomOutToFullMap(page);
     if (index < 3) {
       await page.locator('[data-zoom-in]').click();

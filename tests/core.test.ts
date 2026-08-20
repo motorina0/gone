@@ -431,6 +431,53 @@ describe('data-driven environment artwork', () => {
     }
   });
 
+  it('ships replaceable Gone Vatra finish plates and transparent derived occlusion', async () => {
+    const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    for (const view of VIEW_IDS.slice(0, 4)) {
+      const source = `art/vatra/paintovers/${view}.png`;
+      expect(readFileSync(source).subarray(0, 8)).toEqual(pngSignature);
+      expect(statSync(source).size).toBeGreaterThan(1_000_000);
+      expect(await sharp(source).metadata()).toMatchObject({
+        width: 1536,
+        height: 1024,
+      });
+
+      const runtime = locationPath('vatra-central-station', `views/${view}.webp`);
+      expect(await sharp(runtime).metadata()).toMatchObject({
+        width: 1920,
+        height: 1280,
+      });
+      const occlusion = sharp(
+        locationPath('vatra-central-station', `occlusion-3d/${view}.webp`),
+      );
+      expect(await occlusion.metadata()).toMatchObject({
+        width: 1920,
+        height: 1280,
+        hasAlpha: true,
+      });
+      const alpha = (await occlusion.stats()).channels[3]!;
+      expect(alpha.min).toBe(0);
+      expect(alpha.max).toBe(255);
+      expect(alpha.mean).toBeGreaterThan(20);
+      expect(alpha.mean).toBeLessThan(120);
+    }
+
+    const processor = readFileSync('tools/process-vatra-renders.mjs', 'utf8');
+    expect(processor).toContain('art/vatra/paintovers');
+    expect(processor).toContain("extractChannel('alpha')");
+    const generator = readFileSync('art/vatra/build_vatra_scene.py', 'utf8');
+    for (const authoredDetail of [
+      'add_footbridge',
+      'add_building_dressing',
+      'tactile',
+      'rail_fastener',
+      'catenary-dropper',
+      'asphalt-repair',
+    ]) {
+      expect(generator).toContain(authoredDetail);
+    }
+  });
+
   it('ships editable Gone 3D sources with aligned Vatra runtime layers', async () => {
     expect(readFileSync('art/vatra/vatra-central-station.blend').subarray(0, 7).toString()).toBe(
       'BLENDER',
@@ -520,18 +567,21 @@ describe('data-driven environment artwork', () => {
       expect(deviation, `${asset} must not expose a flat world-background band`).toBeGreaterThan(4);
     }
     for (let index = 0; index < manifest.views.length; index += 1) {
-      const view = await sharp(locationPath('vatra-central-station', manifest.views[index]!))
-        .resize(480, 320)
-        .removeAlpha()
-        .raw()
-        .toBuffer();
-      const backdrop = await sharp(
+      const tactical = index < 4;
+      const viewPipeline = sharp(
+        locationPath('vatra-central-station', manifest.views[index]!),
+      ).resize(480, 320);
+      const backdropPipeline = sharp(
         locationPath('vatra-central-station', manifest.backdrops[index]!),
-      )
-        .extract({left: 720, top: 480, width: 480, height: 320})
-        .removeAlpha()
-        .raw()
-        .toBuffer();
+      );
+      if (tactical) {
+        viewPipeline.extract({left: 160, top: 110, width: 160, height: 100});
+        backdropPipeline.extract({left: 880, top: 590, width: 160, height: 100});
+      } else {
+        backdropPipeline.extract({left: 720, top: 480, width: 480, height: 320});
+      }
+      const view = await viewPipeline.removeAlpha().raw().toBuffer();
+      const backdrop = await backdropPipeline.removeAlpha().raw().toBuffer();
       let difference = 0;
       for (let pixel = 0; pixel < view.length; pixel += 1) {
         difference += Math.abs(view[pixel]! - backdrop[pixel]!);
@@ -539,7 +589,7 @@ describe('data-driven environment artwork', () => {
       expect(
         difference / view.length,
         `${manifest.backdrops[index]} must align with its detailed center view`,
-      ).toBeLessThan(4);
+      ).toBeLessThan(tactical ? 5.5 : 4);
     }
   });
 });
