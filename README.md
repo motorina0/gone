@@ -26,7 +26,7 @@ Run `npm run verify` before every push. It validates content, type-checks, lints
 
 - Desktop: hover to preview a route; click a destination to move; double-click to run; drag, move the pointer to a screen edge, or use the arrow keys to pan; wheel to zoom at the pointer; 1–5 change view; W/R choose walk/run; F toggles follow; Space or Escape pauses.
 - Mobile: tap to move, double-tap to run, drag empty ground to pan, pinch to zoom, and use the safe-area-aware command console.
-- All five camera views are playable and retain exact world position, per-view camera focus/zoom, pace, and pause state. The four tactical projections open at a close 3× minimum; SAT adapts to the visible aspect ratio as a full-map overview. Camera views are loaded on demand after the initial view to keep mobile startup bounded.
+- All five camera views are playable and retain exact world position, per-view camera focus/zoom, pace, and pause state. The four tactical projections open at a close 3× framing and can zoom out to an aspect-aware whole-map fit; SAT opens at that full-map overview. Camera views are loaded on demand after the initial view to keep mobile startup bounded.
 
 ## Architecture
 

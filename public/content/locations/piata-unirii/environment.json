@@ -8,6 +8,8 @@
     "horizon": "#202b2a",
     "ground": "#77786f",
     "groundDark": "#414b48",
+    "backdropTexture": "../../materials/old-town-pavers.png",
+    "backdropTints": ["#384952", "#384952", "#384952", "#384952", "#384952"],
     "wetness": 0.32
   },
   "surfaces": [

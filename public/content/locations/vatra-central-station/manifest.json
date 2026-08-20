@@ -42,6 +42,14 @@
     "views/view-270.webp",
     "views/view-top.webp"
   ],
+  "backdrops": [
+    "backdrops/view-0.webp",
+    "backdrops/view-90.webp",
+    "backdrops/view-180.webp",
+    "backdrops/view-270.webp",
+    "backdrops/view-top.webp"
+  ],
+  "backdropScale": 4,
   "occlusion": [
     "occlusion-3d/view-0.webp",
     "occlusion-3d/view-90.webp",

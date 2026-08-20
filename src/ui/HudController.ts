@@ -104,7 +104,7 @@ export class HudController {
     const zoom = Math.round(world.camera.zoom * 10) / 10;
     const zoomOut = this.root.querySelector<HTMLButtonElement>('[data-zoom-out]')!;
     const zoomIn = this.root.querySelector<HTMLButtonElement>('[data-zoom-in]')!;
-    zoomOut.disabled = zoom <= world.camera.minimumZoom;
+    zoomOut.disabled = world.camera.zoom <= world.camera.minimumZoom + 0.001;
     zoomIn.disabled = zoom >= 5;
     zoomOut.setAttribute('aria-label', `Zoom out. Current zoom ${zoom}×`);
     zoomIn.setAttribute('aria-label', `Zoom in. Current zoom ${zoom}×`);

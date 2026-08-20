@@ -72,6 +72,66 @@ const clickDiagnosticDestination = async (page: Page): Promise<void> => {
   await page.mouse.click(target.x, target.y);
 };
 
+const expectFullMapVisible = (state: NonNullable<Window['__GONE_TEST__']>): void => {
+  expect(state.cameraZoom).toBeCloseTo(state.minimumZoom, 5);
+  for (const point of state.projectedWorldBounds) {
+    const rendered = {
+      x: 480 + (point.x - state.cameraScreenCenter.x) * state.cameraZoom,
+      y: 320 + (point.y - state.cameraScreenCenter.y) * state.cameraZoom,
+    };
+    expect(rendered.x).toBeGreaterThanOrEqual(state.visibleStage.left - 0.1);
+    expect(rendered.x).toBeLessThanOrEqual(state.visibleStage.right + 0.1);
+    expect(rendered.y).toBeGreaterThanOrEqual(state.visibleStage.top - 0.1);
+    expect(rendered.y).toBeLessThanOrEqual(state.visibleStage.bottom + 0.1);
+  }
+  const visibleWorld = {
+    left: state.cameraScreenCenter.x + (state.visibleStage.left - 480) / state.cameraZoom,
+    top: state.cameraScreenCenter.y + (state.visibleStage.top - 320) / state.cameraZoom,
+    right: state.cameraScreenCenter.x + (state.visibleStage.right - 480) / state.cameraZoom,
+    bottom: state.cameraScreenCenter.y + (state.visibleStage.bottom - 320) / state.cameraZoom,
+  };
+  expect(visibleWorld.left).toBeGreaterThanOrEqual(state.backdropBounds.left);
+  expect(visibleWorld.top).toBeGreaterThanOrEqual(state.backdropBounds.top);
+  expect(visibleWorld.right).toBeLessThanOrEqual(state.backdropBounds.right);
+  expect(visibleWorld.bottom).toBeLessThanOrEqual(state.backdropBounds.bottom);
+};
+
+const zoomOutToFullMap = async (page: Page): Promise<void> => {
+  const zoomOut = page.locator('[data-zoom-out]');
+  for (let step = 0; step < 6 && !(await zoomOut.isDisabled()); step += 1) {
+    const before = await page.evaluate(() => window.__GONE_TEST__!.cameraZoom);
+    await zoomOut.click();
+    await expect
+      .poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom))
+      .toBeLessThan(before);
+  }
+  await expect(zoomOut).toBeDisabled();
+  expectFullMapVisible(await page.evaluate(() => window.__GONE_TEST__!));
+};
+
+const tacticalTopBandVariation = async (page: Page, viewId: string): Promise<number> =>
+  page.evaluate(async (id) => {
+    const image = new Image();
+    image.src = `content/locations/vatra-central-station/views/${id}.webp`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = 96;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0);
+    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let sum = 0;
+    let sumOfSquares = 0;
+    const pixels = data.length / 4;
+    for (let index = 0; index < data.length; index += 4) {
+      const luminance = data[index]! * 0.2126 + data[index + 1]! * 0.7152 + data[index + 2]! * 0.0722;
+      sum += luminance;
+      sumOfSquares += luminance * luminance;
+    }
+    const mean = sum / pixels;
+    return Math.sqrt(sumOfSquares / pixels - mean * mean);
+  }, viewId);
+
 interface TouchPoint {
   id: number;
   x: number;
@@ -204,7 +264,7 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await openExploration(page);
   const tactical = await page.evaluate(() => window.__GONE_TEST__!);
   expect(tactical.cameraZoom).toBeGreaterThanOrEqual(2.4);
-  expect(tactical.cameraZoom).toBe(tactical.minimumZoom);
+  expect(tactical.cameraZoom).toBeGreaterThan(tactical.minimumZoom);
   const canvasBox = await page.locator('canvas').boundingBox();
   expect(canvasBox).not.toBeNull();
   await page.mouse.move(
@@ -267,17 +327,7 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await page.keyboard.press('5');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
   const overview = await page.evaluate(() => window.__GONE_TEST__!);
-  expect(overview.cameraZoom).toBeCloseTo(overview.minimumZoom, 5);
-  for (const point of overview.projectedWorldBounds) {
-    const rendered = {
-      x: 480 + (point.x - overview.cameraScreenCenter.x) * overview.cameraZoom,
-      y: 320 + (point.y - overview.cameraScreenCenter.y) * overview.cameraZoom,
-    };
-    expect(rendered.x).toBeGreaterThanOrEqual(overview.visibleStage.left - 0.1);
-    expect(rendered.x).toBeLessThanOrEqual(overview.visibleStage.right + 0.1);
-    expect(rendered.y).toBeGreaterThanOrEqual(overview.visibleStage.top - 0.1);
-    expect(rendered.y).toBeLessThanOrEqual(overview.visibleStage.bottom + 0.1);
-  }
+  expectFullMapVisible(overview);
   await page.keyboard.press('1');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
   expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThanOrEqual(2.4);
@@ -294,6 +344,30 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await expect(page.locator('#hud')).toHaveAttribute('data-pace', 'walk');
   await page.keyboard.press('Space');
   await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
+});
+
+test('every tactical view zooms out to a complete portrait map', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  const errors = await openExploration(page, 'vatra-central-station');
+
+  for (const [index, id] of VIEW_IDS.slice(0, 4).entries()) {
+    if (index > 0) {
+      await page.locator(`button[data-view="${id}"]`).click();
+      await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
+    }
+    const closeView = await page.evaluate(() => window.__GONE_TEST__!);
+    expect(closeView.cameraZoom).toBeGreaterThan(closeView.minimumZoom);
+    expect(await tacticalTopBandVariation(page, id)).toBeGreaterThan(4);
+    await zoomOutToFullMap(page);
+    if (index < 3) {
+      await page.locator('[data-zoom-in]').click();
+      await expect
+        .poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom))
+        .toBeGreaterThan(closeView.minimumZoom);
+    }
+  }
+
+  expect(errors).toEqual([]);
 });
 
 for (const viewport of [

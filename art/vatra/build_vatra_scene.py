@@ -29,6 +29,8 @@ BLEND_PATH = ROOT / "art/vatra/vatra-central-station.blend"
 MASTER_WIDTH = 3840
 MASTER_HEIGHT = 2560
 WORLD_CENTER = Vector((300.0, 180.0, 0.0))
+DISTRICT_BASE_SIZE = 4000
+BACKDROP_SCALE = 4
 RANDOM = random.Random(27081989)
 BOX_MESHES: dict[str, bpy.types.Mesh] = {}
 
@@ -330,7 +332,14 @@ def build_environment(environment: dict) -> None:
 
     # The art ground deliberately extends beyond the canonical playable bounds so
     # no camera exposes a floating-board edge. Navigation remains JSON-bounded.
-    add_box("Vatra district base", (300, 180, -0.7), (2000, 2000, 1.4), mats["ground"], surfaces, bevel=1.5)
+    add_box(
+        "Vatra district base",
+        (300, 180, -0.7),
+        (DISTRICT_BASE_SIZE, DISTRICT_BASE_SIZE, 1.4),
+        mats["ground"],
+        surfaces,
+        bevel=1.5,
+    )
     for item in environment["surfaces"]:
         surface_mat = mats["platform"] if item["type"] in ("sidewalk", "plaza") else mats["asphalt"]
         if item["type"] == "rail":
@@ -471,6 +480,7 @@ def camera_for(view_id: str) -> bpy.types.Object:
     camera.location = WORLD_CENTER + back * 900
     data.type = "ORTHO"
     data.ortho_scale = ortho_scale
+    data.clip_end = 5000
     data.lens = 50
     data.dof.use_dof = False
     return camera
@@ -503,6 +513,7 @@ def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "depth").mkdir(parents=True, exist_ok=True)
     (OUTPUT / "occlusion").mkdir(parents=True, exist_ok=True)
+    (OUTPUT / "backdrops").mkdir(parents=True, exist_ok=True)
     environment = json.loads(ENVIRONMENT_PATH.read_text())
     clear_scene()
     setup_scene(environment)
@@ -525,6 +536,10 @@ def main() -> None:
         bpy.context.scene.render.film_transparent = False
         for hidden_name in ("Gone Architecture", "Gone Ground and Tracks", "Gone Props and Vehicles"):
             bpy.data.collections[hidden_name].hide_render = False
+        camera.data.ortho_scale *= BACKDROP_SCALE
+        bpy.context.scene.render.filepath = str(OUTPUT / "backdrops" / f"{view_id}.png")
+        bpy.ops.render.render(write_still=True)
+        camera.data.ortho_scale /= BACKDROP_SCALE
         if depth_output:
             depth_output.mute = False
     bpy.ops.wm.save_as_mainfile(filepath=str(BLEND_PATH))

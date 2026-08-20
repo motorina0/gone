@@ -17,9 +17,16 @@
         "horizon": {"$ref": "#/$defs/color"},
         "ground": {"$ref": "#/$defs/color"},
         "groundDark": {"$ref": "#/$defs/color"},
+        "backdropTexture": {"type": "string", "minLength": 1},
+        "backdropTints": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/color"},
+          "minItems": 5,
+          "maxItems": 5
+        },
         "wetness": {"type": "number", "minimum": 0, "maximum": 1}
       },
-      "required": ["sky", "horizon", "ground", "groundDark", "wetness"]
+      "required": ["sky", "horizon", "ground", "groundDark", "backdropTexture", "backdropTints", "wetness"]
     },
     "surfaces": {
       "type": "array",

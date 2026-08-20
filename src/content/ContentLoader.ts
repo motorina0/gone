@@ -96,6 +96,10 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     visionBlockers: visionBlockers.rectangles,
     projections,
     views: manifest.views.map((path) => new URL(path, baseUrl).href),
+    backdrops: (manifest.backdrops ?? Array(5).fill(environment.atmosphere.backdropTexture)).map(
+      (path) => new URL(path, baseUrl).href,
+    ),
+    backdropScale: manifest.backdropScale ?? 8,
     occlusion: manifest.occlusion.map((path) => new URL(path, baseUrl).href),
     detailOverlays: manifest.detailOverlays.map((path) => new URL(path, baseUrl).href),
     depthMaps: (manifest.depthMaps ?? []).map((path) => new URL(path, baseUrl).href),

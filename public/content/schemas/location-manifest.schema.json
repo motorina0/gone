@@ -49,6 +49,13 @@
       "minItems": 5,
       "maxItems": 5
     },
+    "backdrops": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "backdropScale": {"type": "number", "minimum": 1},
     "sourceViews": {
       "type": "array",
       "items": {"type": "string"},

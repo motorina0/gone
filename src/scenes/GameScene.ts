@@ -20,7 +20,7 @@ import {
 } from '../views/CameraBounds';
 
 const SATELLITE_BASE_ZOOM = 0.1;
-const TACTICAL_MIN_ZOOM = 3;
+const TACTICAL_INITIAL_ZOOM = 3;
 const MAX_ZOOM_LEVEL = 5;
 const TAP_DISTANCE = 10;
 const DOUBLE_TAP_MS = 360;
@@ -46,6 +46,7 @@ export class GameScene extends Phaser.Scene {
   private sprite!: Phaser.GameObjects.Sprite;
   private markers!: Phaser.GameObjects.Graphics;
   private background!: Phaser.GameObjects.Image;
+  private backdrop!: Phaser.GameObjects.Image;
   private detail!: Phaser.GameObjects.Image;
   private foreground!: Phaser.GameObjects.Image;
   private hud!: HudController;
@@ -61,9 +62,9 @@ export class GameScene extends Phaser.Scene {
   private pinchDistance = 0;
   private settingsStore = new SettingsStore();
   private settings!: Settings;
-  private zoomLevel = TACTICAL_MIN_ZOOM;
-  private tacticalZoomLevel = TACTICAL_MIN_ZOOM;
-  private minimumZoom = TACTICAL_MIN_ZOOM;
+  private zoomLevel = TACTICAL_INITIAL_ZOOM;
+  private tacticalZoomLevel = TACTICAL_INITIAL_ZOOM;
+  private minimumZoom = SATELLITE_BASE_ZOOM;
   private mapPolygon: ScreenPoint[] = [];
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private edgePointer?: {x: number; y: number};
@@ -95,7 +96,7 @@ export class GameScene extends Phaser.Scene {
     this.world.activeView = initialView;
     this.tacticalZoomLevel = Phaser.Math.Clamp(
       this.settings.zoom,
-      TACTICAL_MIN_ZOOM,
+      SATELLITE_BASE_ZOOM,
       MAX_ZOOM_LEVEL,
     );
     this.zoomLevel =
@@ -103,6 +104,22 @@ export class GameScene extends Phaser.Scene {
     this.world.camera.zoom = this.zoomLevel;
     this.world.camera.minimumZoom = this.minimumZoom;
 
+    this.backdrop = this.add
+      .image(
+        APP_WIDTH / 2,
+        APP_HEIGHT / 2,
+        `backdrop-${initialViewIndex}`,
+      )
+      .setDisplaySize(
+        APP_WIDTH * content.backdropScale,
+        APP_HEIGHT * content.backdropScale,
+      )
+      .setTint(
+        Phaser.Display.Color.HexStringToColor(
+          content.environment.atmosphere.backdropTints[initialViewIndex]!,
+        ).color,
+      )
+      .setDepth(-1);
     this.background = this.add
       .image(0, 0, `background-${initialViewIndex}`)
       .setOrigin(0)
@@ -403,7 +420,7 @@ export class GameScene extends Phaser.Scene {
     const canvas = this.game.canvas.getBoundingClientRect();
     const container = this.getPlayableContainerRect();
     const visible = visibleStageRect(canvas, container, APP_WIDTH, APP_HEIGHT);
-    if (this.world.activeView === 'view-top' && this.mapPolygon.length) {
+    if (this.mapPolygon.length) {
       const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
       const wasAtMinimum = Math.abs(this.zoomLevel - this.minimumZoom) < 0.001;
       this.minimumZoom = overview.zoom;
@@ -435,7 +452,7 @@ export class GameScene extends Phaser.Scene {
     });
     const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
     const bounded =
-      this.world.activeView === 'view-top' && Math.abs(this.zoomLevel - this.minimumZoom) < 0.001
+      Math.abs(this.zoomLevel - this.minimumZoom) < 0.001
         ? overview.center
         : constrainCameraToPolygonBounds(
             center,
@@ -511,7 +528,7 @@ export class GameScene extends Phaser.Scene {
 
   private applyView(id: ViewId, index: number, canonicalFocus: WorldPoint, zoom: number): void {
     this.world.activeView = id;
-    this.minimumZoom = id === 'view-top' ? SATELLITE_BASE_ZOOM : TACTICAL_MIN_ZOOM;
+    this.minimumZoom = SATELLITE_BASE_ZOOM;
     this.zoomLevel = Phaser.Math.Clamp(zoom, this.minimumZoom, MAX_ZOOM_LEVEL);
     this.world.camera.zoom = this.zoomLevel;
     this.world.camera.minimumZoom = this.minimumZoom;
@@ -530,6 +547,17 @@ export class GameScene extends Phaser.Scene {
     this.background
       .setTexture(`background-${index}`)
       .setDisplaySize(APP_WIDTH, APP_HEIGHT);
+    this.backdrop
+      .setTexture(`backdrop-${index}`)
+      .setDisplaySize(
+        APP_WIDTH * this.world.content.backdropScale,
+        APP_HEIGHT * this.world.content.backdropScale,
+      )
+      .setTint(
+        Phaser.Display.Color.HexStringToColor(
+          this.world.content.environment.atmosphere.backdropTints[index]!,
+        ).color,
+      );
     this.detail.setTexture(`detail-${index}`).setDisplaySize(APP_WIDTH, APP_HEIGHT);
     this.foreground
       .setTexture(`occlusion-${index}`)
@@ -542,6 +570,7 @@ export class GameScene extends Phaser.Scene {
   private ensureViewLoaded(index: number): Promise<void> {
     const content = this.world.content;
     return Promise.all([
+      this.loadTexture(`backdrop-${index}`, content.backdrops[index]!),
       this.loadTexture(`background-${index}`, content.views[index]!),
       this.loadTexture(`detail-${index}`, content.detailOverlays[index]!),
       this.loadTexture(`occlusion-${index}`, content.occlusion[index]!),
@@ -772,6 +801,12 @@ export class GameScene extends Phaser.Scene {
           animationFrame: this.sprite.anims.currentFrame?.index ?? 0,
           cameraVelocity: {...this.cameraVelocity},
           projectedWorldBounds: this.mapPolygon.map((point) => ({...point})),
+          backdropBounds: {
+            left: this.backdrop.x - this.backdrop.displayWidth / 2,
+            top: this.backdrop.y - this.backdrop.displayHeight / 2,
+            right: this.backdrop.x + this.backdrop.displayWidth / 2,
+            bottom: this.backdrop.y + this.backdrop.displayHeight / 2,
+          },
           visibleStage: visibleStageRect(
             this.game.canvas.getBoundingClientRect(),
             this.getPlayableContainerRect(),

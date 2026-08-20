@@ -79,6 +79,8 @@ export interface EnvironmentResource {
     horizon: string;
     ground: string;
     groundDark: string;
+    backdropTexture: string;
+    backdropTints: string[];
     wetness: number;
   };
   surfaces: EnvironmentSurface[];
@@ -125,6 +127,8 @@ export interface Manifest {
   projections: string[];
   sourceViews: string[];
   views: string[];
+  backdrops?: string[];
+  backdropScale?: number;
   occlusion: string[];
   detailOverlays: string[];
   depthMaps?: string[];
@@ -154,6 +158,8 @@ export interface LoadedContent {
   visionBlockers: Rect[];
   projections: ProjectionResource[];
   views: string[];
+  backdrops: string[];
+  backdropScale: number;
   occlusion: string[];
   detailOverlays: string[];
   depthMaps: string[];

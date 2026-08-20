@@ -8,6 +8,8 @@
     "horizon": "#101b22",
     "ground": "#505d5e",
     "groundDark": "#222e32",
+    "backdropTexture": "../../materials/industrial-wet-asphalt.png",
+    "backdropTints": ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff"],
     "wetness": 0.72
   },
   "surfaces": [

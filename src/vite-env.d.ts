@@ -39,6 +39,7 @@ declare global {
       animationFrame: number;
       cameraVelocity: {x: number; y: number};
       projectedWorldBounds: Array<{x: number; y: number}>;
+      backdropBounds: {left: number; top: number; right: number; bottom: number};
       visibleStage: {
         left: number;
         top: number;

@@ -1,4 +1,5 @@
 import {readFileSync, statSync} from 'node:fs';
+import sharp from 'sharp';
 import {describe, expect, it} from 'vitest';
 import type {NavigationResource} from '../src/content/ContentTypes';
 import {GridNavigationService} from '../src/navigation/Pathfinding';
@@ -228,13 +229,15 @@ describe('data-driven environment artwork', () => {
   for (const locationId of LOCATION_IDS) {
     it(`${locationId} defines surfaces, architecture, props, and weather in world space`, () => {
       const environment = readJson<{
-        atmosphere: {wetness: number};
+        atmosphere: {wetness: number; backdropTexture: string; backdropTints: string[]};
         surfaces: Array<{id: string; type: string}>;
         landmarks: Array<{id: string}>;
         trees: unknown[];
         streetFurniture: Array<{type: string; blocksMovement?: boolean}>;
       }>(locationPath(locationId, 'environment.json'));
       expect(environment.atmosphere.wetness).toBeGreaterThan(0);
+      expect(environment.atmosphere.backdropTexture).toMatch(/\.png$/);
+      expect(environment.atmosphere.backdropTints).toHaveLength(5);
       expect(environment.surfaces.some(({type}) => type === 'road')).toBe(true);
       expect(environment.surfaces.some(({type}) => ['plaza', 'rail'].includes(type))).toBe(true);
       expect(environment.landmarks.length).toBeGreaterThanOrEqual(8);
@@ -300,7 +303,7 @@ describe('data-driven environment artwork', () => {
     }
   });
 
-  it('ships editable Gone 3D sources with aligned Vatra runtime layers', () => {
+  it('ships editable Gone 3D sources with aligned Vatra runtime layers', async () => {
     expect(readFileSync('art/vatra/vatra-central-station.blend').subarray(0, 7).toString()).toBe(
       'BLENDER',
     );
@@ -309,12 +312,16 @@ describe('data-driven environment artwork', () => {
     );
     const manifest = readJson<{
       views: string[];
+      backdrops: string[];
+      backdropScale: number;
       occlusion: string[];
       depthMaps: string[];
       detailOverlays: string[];
       agentAnimation: {directions: number; walk: number[]; run: number[]};
     }>(locationPath('vatra-central-station', 'manifest.json'));
     expect(manifest.views).toHaveLength(5);
+    expect(manifest.backdrops).toHaveLength(5);
+    expect(manifest.backdropScale).toBe(4);
     expect(manifest.occlusion).toHaveLength(5);
     expect(manifest.depthMaps).toHaveLength(5);
     expect(new Set(manifest.detailOverlays)).toEqual(new Set(['details/empty.svg']));
@@ -354,10 +361,57 @@ describe('data-driven environment artwork', () => {
       locationPath('vatra-central-station', 'projections/view-top.json'),
     );
     expect(topProjection.scale).toBeCloseTo(camera.stageHeight / camera.top.orthoScale, 3);
-    for (const asset of [...manifest.views, ...manifest.occlusion, ...manifest.depthMaps]) {
+    for (const asset of [
+      ...manifest.views,
+      ...manifest.backdrops,
+      ...manifest.occlusion,
+      ...manifest.depthMaps,
+    ]) {
       const bytes = readFileSync(locationPath('vatra-central-station', asset));
       expect(bytes.subarray(0, 4).toString()).toBe('RIFF');
       expect(bytes.subarray(8, 12).toString()).toBe('WEBP');
+    }
+    for (const asset of manifest.views.slice(0, 4)) {
+      const image = sharp(locationPath('vatra-central-station', asset));
+      const metadata = await image.metadata();
+      const {data, info} = await image
+        .extract({left: 0, top: 0, width: metadata.width!, height: 96})
+        .removeAlpha()
+        .raw()
+        .toBuffer({resolveWithObject: true});
+      let sum = 0;
+      let sumOfSquares = 0;
+      const pixels = data.length / info.channels;
+      for (let index = 0; index < data.length; index += info.channels) {
+        const luminance = data[index]! * 0.2126 + data[index + 1]! * 0.7152 + data[index + 2]! * 0.0722;
+        sum += luminance;
+        sumOfSquares += luminance * luminance;
+      }
+      const mean = sum / pixels;
+      const deviation = Math.sqrt(sumOfSquares / pixels - mean * mean);
+      expect(deviation, `${asset} must not expose a flat world-background band`).toBeGreaterThan(4);
+    }
+    for (let index = 0; index < manifest.views.length; index += 1) {
+      const view = await sharp(locationPath('vatra-central-station', manifest.views[index]!))
+        .resize(480, 320)
+        .removeAlpha()
+        .raw()
+        .toBuffer();
+      const backdrop = await sharp(
+        locationPath('vatra-central-station', manifest.backdrops[index]!),
+      )
+        .extract({left: 720, top: 480, width: 480, height: 320})
+        .removeAlpha()
+        .raw()
+        .toBuffer();
+      let difference = 0;
+      for (let pixel = 0; pixel < view.length; pixel += 1) {
+        difference += Math.abs(view[pixel]! - backdrop[pixel]!);
+      }
+      expect(
+        difference / view.length,
+        `${manifest.backdrops[index]} must align with its detailed center view`,
+      ).toBeLessThan(4);
     }
   });
 });
@@ -377,12 +431,18 @@ describe('settings and camera behavior', () => {
   });
 
   it('supports a full-map overview and caps persisted zoom', () => {
-    expect(DEFAULT_SETTINGS.zoom).toBe(1);
+    expect(DEFAULT_SETTINGS.zoom).toBe(3);
+    let raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 99});
     const storage = {
-      getItem: () => JSON.stringify({...DEFAULT_SETTINGS, zoom: 99}),
+      getItem: () => raw,
       setItem: () => undefined,
     };
-    expect(new SettingsStore(storage).load().zoom).toBe(5);
+    const store = new SettingsStore(storage);
+    expect(store.load().zoom).toBe(5);
+    raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 0.35});
+    expect(store.load().zoom).toBe(0.35);
+    raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: -1});
+    expect(store.load().zoom).toBe(0.1);
   });
 
   it('constrains panning to the rendered map', () => {

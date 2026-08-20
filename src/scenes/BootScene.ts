@@ -26,6 +26,7 @@ export class BootScene extends Phaser.Scene {
         VIEW_IDS.findIndex((viewId) => viewId === preferredView),
       );
       this.registry.set('initialViewIndex', initialViewIndex);
+      this.load.image(`backdrop-${initialViewIndex}`, content.backdrops[initialViewIndex]!);
       this.load.image(`background-${initialViewIndex}`, content.views[initialViewIndex]!);
       this.load.image(`occlusion-${initialViewIndex}`, content.occlusion[initialViewIndex]!);
       this.load.image(`detail-${initialViewIndex}`, content.detailOverlays[initialViewIndex]!);
