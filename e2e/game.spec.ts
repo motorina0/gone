@@ -169,6 +169,34 @@ const tacticalVisualMetrics = async (
     };
   }, viewId);
 
+const tacticalPerimeterAlpha = async (
+  page: Page,
+  viewId: string,
+): Promise<{edgeMax: number; edgeMean: number; center: number}> =>
+  page.evaluate(async (id) => {
+    const image = new Image();
+    image.src = `content/locations/vatra-central-station/views/${id}.webp`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = 240;
+    canvas.height = 160;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    const alphaAt = (x: number, y: number): number => pixels[(y * canvas.width + x) * 4 + 3]!;
+    const edgeAlpha = [
+      ...Array.from({length: canvas.width}, (_, x) => alphaAt(x, 0)),
+      ...Array.from({length: canvas.width}, (_, x) => alphaAt(x, canvas.height - 1)),
+      ...Array.from({length: canvas.height}, (_, y) => alphaAt(0, y)),
+      ...Array.from({length: canvas.height}, (_, y) => alphaAt(canvas.width - 1, y)),
+    ];
+    return {
+      edgeMax: Math.max(...edgeAlpha),
+      edgeMean: edgeAlpha.reduce((sum, alpha) => sum + alpha, 0) / edgeAlpha.length,
+      center: alphaAt(120, 80),
+    };
+  }, viewId);
+
 interface TouchPoint {
   id: number;
   x: number;
@@ -400,6 +428,10 @@ test('every tactical view zooms out to a complete portrait map', async ({page}) 
     // authored surface/architecture detail better than a bright-scene variance floor.
     expect(visualMetrics.deviation).toBeGreaterThan(12);
     expect(visualMetrics.meanHorizontalEdge).toBeGreaterThan(4.8);
+    const perimeterAlpha = await tacticalPerimeterAlpha(page, id);
+    expect(perimeterAlpha.edgeMax).toBeLessThan(20);
+    expect(perimeterAlpha.edgeMean).toBeLessThan(16);
+    expect(perimeterAlpha.center).toBeGreaterThan(245);
     await zoomOutToFullMap(page);
     if (index < 3) {
       await page.locator('[data-zoom-in]').click();

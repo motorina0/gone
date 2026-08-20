@@ -20,8 +20,37 @@ for (const view of ['view-0', 'view-90', 'view-180', 'view-270', 'view-top']) {
     .png()
     .toBuffer();
 
-  await sharp(beauty)
-    .webp({quality: 86, effort: 6, smartSubsample: true})
+  let runtimeBeauty = beauty;
+  let perimeterMask;
+  if (isTactical) {
+    perimeterMask = Buffer.from(`
+      <svg width="1920" height="1280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="horizontal">
+            <stop offset="0" stop-color="white" stop-opacity="0"/>
+            <stop offset="0.06" stop-color="white" stop-opacity="1"/>
+            <stop offset="0.94" stop-color="white" stop-opacity="1"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="vertical" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="white" stop-opacity="0"/>
+            <stop offset="0.09" stop-color="white" stop-opacity="1"/>
+            <stop offset="0.91" stop-color="white" stop-opacity="1"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <mask id="vertical-mask"><rect width="1920" height="1280" fill="url(#vertical)"/></mask>
+        </defs>
+        <rect width="1920" height="1280" fill="url(#horizontal)" mask="url(#vertical-mask)"/>
+      </svg>
+    `);
+    runtimeBeauty = await sharp(beauty)
+      .composite([{input: perimeterMask, blend: 'dest-in'}])
+      .png()
+      .toBuffer();
+  }
+
+  await sharp(runtimeBeauty)
+    .webp({quality: 86, alphaQuality: 100, effort: 6, smartSubsample: true})
     .toFile(path.join(output, 'views', `${view}.webp`));
 
   const backdrop = sharp(path.join(source, 'backdrops', `${view}.png`)).resize(1920, 1280, {
@@ -49,6 +78,7 @@ for (const view of ['view-0', 'view-90', 'view-180', 'view-270', 'view-top']) {
   if (isTactical) {
     const occlusionAlpha = await sharp(occlusionSource)
       .resize(1920, 1280, {fit: 'fill'})
+      .composite([{input: perimeterMask, blend: 'dest-in'}])
       .extractChannel('alpha')
       .toBuffer();
     const beautyRgb = await sharp(beauty)

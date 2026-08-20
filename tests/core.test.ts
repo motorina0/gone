@@ -443,13 +443,27 @@ describe('data-driven environment artwork', () => {
       });
 
       const runtime = locationPath('vatra-central-station', `views/${view}.webp`);
-      expect(await sharp(runtime).metadata()).toMatchObject({
+      const runtimeImage = sharp(runtime);
+      expect(await runtimeImage.metadata()).toMatchObject({
         width: 1920,
         height: 1280,
+        hasAlpha: true,
       });
-      const occlusion = sharp(
-        locationPath('vatra-central-station', `occlusion-3d/${view}.webp`),
+      const runtimeAlpha = await runtimeImage.extractChannel('alpha').raw().toBuffer();
+      const alphaAt = (x: number, y: number): number => runtimeAlpha[y * 1920 + x]!;
+      const perimeterAlpha = [
+        ...Array.from({length: 1920}, (_, x) => alphaAt(x, 0)),
+        ...Array.from({length: 1920}, (_, x) => alphaAt(x, 1279)),
+        ...Array.from({length: 1280}, (_, y) => alphaAt(0, y)),
+        ...Array.from({length: 1280}, (_, y) => alphaAt(1919, y)),
+      ];
+      expect(Math.max(...perimeterAlpha)).toBeLessThanOrEqual(10);
+      expect(alphaAt(960, 640)).toBeGreaterThanOrEqual(253);
+      const occlusionPath = locationPath(
+        'vatra-central-station',
+        `occlusion-3d/${view}.webp`,
       );
+      const occlusion = sharp(occlusionPath);
       expect(await occlusion.metadata()).toMatchObject({
         width: 1920,
         height: 1280,
@@ -460,6 +474,19 @@ describe('data-driven environment artwork', () => {
       expect(alpha.max).toBe(255);
       expect(alpha.mean).toBeGreaterThan(20);
       expect(alpha.mean).toBeLessThan(120);
+      const occlusionAlpha = await sharp(occlusionPath)
+        .extractChannel('alpha')
+        .raw()
+        .toBuffer();
+      const occlusionAlphaAt = (x: number, y: number): number =>
+        occlusionAlpha[y * 1920 + x]!;
+      const occlusionPerimeterAlpha = [
+        ...Array.from({length: 1920}, (_, x) => occlusionAlphaAt(x, 0)),
+        ...Array.from({length: 1920}, (_, x) => occlusionAlphaAt(x, 1279)),
+        ...Array.from({length: 1280}, (_, y) => occlusionAlphaAt(0, y)),
+        ...Array.from({length: 1280}, (_, y) => occlusionAlphaAt(1919, y)),
+      ];
+      expect(Math.max(...occlusionPerimeterAlpha)).toBeLessThanOrEqual(10);
     }
 
     const processor = readFileSync('tools/process-vatra-renders.mjs', 'utf8');
