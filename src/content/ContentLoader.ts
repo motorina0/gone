@@ -18,7 +18,10 @@ const read = async <T>(url: URL): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-const propBlocker = (prop: EnvironmentProp, index: number): Rect | undefined => {
+export const environmentPropBlocker = (
+  prop: EnvironmentProp,
+  index: number,
+): Rect | undefined => {
   if (!prop.blocksMovement) return undefined;
   const defaults = ['regional-train', 'freight-wagon'].includes(prop.type)
     ? {width: 34, depth: 4}
@@ -80,7 +83,7 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
   const entities = entitiesRaw.flatMap((resource) => resource.entities ?? [resource]);
   const patrols = patrolsRaw.filter((patrol) => patrol.points);
   const environmentBlockers = environment.streetFurniture
-    .map(propBlocker)
+    .map(environmentPropBlocker)
     .filter((blocker): blocker is Rect => blocker !== undefined);
 
   return {

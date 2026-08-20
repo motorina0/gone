@@ -4,7 +4,7 @@ Every runtime-visible asset in Gone is original to this repository. No stock lib
 
 ## Vatra Central Station
 
-- `art/vatra/build_vatra_scene.py` constructs the fictional station, surrounding buildings, roads, rails, platforms, footbridge, static trains and cars, trees, furniture, puddles, and lighting from Gone's `environment.json` resource.
+- `art/vatra/build_vatra_scene.py` constructs the fictional station, surrounding district, material-specific architecture, roads and markings, rails and catenary, platforms and canopies, footbridge, static trains and cars, station furniture, freight dressing, vegetation, rain treatment, and practical lighting from Gone's `environment.json` resource.
 - `art/vatra/vatra-central-station.blend` is the editable generated scene source. It contains five orthographic cameras aligned with the canonical projection resources.
 - `art/vatra/renders/` contains reproducible 3840×2560 working masters and linear depth passes and is intentionally ignored. `tools/process-vatra-renders.mjs` creates the committed 1920×1280 WebP runtime views and 960×640 depth maps.
 - `tools/generate-placeholder-views.ts` remains the deterministic SVG projection/fallback and creates the aligned editable occlusion and detail layers.
@@ -34,6 +34,24 @@ Prompt:
 > Create one square 2048x2048 seamless tileable PBR-style base-color texture made specifically for the original game Gone: aged dark painted steel used on a fictional railway station after rain. Layered charcoal-green paint, fine scratches, restrained worn brass-colored edges, small oxidation blooms and water streaks. Orthographic material scan, flat even lighting, no perspective, no horizon, no objects, no bolts, no signs, no text, no letters, no numbers, no logos, no borders. Realistic game-environment texture, highly detailed, muted tactical palette. It must tile cleanly on every edge.
 
 The earlier `industrial-wet-asphalt.png`, `old-town-pavers.png`, `weathered-masonry.png`, and `weathered-roof.png` files were likewise generated specifically for Gone as tileable, text-free environmental materials. Their subjects and intended use are encoded by their filenames; none derive from external source imagery.
+
+### `vatra-wet-brick.png`
+
+Prompt:
+
+> Original seamless wet red brick masonry made specifically for the fictional Vatra Central Station district in Gone. Realistic PBR-style base-color texture, orthographic material scan, flat even lighting. Restrained soot-dark burgundy, muted clay, charcoal mortar; repaired mortar, subtle rain-darkening, faint mineral streaks, sparse chipped edges and restrained grime. Square edge-to-edge material surface with uniform detail density. Genuinely seamless on every edge; no perspective, directional light, objects, signs, graffiti, text, letters, numbers, logos, borders, watermark, or prominent focal feature.
+
+### `vatra-painted-plaster.png`
+
+Prompt:
+
+> Original seamless weathered painted plaster made specifically for the fictional Vatra Central Station district in Gone. Realistic PBR-style base-color texture, orthographic material scan, flat even lighting. Desaturated blue-grey with a warm limestone underlayer; subtle hairline cracks, patch repairs, light rain streaks, sparse flaking paint and restrained soot deposits. Square edge-to-edge material surface with uniform detail density. Genuinely seamless on every edge; no perspective, directional light, objects, signs, graffiti, text, letters, numbers, logos, borders, watermark, or prominent focal feature.
+
+### `vatra-corrugated-metal.png`
+
+Prompt:
+
+> Original seamless aged corrugated metal made specifically for the fictional Vatra Central Station rail district in Gone. Realistic PBR-style base-color texture, orthographic material scan, flat even lighting. Charcoal blue-green paint and dark steel with restrained rust brown; narrow corrugations, worn industrial coating, subtle vertical water streaks, fine scratches and sparse oxidation at seams. Square edge-to-edge material surface with a regular corrugation rhythm. Genuinely seamless on every edge; no perspective, directional light, objects, bolts, signs, text, letters, numbers, logos, borders, watermark, or prominent focal feature.
 
 ## UI and projected fallback art
 

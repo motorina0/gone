@@ -10,13 +10,15 @@
     "groundDark": "#222e32",
     "backdropTexture": "../../materials/industrial-wet-asphalt.png",
     "backdropTints": ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff"],
-    "wetness": 0.72
+    "wetness": 0.78,
+    "puddleCount": 42,
+    "leafLitterCount": 120
   },
   "surfaces": [
     {"id": "terminal-forecourt", "type": "plaza", "x": 0, "y": 105, "width": 130, "height": 63, "color": "#727976"},
-    {"id": "taxi-forecourt", "type": "yard", "x": 0, "y": 170, "width": 130, "height": 98, "color": "#404c4e"},
-    {"id": "south-service-road", "type": "road", "x": 0, "y": 270, "width": 600, "height": 42},
-    {"id": "east-access-road", "type": "road", "x": 535, "y": 0, "width": 65, "height": 360},
+    {"id": "taxi-forecourt", "type": "yard", "x": 0, "y": 170, "width": 130, "height": 98, "color": "#404c4e", "markings": "parking"},
+    {"id": "south-service-road", "type": "road", "x": 0, "y": 270, "width": 600, "height": 42, "markings": "two-lane"},
+    {"id": "east-access-road", "type": "road", "x": 535, "y": 0, "width": 65, "height": 360, "markings": "two-lane"},
     {"id": "north-pavement", "type": "sidewalk", "x": 0, "y": 30, "width": 600, "height": 7},
     {"id": "station-pavement", "type": "sidewalk", "x": 0, "y": 168, "width": 600, "height": 8},
     {"id": "track-north-one", "type": "rail", "x": 0, "y": 88, "width": 600, "height": 5},
@@ -36,7 +38,11 @@
       "y": 36,
       "width": 92,
       "height": 70,
-      "color": "#a7a094"
+      "color": "#a7a094",
+      "material": "plaster",
+      "roof": "pitched",
+      "floors": 4,
+      "signText": "VATRA CENTRAL"
     },
     {
       "id": "clock-tower",
@@ -46,7 +52,10 @@
       "y": 54,
       "width": 16,
       "height": 32,
-      "color": "#857f74"
+      "color": "#857f74",
+      "material": "stone",
+      "roof": "pitched",
+      "floors": 6
     },
     {
       "id": "platform-one",
@@ -56,7 +65,12 @@
       "y": 44,
       "width": 285,
       "height": 36,
-      "color": "#8d918d"
+      "color": "#8d918d",
+      "material": "concrete",
+      "canopies": [
+        {"offset": 18, "length": 75, "depth": 8},
+        {"offset": 130, "length": 132, "depth": 8}
+      ]
     },
     {
       "id": "platform-two",
@@ -66,7 +80,12 @@
       "y": 146,
       "width": 310,
       "height": 36,
-      "color": "#7c817e"
+      "color": "#7c817e",
+      "material": "concrete",
+      "canopies": [
+        {"offset": 18, "length": 75, "depth": 8},
+        {"offset": 130, "length": 152, "depth": 8}
+      ]
     },
     {
       "id": "glass-footbridge",
@@ -76,7 +95,9 @@
       "y": 76,
       "width": 22,
       "height": 110,
-      "color": "#68808a"
+      "color": "#68808a",
+      "material": "glass",
+      "roof": "glass"
     },
     {
       "id": "freight-platform",
@@ -86,7 +107,8 @@
       "y": 230,
       "width": 155,
       "height": 36,
-      "color": "#747975"
+      "color": "#747975",
+      "material": "concrete"
     },
     {
       "id": "cargo-warehouse",
@@ -96,7 +118,10 @@
       "y": 274,
       "width": 105,
       "height": 60,
-      "color": "#6d4039"
+      "color": "#6d4039",
+      "material": "brick",
+      "roof": "metal",
+      "floors": 2
     },
     {
       "id": "operations-office",
@@ -106,7 +131,10 @@
       "y": 94,
       "width": 32,
       "height": 48,
-      "color": "#89908b"
+      "color": "#89908b",
+      "material": "plaster",
+      "roof": "flat",
+      "floors": 2
     },
     {
       "id": "signal-annex",
@@ -116,7 +144,10 @@
       "y": 210,
       "width": 30,
       "height": 48,
-      "color": "#515b59"
+      "color": "#515b59",
+      "material": "metal",
+      "roof": "flat",
+      "floors": 1
     },
     {
       "id": "maintenance-yard",
@@ -126,7 +157,8 @@
       "y": 270,
       "width": 55,
       "height": 66,
-      "color": "#4c5553"
+      "color": "#4c5553",
+      "material": "concrete"
     },
     {
       "id": "north-hotel",
@@ -136,7 +168,10 @@
       "y": 5,
       "width": 82,
       "height": 28,
-      "color": "#75685d"
+      "color": "#75685d",
+      "material": "brick",
+      "roof": "pitched",
+      "floors": 3
     },
     {
       "id": "north-shops",
@@ -146,7 +181,10 @@
       "y": 8,
       "width": 92,
       "height": 25,
-      "color": "#887b6d"
+      "color": "#887b6d",
+      "material": "plaster",
+      "roof": "flat",
+      "floors": 3
     },
     {
       "id": "north-offices",
@@ -156,7 +194,10 @@
       "y": 5,
       "width": 78,
       "height": 30,
-      "color": "#687176"
+      "color": "#687176",
+      "material": "plaster",
+      "roof": "flat",
+      "floors": 3
     },
     {
       "id": "north-apartments",
@@ -166,7 +207,10 @@
       "y": 7,
       "width": 110,
       "height": 27,
-      "color": "#746b63"
+      "color": "#746b63",
+      "material": "brick",
+      "roof": "pitched",
+      "floors": 4
     },
     {
       "id": "west-cafe",
@@ -176,7 +220,10 @@
       "y": 274,
       "width": 48,
       "height": 30,
-      "color": "#7b6552"
+      "color": "#7b6552",
+      "material": "plaster",
+      "roof": "pitched",
+      "floors": 2
     },
     {
       "id": "west-parking",
@@ -186,7 +233,8 @@
       "y": 190,
       "width": 92,
       "height": 74,
-      "color": "#485051"
+      "color": "#485051",
+      "material": "concrete"
     },
     {
       "id": "south-workshops",
@@ -196,7 +244,10 @@
       "y": 314,
       "width": 92,
       "height": 36,
-      "color": "#604943"
+      "color": "#604943",
+      "material": "brick",
+      "roof": "metal",
+      "floors": 2
     },
     {
       "id": "south-houses",
@@ -206,7 +257,10 @@
       "y": 326,
       "width": 86,
       "height": 26,
-      "color": "#71655d"
+      "color": "#71655d",
+      "material": "plaster",
+      "roof": "pitched",
+      "floors": 3
     },
     {
       "id": "south-depot",
@@ -216,7 +270,10 @@
       "y": 326,
       "width": 96,
       "height": 26,
-      "color": "#594541"
+      "color": "#594541",
+      "material": "brick",
+      "roof": "metal",
+      "floors": 2
     },
     {
       "id": "south-garage",
@@ -226,7 +283,10 @@
       "y": 322,
       "width": 82,
       "height": 30,
-      "color": "#4f5655"
+      "color": "#4f5655",
+      "material": "metal",
+      "roof": "metal",
+      "floors": 2
     },
     {
       "id": "east-admin",
@@ -236,7 +296,10 @@
       "y": 48,
       "width": 70,
       "height": 54,
-      "color": "#69716f"
+      "color": "#69716f",
+      "material": "plaster",
+      "roof": "flat",
+      "floors": 3
     },
     {
       "id": "east-hostel",
@@ -246,7 +309,10 @@
       "y": 220,
       "width": 37,
       "height": 60,
-      "color": "#706860"
+      "color": "#706860",
+      "material": "brick",
+      "roof": "pitched",
+      "floors": 3
     }
   ],
   "trees": [
@@ -341,21 +407,27 @@
   ],
   "streetFurniture": [
     {
+      "id": "taxi-01",
       "type": "car",
       "x": 25,
       "y": 184,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-02",
       "type": "car",
       "x": 49,
       "y": 192,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-03",
       "type": "car",
       "x": 74,
       "y": 184,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
@@ -369,16 +441,19 @@
       "y": 164
     },
     {
+      "id": "maintenance-truck-01",
       "type": "maintenance-vehicle",
       "x": 560,
       "y": 302,
       "width": 6.2,
       "depth": 2.4,
       "height": 2,
+      "rotation": 90,
       "color": "#c99b36",
       "blocksMovement": true
     },
     {
+      "id": "freight-wagon-01",
       "type": "freight-wagon",
       "x": 405,
       "y": 216,
@@ -389,6 +464,7 @@
       "blocksMovement": true
     },
     {
+      "id": "regional-train-01",
       "type": "regional-train",
       "x": 280,
       "y": 120,
@@ -399,105 +475,132 @@
       "blocksMovement": true
     },
     {
+      "id": "taxi-04",
       "type": "car",
       "x": 16,
       "y": 210,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-05",
       "type": "car",
       "x": 34,
       "y": 210,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-06",
       "type": "car",
       "x": 52,
       "y": 210,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-07",
       "type": "car",
       "x": 70,
       "y": 210,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-08",
       "type": "car",
       "x": 18,
       "y": 238,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-09",
       "type": "car",
       "x": 38,
       "y": 238,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-10",
       "type": "car",
       "x": 58,
       "y": 238,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "taxi-11",
       "type": "car",
       "x": 78,
       "y": 238,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "service-car-01",
       "type": "car",
       "x": 150,
       "y": 300,
       "blocksMovement": true
     },
     {
+      "id": "service-car-02",
       "type": "car",
       "x": 170,
       "y": 300,
       "blocksMovement": true
     },
     {
+      "id": "service-car-03",
       "type": "car",
       "x": 190,
       "y": 300,
       "blocksMovement": true
     },
     {
+      "id": "service-car-04",
       "type": "car",
       "x": 390,
       "y": 300,
       "blocksMovement": true
     },
     {
+      "id": "service-car-05",
       "type": "car",
       "x": 410,
       "y": 300,
       "blocksMovement": true
     },
     {
+      "id": "service-car-06",
       "type": "car",
       "x": 450,
       "y": 292,
       "blocksMovement": true
     },
     {
+      "id": "service-car-07",
       "type": "car",
       "x": 480,
       "y": 292,
       "blocksMovement": true
     },
     {
+      "id": "east-access-car-01",
       "type": "car",
       "x": 550,
       "y": 190,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
+      "id": "east-access-car-02",
       "type": "car",
       "x": 570,
       "y": 190,
+      "rotation": 90,
       "blocksMovement": true
     },
     {
@@ -539,6 +642,104 @@
       "type": "bench",
       "x": 510,
       "y": 118
-    }
+    },
+    {"id": "platform-lamp-01", "type": "lamp", "x": 126, "y": 80, "height": 6.4},
+    {"id": "platform-lamp-02", "type": "lamp", "x": 126, "y": 178, "height": 6.4},
+    {"id": "platform-lamp-03", "type": "lamp", "x": 225, "y": 82, "height": 6.4},
+    {"id": "platform-lamp-04", "type": "lamp", "x": 320, "y": 82, "height": 6.4},
+    {"id": "platform-lamp-05", "type": "lamp", "x": 420, "y": 82, "height": 6.4},
+    {"id": "platform-lamp-06", "type": "lamp", "x": 520, "y": 82, "height": 6.4},
+    {"id": "platform-lamp-07", "type": "lamp", "x": 225, "y": 184, "height": 6.4},
+    {"id": "platform-lamp-08", "type": "lamp", "x": 420, "y": 184, "height": 6.4},
+    {"id": "platform-lamp-09", "type": "lamp", "x": 528, "y": 184, "height": 6.4},
+    {"id": "forecourt-lamp-01", "type": "lamp", "x": 18, "y": 116, "height": 5.8, "energy": 110},
+    {"id": "forecourt-lamp-02", "type": "lamp", "x": 54, "y": 116, "height": 5.8, "energy": 110},
+    {"id": "forecourt-lamp-03", "type": "lamp", "x": 96, "y": 116, "height": 5.8, "energy": 110},
+    {"id": "platform-one-sign-a", "type": "platform-sign", "x": 178, "y": 63, "text": "1", "width": 2.8},
+    {"id": "platform-one-sign-b", "type": "platform-sign", "x": 360, "y": 63, "text": "1", "width": 2.8},
+    {"id": "platform-two-sign-a", "type": "platform-sign", "x": 182, "y": 160, "text": "2", "width": 2.8},
+    {"id": "platform-two-sign-b", "type": "platform-sign", "x": 386, "y": 160, "text": "2", "width": 2.8},
+    {"id": "north-signal-01", "type": "signal", "x": 128, "y": 96, "rotation": 90},
+    {"id": "north-signal-02", "type": "signal", "x": 430, "y": 110, "rotation": 270},
+    {"id": "south-signal-01", "type": "signal", "x": 328, "y": 196, "rotation": 90},
+    {"id": "south-signal-02", "type": "signal", "x": 520, "y": 210, "rotation": 270},
+    {"id": "platform-bin-01", "type": "bin", "x": 174, "y": 67},
+    {"id": "platform-bin-02", "type": "bin", "x": 294, "y": 169},
+    {"id": "platform-bin-03", "type": "bin", "x": 404, "y": 67},
+    {"id": "platform-bin-04", "type": "bin", "x": 456, "y": 169},
+    {"id": "forecourt-kiosk", "type": "kiosk", "x": 104, "y": 148, "rotation": 0, "width": 5.2, "depth": 3.4, "height": 3.1, "blocksMovement": true},
+    {"id": "forecourt-planter-01", "type": "planter", "x": 16, "y": 157, "rotation": 0, "width": 2.8, "depth": 1.5, "blocksMovement": true},
+    {"id": "forecourt-planter-02", "type": "planter", "x": 49, "y": 157, "rotation": 0, "width": 2.8, "depth": 1.5, "blocksMovement": true},
+    {"id": "forecourt-planter-03", "type": "planter", "x": 82, "y": 157, "rotation": 0, "width": 2.8, "depth": 1.5, "blocksMovement": true},
+    {"id": "forecourt-bollard-01", "type": "bollard", "x": 12, "y": 172},
+    {"id": "forecourt-bollard-02", "type": "bollard", "x": 28, "y": 172},
+    {"id": "forecourt-bollard-03", "type": "bollard", "x": 44, "y": 172},
+    {"id": "forecourt-bollard-04", "type": "bollard", "x": 60, "y": 172},
+    {"id": "forecourt-bollard-05", "type": "bollard", "x": 76, "y": 172},
+    {"id": "forecourt-bollard-06", "type": "bollard", "x": 92, "y": 172},
+    {"id": "freight-crates-01", "type": "crate-stack", "x": 370, "y": 252, "rotation": 4, "width": 2.5, "depth": 1.5, "blocksMovement": true},
+    {"id": "freight-crates-02", "type": "crate-stack", "x": 398, "y": 248, "rotation": -7, "width": 2.5, "depth": 1.5, "blocksMovement": true},
+    {"id": "freight-crates-03", "type": "crate-stack", "x": 468, "y": 252, "rotation": 3, "width": 2.5, "depth": 1.5, "blocksMovement": true},
+    {"id": "signal-cabinet-01", "type": "utility-cabinet", "x": 132, "y": 100, "rotation": 0, "width": 1.4, "depth": 0.8, "blocksMovement": true},
+    {"id": "signal-cabinet-02", "type": "utility-cabinet", "x": 526, "y": 214, "rotation": 0, "width": 1.4, "depth": 0.8, "blocksMovement": true},
+    {"id": "south-road-crosswalk", "type": "crosswalk", "x": 112, "y": 291, "rotation": 90, "width": 24, "depth": 7},
+    {"id": "east-road-crosswalk", "type": "crosswalk", "x": 568, "y": 158, "rotation": 0, "width": 40, "depth": 7},
+    {"id": "track-gantry-01", "type": "gantry", "x": 154, "y": 154, "width": 142, "height": 8.4},
+    {"id": "track-gantry-02", "type": "gantry", "x": 320, "y": 154, "width": 142, "height": 8.4},
+    {"id": "track-gantry-03", "type": "gantry", "x": 482, "y": 154, "width": 142, "height": 8.4},
+    {"id": "freight-fence-south", "type": "fence", "x": 438, "y": 268, "rotation": 0, "width": 184, "depth": 0.2, "height": 2.2, "blocksMovement": true},
+    {"id": "freight-fence-east", "type": "fence", "x": 530, "y": 247, "rotation": 90, "width": 42, "depth": 0.2, "height": 2.2, "blocksMovement": true},
+    {"id": "platform-cart-01", "type": "service-cart", "x": 205, "y": 69, "rotation": 2, "width": 3.6, "depth": 1.5, "blocksMovement": true},
+    {"id": "platform-cart-02", "type": "service-cart", "x": 392, "y": 72, "rotation": -3, "width": 3.6, "depth": 1.5, "blocksMovement": true},
+    {"id": "platform-cart-03", "type": "service-cart", "x": 210, "y": 169, "rotation": 1, "width": 3.6, "depth": 1.5, "blocksMovement": true},
+    {"id": "platform-cart-04", "type": "service-cart", "x": 410, "y": 171, "rotation": -2, "width": 3.6, "depth": 1.5, "blocksMovement": true}
+  ],
+  "distantSurfaces": [
+    {"id": "outer-north-boulevard", "type": "road", "x": -250, "y": -130, "width": 1300, "height": 55, "markings": "two-lane"},
+    {"id": "outer-north-sidewalk", "type": "sidewalk", "x": -250, "y": -148, "width": 1300, "height": 16},
+    {"id": "outer-south-boulevard", "type": "road", "x": -250, "y": 500, "width": 1300, "height": 55, "markings": "two-lane"},
+    {"id": "outer-south-sidewalk", "type": "sidewalk", "x": -250, "y": 556, "width": 1300, "height": 16},
+    {"id": "outer-west-arterial", "type": "road", "x": -180, "y": -130, "width": 55, "height": 685, "markings": "two-lane"},
+    {"id": "outer-west-sidewalk", "type": "sidewalk", "x": -198, "y": -130, "width": 16, "height": 685},
+    {"id": "outer-east-arterial", "type": "road", "x": 780, "y": -130, "width": 55, "height": 685, "markings": "two-lane"},
+    {"id": "outer-east-sidewalk", "type": "sidewalk", "x": 836, "y": -130, "width": 16, "height": 685},
+    {"id": "north-service-lot", "type": "yard", "x": -120, "y": -235, "width": 810, "height": 85, "markings": "parking"},
+    {"id": "south-service-lot", "type": "yard", "x": -90, "y": 574, "width": 795, "height": 92, "markings": "parking"},
+    {"id": "east-freight-lot", "type": "yard", "x": 854, "y": -40, "width": 190, "height": 445, "markings": "parking"},
+    {"id": "west-market-plaza", "type": "plaza", "x": -350, "y": 65, "width": 150, "height": 330}
+  ],
+  "distantScenery": [
+    {"id": "north-block-a", "type": "building", "x": -120, "y": -235, "width": 130, "height": 85, "elevation": 15, "material": "brick"},
+    {"id": "north-block-b", "type": "building", "x": 40, "y": -235, "width": 120, "height": 85, "elevation": 12, "material": "plaster"},
+    {"id": "north-block-c", "type": "building", "x": 190, "y": -235, "width": 150, "height": 85, "elevation": 17, "material": "brick"},
+    {"id": "north-block-d", "type": "building", "x": 370, "y": -235, "width": 135, "height": 85, "elevation": 14, "material": "plaster"},
+    {"id": "north-block-e", "type": "building", "x": 535, "y": -235, "width": 155, "height": 85, "elevation": 18, "material": "brick"},
+    {"id": "east-depot-a", "type": "warehouse", "x": 860, "y": -40, "width": 120, "height": 85, "elevation": 9, "material": "metal"},
+    {"id": "east-depot-b", "type": "warehouse", "x": 860, "y": 100, "width": 150, "height": 72, "elevation": 8, "material": "metal"},
+    {"id": "east-block-c", "type": "building", "x": 860, "y": 280, "width": 115, "height": 95, "elevation": 13, "material": "plaster"},
+    {"id": "south-workyard-a", "type": "warehouse", "x": 560, "y": 580, "width": 145, "height": 82, "elevation": 8, "material": "metal"},
+    {"id": "south-workyard-b", "type": "warehouse", "x": 350, "y": 582, "width": 130, "height": 78, "elevation": 10, "material": "brick"},
+    {"id": "south-housing-a", "type": "building", "x": 130, "y": 574, "width": 145, "height": 90, "elevation": 14, "material": "plaster"},
+    {"id": "south-housing-b", "type": "building", "x": -90, "y": 574, "width": 130, "height": 90, "elevation": 12, "material": "brick"},
+    {"id": "west-yard-a", "type": "warehouse", "x": -340, "y": 290, "width": 130, "height": 86, "elevation": 8, "material": "metal"},
+    {"id": "west-block-b", "type": "building", "x": -340, "y": 80, "width": 145, "height": 110, "elevation": 15, "material": "plaster"},
+    {"id": "fuel-tank-a", "type": "tank", "x": 880, "y": 470, "width": 13, "height": 13, "elevation": 15},
+    {"id": "fuel-tank-b", "type": "tank", "x": 905, "y": 470, "width": 10, "height": 10, "elevation": 12},
+    {"id": "outer-tree-a", "type": "tree", "x": -225, "y": -45, "size": 1.4},
+    {"id": "outer-tree-b", "type": "tree", "x": -225, "y": 5, "size": 1.2},
+    {"id": "outer-tree-c", "type": "tree", "x": 760, "y": 580, "size": 1.5},
+    {"id": "outer-tree-d", "type": "tree", "x": 810, "y": 580, "size": 1.3},
+    {"id": "outer-tree-e", "type": "tree", "x": -205, "y": -165, "size": 1.2},
+    {"id": "outer-tree-f", "type": "tree", "x": -155, "y": -165, "size": 1.3},
+    {"id": "outer-tree-g", "type": "tree", "x": 720, "y": -165, "size": 1.1},
+    {"id": "outer-tree-h", "type": "tree", "x": 760, "y": -165, "size": 1.4},
+    {"id": "outer-tree-i", "type": "tree", "x": 850, "y": -165, "size": 1.2},
+    {"id": "outer-tree-j", "type": "tree", "x": 20, "y": 570, "size": 1.2},
+    {"id": "outer-tree-k", "type": "tree", "x": 75, "y": 570, "size": 1.4},
+    {"id": "outer-tree-l", "type": "tree", "x": 780, "y": 570, "size": 1.3},
+    {"id": "outer-tree-m", "type": "tree", "x": 830, "y": 570, "size": 1.2},
+    {"id": "outer-tree-n", "type": "tree", "x": -225, "y": 210, "size": 1.3},
+    {"id": "outer-tree-o", "type": "tree", "x": -225, "y": 255, "size": 1.1},
+    {"id": "outer-tree-p", "type": "tree", "x": -225, "y": 440, "size": 1.4}
   ]
 }

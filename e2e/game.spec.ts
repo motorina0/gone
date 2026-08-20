@@ -132,6 +132,43 @@ const tacticalTopBandVariation = async (page: Page, viewId: string): Promise<num
     return Math.sqrt(sumOfSquares / pixels - mean * mean);
   }, viewId);
 
+const tacticalVisualMetrics = async (
+  page: Page,
+  viewId: string,
+): Promise<{deviation: number; meanHorizontalEdge: number}> =>
+  page.evaluate(async (id) => {
+    const image = new Image();
+    image.src = `content/locations/vatra-central-station/views/${id}.webp`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = 240;
+    canvas.height = 160;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    const luminance: number[] = [];
+    let sum = 0;
+    let sumOfSquares = 0;
+    for (let index = 0; index < data.length; index += 4) {
+      const value = data[index]! * 0.2126 + data[index + 1]! * 0.7152 + data[index + 2]! * 0.0722;
+      luminance.push(value);
+      sum += value;
+      sumOfSquares += value * value;
+    }
+    let horizontalEdges = 0;
+    let edgeCount = 0;
+    for (let index = 0; index < luminance.length; index += 1) {
+      if (index % canvas.width === 0) continue;
+      horizontalEdges += Math.abs(luminance[index]! - luminance[index - 1]!);
+      edgeCount += 1;
+    }
+    const mean = sum / luminance.length;
+    return {
+      deviation: Math.sqrt(sumOfSquares / luminance.length - mean * mean),
+      meanHorizontalEdge: horizontalEdges / edgeCount,
+    };
+  }, viewId);
+
 interface TouchPoint {
   id: number;
   x: number;
@@ -358,6 +395,9 @@ test('every tactical view zooms out to a complete portrait map', async ({page}) 
     const closeView = await page.evaluate(() => window.__GONE_TEST__!);
     expect(closeView.cameraZoom).toBeGreaterThan(closeView.minimumZoom);
     expect(await tacticalTopBandVariation(page, id)).toBeGreaterThan(4);
+    const visualMetrics = await tacticalVisualMetrics(page, id);
+    expect(visualMetrics.deviation).toBeGreaterThan(17);
+    expect(visualMetrics.meanHorizontalEdge).toBeGreaterThan(4);
     await zoomOutToFullMap(page);
     if (index < 3) {
       await page.locator('[data-zoom-in]').click();

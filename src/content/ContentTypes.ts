@@ -58,6 +58,7 @@ export type SurfaceKind = 'road' | 'sidewalk' | 'plaza' | 'yard' | 'rail';
 export interface EnvironmentSurface extends Rect {
   type: SurfaceKind;
   color?: string;
+  markings?: 'two-lane' | 'parking';
 }
 
 export interface EnvironmentProp extends WorldPoint {
@@ -69,6 +70,34 @@ export interface EnvironmentProp extends WorldPoint {
   height?: number;
   color?: string;
   blocksMovement?: boolean;
+  text?: string;
+  castsLight?: boolean;
+  energy?: number;
+}
+
+export interface EnvironmentLandmark extends Rect {
+  name: string;
+  type: string;
+  color: string;
+  elevation?: number;
+  material?: 'stone' | 'brick' | 'plaster' | 'concrete' | 'metal' | 'glass';
+  roof?: 'flat' | 'pitched' | 'metal' | 'glass' | 'open';
+  floors?: number;
+  signText?: string;
+  canopies?: Array<{offset: number; length: number; depth?: number; yOffset?: number}>;
+}
+
+export interface DistantSceneryItem {
+  id: string;
+  type: 'building' | 'warehouse' | 'tree' | 'tank';
+  x: number;
+  y: number;
+  elevation?: number;
+  width?: number;
+  height?: number;
+  size?: number;
+  rotation?: number;
+  material?: 'brick' | 'plaster' | 'metal';
 }
 
 export interface EnvironmentResource {
@@ -82,11 +111,15 @@ export interface EnvironmentResource {
     backdropTexture: string;
     backdropTints: string[];
     wetness: number;
+    puddleCount?: number;
+    leafLitterCount?: number;
   };
   surfaces: EnvironmentSurface[];
-  landmarks: Array<Rect & {name: string; type: string; color: string; elevation?: number}>;
+  landmarks: EnvironmentLandmark[];
   trees: Array<WorldPoint & {id?: string; size?: number}>;
   streetFurniture: EnvironmentProp[];
+  distantSurfaces?: EnvironmentSurface[];
+  distantScenery?: DistantSceneryItem[];
 }
 
 export interface PatrolResource {

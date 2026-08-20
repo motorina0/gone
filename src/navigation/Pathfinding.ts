@@ -132,6 +132,7 @@ export class GridNavigationService implements NavigationService {
       ] as const) {
         const next = {x: current.x + dx, y: current.y + dy};
         if (!this.nodeWalkable(next)) continue;
+        if (!this.segmentWalkable(this.toWorld(current), this.toWorld(next))) continue;
         if (
           dx !== 0 &&
           dy !== 0 &&

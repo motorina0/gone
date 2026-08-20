@@ -24,7 +24,9 @@
           "minItems": 5,
           "maxItems": 5
         },
-        "wetness": {"type": "number", "minimum": 0, "maximum": 1}
+        "wetness": {"type": "number", "minimum": 0, "maximum": 1},
+        "puddleCount": {"type": "integer", "minimum": 0, "maximum": 200},
+        "leafLitterCount": {"type": "integer", "minimum": 0, "maximum": 500}
       },
       "required": ["sky", "horizon", "ground", "groundDark", "backdropTexture", "backdropTints", "wetness"]
     },
@@ -40,7 +42,8 @@
           "y": {"type": "number"},
           "width": {"$ref": "#/$defs/positiveNumber"},
           "height": {"$ref": "#/$defs/positiveNumber"},
-          "color": {"$ref": "#/$defs/color"}
+          "color": {"$ref": "#/$defs/color"},
+          "markings": {"enum": ["two-lane", "parking"]}
         },
         "required": ["id", "type", "x", "y", "width", "height"]
       }
@@ -59,9 +62,23 @@
           "height": {"$ref": "#/$defs/positiveNumber"},
           "color": {"$ref": "#/$defs/color"},
           "elevation": {"type": "number", "minimum": 0},
-          "roof": {"enum": ["flat", "pitched", "glass", "open"]},
-          "material": {"enum": ["stone", "brick", "concrete", "metal", "glass"]},
+          "roof": {"enum": ["flat", "pitched", "metal", "glass", "open"]},
+          "material": {"enum": ["stone", "brick", "plaster", "concrete", "metal", "glass"]},
           "floors": {"type": "integer", "minimum": 1},
+          "signText": {"type": "string", "minLength": 1, "maxLength": 48},
+          "canopies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "offset": {"type": "number", "minimum": 0},
+                "length": {"$ref": "#/$defs/positiveNumber"},
+                "depth": {"$ref": "#/$defs/positiveNumber"},
+                "yOffset": {"type": "number"}
+              },
+              "required": ["offset", "length"]
+            }
+          },
           "renderInDetailOverlay": {"type": "boolean"},
           "occludes": {"type": "boolean"}
         },
@@ -97,9 +114,48 @@
           "depth": {"$ref": "#/$defs/positiveNumber"},
           "height": {"$ref": "#/$defs/positiveNumber"},
           "color": {"$ref": "#/$defs/color"},
-          "blocksMovement": {"type": "boolean"}
+          "blocksMovement": {"type": "boolean"},
+          "text": {"type": "string", "minLength": 1, "maxLength": 32},
+          "castsLight": {"type": "boolean"},
+          "energy": {"type": "number", "minimum": 0, "maximum": 1000}
         },
         "required": ["type", "x", "y"]
+      }
+    },
+    "distantScenery": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["building", "warehouse", "tree", "tank"]},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "width": {"$ref": "#/$defs/positiveNumber"},
+          "height": {"$ref": "#/$defs/positiveNumber"},
+          "elevation": {"type": "number", "minimum": 0},
+          "size": {"$ref": "#/$defs/positiveNumber"},
+          "rotation": {"type": "number"},
+          "material": {"enum": ["brick", "plaster", "metal"]}
+        },
+        "required": ["id", "type", "x", "y"]
+      }
+    },
+    "distantSurfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["road", "sidewalk", "plaza", "yard"]},
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "width": {"$ref": "#/$defs/positiveNumber"},
+          "height": {"$ref": "#/$defs/positiveNumber"},
+          "color": {"$ref": "#/$defs/color"},
+          "markings": {"enum": ["two-lane", "parking"]}
+        },
+        "required": ["id", "type", "x", "y", "width", "height"]
       }
     }
   },

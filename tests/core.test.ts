@@ -1,7 +1,8 @@
 import {readFileSync, statSync} from 'node:fs';
 import sharp from 'sharp';
 import {describe, expect, it} from 'vitest';
-import type {NavigationResource} from '../src/content/ContentTypes';
+import {environmentPropBlocker} from '../src/content/ContentLoader';
+import type {EnvironmentProp, NavigationResource, Rect} from '../src/content/ContentTypes';
 import {GridNavigationService} from '../src/navigation/Pathfinding';
 import {createProjection} from '../src/projection/Projection';
 import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
@@ -108,6 +109,130 @@ describe('single-operative exploration content', () => {
       expect(player.runSpeed).toBeGreaterThan(player.speed);
     });
   }
+
+  it('authors the Vatra fidelity benchmark as editable Gone world data', () => {
+    const environment = readJson<{
+      disclaimer: string;
+      atmosphere: {puddleCount: number; leafLitterCount: number};
+      surfaces: Array<{markings?: string}>;
+      landmarks: Array<{
+        id: string;
+        type: string;
+        material?: string;
+        roof?: string;
+        canopies?: Array<{offset: number; length: number}>;
+      }>;
+      streetFurniture: EnvironmentProp[];
+      distantSurfaces: Array<{id: string; type: string; markings?: string}>;
+      distantScenery: Array<{id: string; type: string}>;
+    }>(locationPath('vatra-central-station', 'environment.json'));
+    expect(environment.disclaimer).toContain('Original fictional station district');
+    expect(environment.atmosphere.puddleCount).toBeGreaterThanOrEqual(40);
+    expect(environment.atmosphere.leafLitterCount).toBeGreaterThanOrEqual(100);
+    expect(environment.surfaces.filter(({markings}) => markings).length).toBeGreaterThanOrEqual(3);
+    expect(environment.landmarks.every(({material}) => Boolean(material))).toBe(true);
+    expect(environment.landmarks.filter(({roof}) => roof).length).toBeGreaterThanOrEqual(15);
+    expect(
+      environment.landmarks
+        .filter(({type}) => type === 'platform')
+        .reduce((total, {canopies = []}) => total + canopies.length, 0),
+    ).toBeGreaterThanOrEqual(4);
+    expect(environment.streetFurniture.length).toBeGreaterThanOrEqual(75);
+    const propTypes = new Set(environment.streetFurniture.map(({type}) => type));
+    for (const type of [
+      'car',
+      'regional-train',
+      'freight-wagon',
+      'lamp',
+      'platform-sign',
+      'signal',
+      'kiosk',
+      'crosswalk',
+      'gantry',
+      'fence',
+      'service-cart',
+    ]) {
+      expect(propTypes.has(type), `missing ${type} from Vatra dressing`).toBe(true);
+    }
+    const substantialPropTypes = new Set([
+      'kiosk',
+      'planter',
+      'crate-stack',
+      'utility-cabinet',
+      'fence',
+      'service-cart',
+    ]);
+    const substantialProps = environment.streetFurniture.filter(({type}) =>
+      substantialPropTypes.has(type),
+    );
+    expect(substantialProps.length).toBeGreaterThanOrEqual(15);
+    for (const prop of substantialProps) {
+      expect(prop.blocksMovement, `${prop.id} must block movement`).toBe(true);
+      expect(prop.width, `${prop.id} must author collision width`).toBeGreaterThan(0);
+      expect(prop.depth, `${prop.id} must author collision depth`).toBeGreaterThan(0);
+    }
+    expect(environment.distantSurfaces.length).toBeGreaterThanOrEqual(12);
+    expect(environment.distantSurfaces.filter(({markings}) => markings).length).toBeGreaterThanOrEqual(6);
+    expect(environment.distantScenery.length).toBeGreaterThanOrEqual(30);
+    expect(new Set(environment.distantScenery.map(({id}) => id)).size).toBe(
+      environment.distantScenery.length,
+    );
+  });
+
+  it('routes around substantial Vatra scenery instead of walking through it', () => {
+    const environment = readJson<{streetFurniture: EnvironmentProp[]}>(
+      locationPath('vatra-central-station', 'environment.json'),
+    );
+    const walkable = readJson<NavigationResource>(
+      locationPath('vatra-central-station', 'navigation/walkable.json'),
+    );
+    const staticBlockers = readJson<{rectangles: Rect[]}>(
+      locationPath('vatra-central-station', 'navigation/blockers.json'),
+    ).rectangles;
+    const environmentBlockers = environment.streetFurniture
+      .map(environmentPropBlocker)
+      .filter((blocker): blocker is Rect => blocker !== undefined);
+    const navigation = new GridNavigationService(
+      walkable.bounds,
+      [...staticBlockers, ...environmentBlockers],
+      walkable.cellSize,
+      walkable.areas,
+    );
+    const cases = [
+      {id: 'forecourt-kiosk', from: point(98, 148), to: point(110, 148)},
+      {id: 'platform-cart-01', from: point(200, 69), to: point(210, 69)},
+      {id: 'freight-fence-south', from: point(370, 260), to: point(370, 278)},
+      {id: 'freight-fence-east', from: point(525, 265), to: point(538, 265)},
+      {id: 'freight-crates-01', from: point(364, 252), to: point(376, 252)},
+      {id: 'forecourt-planter-01', from: point(11, 157), to: point(21, 157)},
+      {id: 'signal-cabinet-01', from: point(126, 100), to: point(138, 100)},
+    ];
+
+    for (const {id, from, to} of cases) {
+      const prop = environment.streetFurniture.find((candidate) => candidate.id === id)!;
+      expect(prop, `missing ${id}`).toBeDefined();
+      expect(navigation.isWalkable(point(prop.x, prop.y)), `${id} center is traversable`).toBe(false);
+      const path = navigation.findPath(from, to);
+      expect(path.length, `${id} still has a direct path`).not.toBe(1);
+      const route = [from, ...path];
+      for (let index = 0; index < route.length - 1; index += 1) {
+        const start = route[index]!;
+        const end = route[index + 1]!;
+        const steps = Math.max(1, Math.ceil(Math.hypot(end.x - start.x, end.y - start.y) / 0.05));
+        for (let step = 0; step <= steps; step += 1) {
+          const amount = step / steps;
+          expect(
+            navigation.isWalkable({
+              x: start.x + (end.x - start.x) * amount,
+              y: start.y + (end.y - start.y) * amount,
+              elevation: 0,
+            }),
+            `${id} route crosses blocked scenery`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
 
   it('walk and run orders use distinct deterministic speeds', () => {
     const movement = new MovementSystem();
@@ -286,7 +411,10 @@ describe('data-driven environment artwork', () => {
       'weathered-masonry.png',
       'weathered-roof.png',
       'vatra-aged-steel.png',
+      'vatra-corrugated-metal.png',
+      'vatra-painted-plaster.png',
       'vatra-platform-concrete.png',
+      'vatra-wet-brick.png',
     ]) {
       expect(readFileSync(`public/content/materials/${name}`).subarray(0, 8)).toEqual(pngSignature);
     }
