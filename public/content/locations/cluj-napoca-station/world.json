@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-world",
+  "name": "Gara Cluj-Napoca",
+  "bounds": {
+    "minX": 0,
+    "minY": 0,
+    "maxX": 725.436,
+    "maxY": 466.9
+  },
+  "spawns": {
+    "player": {
+      "x": 298.421,
+      "y": 209.883,
+      "elevation": -0.534
+    },
+    "platformAccess": {
+      "x": 283.89642857142854,
+      "y": 298.47428571428566,
+      "elevation": -0.242
+    }
+  },
+  "exchange": {
+    "x": 298.421,
+    "y": 209.883,
+    "elevation": -0.534
+  },
+  "package": {
+    "x": 298.421,
+    "y": 209.883,
+    "elevation": -0.534
+  },
+  "extraction": {
+    "x": 298.421,
+    "y": 209.883,
+    "elevation": -0.534
+  },
+  "geography": {
+    "sourceCrs": "EPSG:4326",
+    "origin": {
+      "latitude": 46.7821,
+      "longitude": 23.5838
+    },
+    "geographicBounds": {
+      "west": 23.5838,
+      "east": 23.5933,
+      "south": 46.7821,
+      "north": 46.7863
+    },
+    "metresPerDegree": {
+      "longitude": 76361.654869547,
+      "latitude": 111166.596914633
+    },
+    "anchor": {
+      "latitude": 46.784046304041595,
+      "longitude": 23.58642071485519,
+      "world": {
+        "x": 200.122,
+        "y": 216.364,
+        "elevation": 0
+      }
+    },
+    "elevationDatumMeters": 336.559,
+    "terrainSourceId": "cluj-napoca-station-terrain-source"
+  }
+}

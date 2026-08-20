@@ -6,12 +6,36 @@ export interface Rect {
   y: number;
   width: number;
   height: number;
+  minElevation?: number;
+  maxElevation?: number;
 }
 
 export interface WalkableArea {
   id: string;
   elevation: number;
   points: WorldPoint[];
+  elevationPlane?: {
+    originX: number;
+    originY: number;
+    originElevation: number;
+    slopeX: number;
+    slopeY: number;
+  };
+}
+
+export interface NavigationHazard {
+  id: string;
+  points: WorldPoint[];
+  minElevation?: number;
+  maxElevation?: number;
+}
+
+export interface NavigationConnection {
+  id: string;
+  type: 'stairs' | 'ramp' | 'tunnel-portal' | 'crossing';
+  from: WorldPoint;
+  to: WorldPoint;
+  bidirectional?: boolean;
 }
 
 export interface NavigationResource {
@@ -20,6 +44,8 @@ export interface NavigationResource {
   cellSize: number;
   bounds: {minX: number; minY: number; maxX: number; maxY: number};
   areas: WalkableArea[];
+  connections?: NavigationConnection[];
+  hazards?: NavigationHazard[];
 }
 
 export interface ProjectionResource {
@@ -41,6 +67,15 @@ export interface WorldResource {
   exchange: WorldPoint;
   package: WorldPoint;
   extraction: WorldPoint;
+  geography?: {
+    sourceCrs: 'EPSG:4326';
+    origin: {latitude: number; longitude: number};
+    geographicBounds: {west: number; east: number; south: number; north: number};
+    metresPerDegree: {longitude: number; latitude: number};
+    anchor: {latitude: number; longitude: number; world: WorldPoint};
+    elevationDatumMeters: number;
+    terrainSourceId: string;
+  };
 }
 
 export interface EntityResource {
@@ -120,6 +155,11 @@ export interface EnvironmentResource {
   streetFurniture: EnvironmentProp[];
   distantSurfaces?: EnvironmentSurface[];
   distantScenery?: DistantSceneryItem[];
+  attribution?: {
+    primary: {label: string; url: string};
+    secondary?: {label: string; url: string};
+    legalNotice?: string;
+  };
 }
 
 export interface PatrolResource {

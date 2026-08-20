@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "explorare-gara-cluj",
+  "name": "Explorare liberă",
+  "description": "Explorează zonele publice exterioare ale Gării Cluj-Napoca.",
+  "objectives": [
+    {
+      "id": "piata",
+      "name": "Vizitează Piața Gării"
+    },
+    {
+      "id": "peroane",
+      "name": "Explorează peroanele"
+    },
+    {
+      "id": "transport",
+      "name": "Identifică stațiile CTP"
+    },
+    {
+      "id": "iesire",
+      "name": "Revino în zona pietonală"
+    }
+  ],
+  "observationSeconds": 2,
+  "observationRadius": 20,
+  "interactionRadius": 6,
+  "lockdownSeconds": 60
+}

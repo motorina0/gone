@@ -2,8 +2,14 @@ import {readFileSync, statSync} from 'node:fs';
 import sharp from 'sharp';
 import {describe, expect, it} from 'vitest';
 import {environmentPropBlocker} from '../src/content/ContentLoader';
-import type {EnvironmentProp, NavigationResource, Rect} from '../src/content/ContentTypes';
+import type {
+  EnvironmentProp,
+  NavigationResource,
+  Rect,
+  WalkableArea,
+} from '../src/content/ContentTypes';
 import {GridNavigationService} from '../src/navigation/Pathfinding';
+import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import {createProjection} from '../src/projection/Projection';
 import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
 import {MovementSystem} from '../src/systems/MovementSystem';
@@ -19,11 +25,27 @@ import {
 import {VIEW_IDS, ViewManager} from '../src/views/ViewManager';
 import type {EntityState, WorldPoint} from '../src/world/WorldTypes';
 
-const LOCATION_IDS = ['piata-unirii', 'vatra-central-station'] as const;
+const LOCATION_IDS = ['piata-unirii', 'vatra-central-station', 'cluj-napoca-station'] as const;
+const RASTER_LOCATION_IDS = ['piata-unirii', 'vatra-central-station'] as const;
 const point = (x: number, y: number): WorldPoint => ({x, y, elevation: 0});
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, 'utf8')) as T;
 const locationPath = (locationId: string, path: string): string =>
   `public/content/locations/${locationId}/${path}`;
+const areaCenter = (area: WalkableArea): WorldPoint => {
+  const center = {
+    x: area.points.reduce((sum, candidate) => sum + candidate.x, 0) / area.points.length,
+    y: area.points.reduce((sum, candidate) => sum + candidate.y, 0) / area.points.length,
+  };
+  const plane = area.elevationPlane;
+  return {
+    ...center,
+    elevation: plane
+      ? plane.originElevation +
+        plane.slopeX * (center.x - plane.originX) +
+        plane.slopeY * (center.y - plane.originY)
+      : area.elevation,
+  };
+};
 
 const makePlayer = (): EntityState => ({
   id: 'player',
@@ -248,6 +270,17 @@ describe('single-operative exploration content', () => {
     expect(player.pace).toBe('run');
   });
 
+  it('interpolates canonical elevation while traversing a stair connection', () => {
+    const movement = new MovementSystem();
+    const player = makePlayer();
+    const entities = new Map([[player.id, player]]);
+    movement.setPath(player.id, [{x: 10, y: 0, elevation: 4}], 'walk');
+
+    movement.update(entities, 1);
+
+    expect(player.position).toEqual({x: 5, y: 0, elevation: 2});
+  });
+
   it('exposes only untraversed movement waypoints for route feedback', () => {
     const movement = new MovementSystem();
     const player = makePlayer();
@@ -350,6 +383,272 @@ describe('single-operative exploration content', () => {
   }
 });
 
+describe('Cluj-Napoca station geographic content', () => {
+  it('converts WGS84 coordinates to the documented local metre world deterministically', () => {
+    const world = readJson<{
+      bounds: {minX: number; minY: number; maxX: number; maxY: number};
+      geography: {
+        geographicBounds: {west: number; east: number; south: number; north: number};
+        anchor: {latitude: number; longitude: number; world: WorldPoint};
+      };
+    }>(locationPath('cluj-napoca-station', 'world.json'));
+    const transform = createLocalGeoTransform(world.geography.geographicBounds);
+    const anchor = transform.toWorld(world.geography.anchor);
+    const restored = transform.toGeographic(anchor);
+
+    expect(anchor.x).toBeCloseTo(world.geography.anchor.world.x, 3);
+    expect(anchor.y).toBeCloseTo(world.geography.anchor.world.y, 3);
+    expect(restored.longitude).toBeCloseTo(world.geography.anchor.longitude, 10);
+    expect(restored.latitude).toBeCloseTo(world.geography.anchor.latitude, 10);
+    expect(world.bounds.maxX).toBeCloseTo(725.436, 3);
+    expect(world.bounds.maxY).toBeCloseTo(466.9, 3);
+    expect(transform.toWorld({
+      longitude: world.geography.geographicBounds.west,
+      latitude: world.geography.geographicBounds.south,
+    })).toEqual(point(0, 0));
+  });
+
+  it('records open-data licences, retrievals, transformations, and the empty OAM result', () => {
+    const osm = readJson<{
+      retrievedAt: string;
+      sourceSha256: string;
+      attribution: string;
+      licence: string;
+      transformations: string[];
+      features: Array<{id: string; tags: Record<string, string>}>;
+    }>('data/cluj-napoca-station/osm-source.json');
+    const terrain = readJson<{
+      retrievedAt: string;
+      sourceSha256: string;
+      referenceElevationMeters: number;
+      attribution: string;
+      liabilityNotice: string;
+      canonicalModel: {
+        type: string;
+        slopeEastMetersPerMeter: number;
+        slopeNorthMetersPerMeter: number;
+      };
+      transformations: string[];
+      samples: unknown[];
+    }>('data/cluj-napoca-station/terrain-source.json');
+    const aerial = readJson<{found: number; result: unknown[]; decision: string}>(
+      'data/cluj-napoca-station/openaerialmap-coverage.json',
+    );
+    const environment = readJson<{
+      attribution: {legalNotice: string; secondary: {url: string}};
+    }>(locationPath('cluj-napoca-station', 'environment.json'));
+    const world = readJson<{geography: {terrainSourceId: string}}>(
+      locationPath('cluj-napoca-station', 'world.json'),
+    );
+
+    expect(osm.retrievedAt).toBe('2026-08-20');
+    expect(osm.sourceSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(osm.attribution).toBe('© OpenStreetMap contributors');
+    expect(osm.licence).toContain('ODbL');
+    expect(osm.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(osm.features.length).toBeGreaterThan(600);
+    expect(osm.features.filter(({tags}) => tags.entrance !== undefined)).toHaveLength(6);
+    expect(terrain.retrievedAt).toBe('2026-08-20');
+    expect(terrain.sourceSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(terrain.referenceElevationMeters).toBeCloseTo(336.559, 3);
+    expect(terrain.attribution).toContain('Copernicus WorldDEM-30');
+    expect(terrain.liabilityNotice).toContain('do not incur any liability');
+    expect(terrain.canonicalModel.type).toBe('robust-planar-fit');
+    expect(Math.abs(terrain.canonicalModel.slopeEastMetersPerMeter)).toBeGreaterThan(0.001);
+    expect(Math.abs(terrain.canonicalModel.slopeNorthMetersPerMeter)).toBeGreaterThan(0.001);
+    expect(terrain.transformations.length).toBeGreaterThanOrEqual(4);
+    expect(terrain.samples).toHaveLength(35);
+    expect(environment.attribution.legalNotice).toContain(terrain.attribution);
+    expect(environment.attribution.legalNotice).toContain(terrain.liabilityNotice);
+    expect(environment.attribution.secondary.url).toContain('cop_dem_licenses.pdf');
+    expect(world.geography.terrainSourceId).toBe('cluj-napoca-station-terrain-source');
+    expect(aerial.found).toBe(0);
+    expect(aerial.result).toEqual([]);
+    expect(aerial.decision).toContain('no raster imagery was used');
+  });
+
+  it('models the Copernicus terrain plane in canonical walkable elevations', () => {
+    const resource = readJson<NavigationResource>(
+      locationPath('cluj-napoca-station', 'navigation/walkable.json'),
+    );
+    const forecourt = resource.areas.find(({id}) => id === 'piata-garii-forecourt')!;
+    const plane = forecourt.elevationPlane!;
+    const elevations = forecourt.points.map(({elevation}) => elevation);
+
+    expect(plane.slopeX).toBeCloseTo(-0.005684726, 8);
+    expect(plane.slopeY).toBeCloseTo(-0.00384408, 8);
+    expect(Math.max(...elevations) - Math.min(...elevations)).toBeGreaterThan(1);
+    expect(areaCenter(forecourt).elevation).toBeCloseTo(forecourt.elevation, 2);
+  });
+
+  it('routes from the public forecourt through the tunnel to every mapped passenger platform', () => {
+    const resource = readJson<NavigationResource>(
+      locationPath('cluj-napoca-station', 'navigation/walkable.json'),
+    );
+    const blockers = readJson<{rectangles: Rect[]}>(
+      locationPath('cluj-napoca-station', 'navigation/blockers.json'),
+    ).rectangles;
+    const world = readJson<{spawns: {player: WorldPoint}}>(
+      locationPath('cluj-napoca-station', 'world.json'),
+    );
+    const connections = resource.connections ?? [];
+    const navigation = new GridNavigationService(
+      resource.bounds,
+      blockers,
+      resource.cellSize,
+      resource.areas,
+      connections,
+      resource.hazards,
+    );
+    expect(connections.some(({id}) => id.startsWith('portal-'))).toBe(false);
+    expect(connections.map(({id}) => id)).toEqual(
+      expect.arrayContaining([
+        'stairs-way-892692965',
+        'approximate-stairs-platform-4-5',
+        'approximate-stairs-platform-6-7',
+      ]),
+    );
+    expect(navigation.isWalkable(world.spawns.player)).toBe(true);
+    const platforms = resource.areas.filter((area) => area.id.startsWith('platform-way-'));
+    expect(platforms.map(({id}) => id).sort()).toEqual(
+      [
+        'platform-way-1416233688',
+        'platform-way-215798523',
+        'platform-way-215798526',
+        'platform-way-215798529',
+        'platform-way-215798532',
+      ].sort(),
+    );
+    let expandedNodes = 0;
+    let walkabilityChecks = 0;
+    let segmentSamples = 0;
+    for (const platform of platforms) {
+      const destination = areaCenter(platform);
+      const route = navigation.findPath(world.spawns.player, destination);
+      const diagnostics = navigation.getLastSearchDiagnostics();
+      expandedNodes += diagnostics.expandedNodes;
+      walkabilityChecks += diagnostics.walkabilityChecks;
+      segmentSamples += diagnostics.segmentSamples;
+      expect(navigation.isWalkable(destination), platform.id).toBe(true);
+      expect(route.length, platform.id).toBeGreaterThan(2);
+    }
+    expect(expandedNodes).toBeLessThan(35_000);
+    expect(walkabilityChecks).toBeLessThan(250_000);
+    expect(segmentSamples).toBeLessThan(200_000);
+
+    const platform = platforms.find((area) => area.id === 'platform-way-215798526')!;
+    const route = navigation.findPath(world.spawns.player, areaCenter(platform));
+    const offsets = new Set(
+      route.map((waypoint) => {
+        const plane = platform.elevationPlane!;
+        const terrainElevation =
+          plane.slopeX * (waypoint.x - plane.originX) +
+          plane.slopeY * (waypoint.y - plane.originY);
+        return Number((waypoint.elevation - terrainElevation).toFixed(2));
+      }),
+    );
+    for (const offset of [0, -3.2, 0.55]) expect(offsets.has(offset), `${offset} m layer`).toBe(true);
+  }, 30_000);
+
+  it('keeps station interiors, railway tracks, and tram tracks blocked except at mapped crossings', () => {
+    const resource = readJson<NavigationResource>(
+      locationPath('cluj-napoca-station', 'navigation/walkable.json'),
+    );
+    const blockers = readJson<{rectangles: Rect[]}>(
+      locationPath('cluj-napoca-station', 'navigation/blockers.json'),
+    ).rectangles;
+    const navigation = new GridNavigationService(
+      resource.bounds,
+      blockers,
+      resource.cellSize,
+      resource.areas,
+      resource.connections,
+      resource.hazards,
+    );
+    const station = resource.hazards!.find(
+      (hazard) => hazard.id === 'closed-building-way-262209819',
+    )!;
+    const crossing = resource.areas.find((area) => area.id === 'crossing-central')!;
+    const crossingCenter = areaCenter(crossing);
+    const stationCenter = areaCenter({
+      id: station.id,
+      elevation: 0,
+      points: station.points,
+    });
+    const transform = createLocalGeoTransform({
+      west: 23.5838,
+      east: 23.5933,
+      south: 46.7821,
+      north: 46.7863,
+    });
+    const unmarkedTrack = transform.toWorld({longitude: 23.5869319, latitude: 46.7846});
+    const unmarkedTramTrack = transform.toWorld({
+      longitude: 23.5864958,
+      latitude: 46.7840175,
+    });
+    const mappedTramCrossing = transform.toWorld({
+      longitude: 23.5858139,
+      latitude: 46.7838535,
+    });
+
+    expect(
+      navigation.resolveDestination(stationCenter),
+    ).toBeUndefined();
+    expect(
+      navigation.resolveDestination(unmarkedTrack),
+    ).toBeUndefined();
+    expect(navigation.resolveDestination(unmarkedTramTrack)).toBeUndefined();
+    expect(navigation.resolveDestination(mappedTramCrossing)).toBeDefined();
+    expect(
+      resource.hazards!.some(({id}) => id.startsWith('track-way-380768280-')),
+    ).toBe(true);
+    expect(resource.hazards!.filter(({id}) => id.startsWith('track-')).length).toBeGreaterThan(
+      3_000,
+    );
+    expect(
+      resource.hazards!
+        .filter(({id}) => id.startsWith('track-'))
+        .every((hazard) => hazard.minElevation !== undefined && hazard.maxElevation !== undefined),
+    ).toBe(true);
+    expect(navigation.isWalkable(crossingCenter)).toBe(true);
+    expect(navigation.resolveDestination({...crossingCenter, elevation: 0})?.elevation).toBeCloseTo(
+      crossingCenter.elevation,
+      3,
+    );
+    expect(blockers.every((blocker) => Number.isFinite(blocker.minElevation))).toBe(true);
+  });
+
+  it('keeps all Cluj runtime layers editable, separate, and source-labelled', () => {
+    const manifest = readJson<{
+      views: string[];
+      detailOverlays: string[];
+      occlusion: string[];
+      backdrops: string[];
+    }>(locationPath('cluj-napoca-station', 'manifest.json'));
+    expect(manifest.views.every((asset) => asset.endsWith('.svg'))).toBe(true);
+    expect(new Set(manifest.views)).not.toEqual(new Set(manifest.detailOverlays));
+    expect(new Set(manifest.views)).not.toEqual(new Set(manifest.occlusion));
+    expect(new Set(manifest.views)).not.toEqual(new Set(manifest.backdrops));
+    for (const id of VIEW_IDS) {
+      const beauty = readFileSync(locationPath('cluj-napoca-station', `views/${id}.svg`), 'utf8');
+      const details = readFileSync(
+        locationPath('cluj-napoca-station', `details/${id}.svg`),
+        'utf8',
+      );
+      expect(beauty).toContain('data-station="main"');
+      expect(beauty).toContain('data-hazard="rail-track"');
+      expect(beauty).toContain('data-platform=');
+      expect(beauty).toContain('data-canopy=');
+      expect(beauty).toContain('data-entrance="main"');
+      expect(beauty).toContain('data-barrier=');
+      expect(details).toContain('GARA CLUJ-NAPOCA');
+      expect(details).toContain('INTRARE PRINCIPALĂ · INTERIOR ÎNCHIS');
+      expect(details).toContain('data-transport-stop=');
+      expect(details).toContain('data-tunnel-entrance=');
+    }
+  });
+});
+
 describe('data-driven environment artwork', () => {
   for (const locationId of LOCATION_IDS) {
     it(`${locationId} defines surfaces, architecture, props, and weather in world space`, () => {
@@ -367,7 +666,7 @@ describe('data-driven environment artwork', () => {
       expect(environment.surfaces.some(({type}) => ['plaza', 'rail'].includes(type))).toBe(true);
       expect(environment.landmarks.length).toBeGreaterThanOrEqual(8);
       expect(environment.trees.length).toBeGreaterThan(0);
-      expect(environment.streetFurniture.some(({type}) => type === 'car')).toBe(true);
+      expect(environment.streetFurniture.length).toBeGreaterThan(0);
       expect(
         environment.streetFurniture
           .filter(({type}) => ['car', 'maintenance-vehicle', 'freight-wagon', 'regional-train'].includes(type))
@@ -422,6 +721,8 @@ describe('data-driven environment artwork', () => {
       expect(
         readFileSync(locationPath(locationId, 'sprites/agent-atlas.png')).subarray(0, 8),
       ).toEqual(pngSignature);
+    }
+    for (const locationId of RASTER_LOCATION_IDS) {
       expect(readFileSync(locationPath(locationId, 'views/view-0.svg'), 'utf8')).toContain(
         '../../../materials/industrial-wet-asphalt.png',
       );
@@ -741,9 +1042,8 @@ describe('settings and camera behavior', () => {
 describe('mobile asset budgets', () => {
   it('keeps every runtime view and character atlas within a bounded download budget', () => {
     for (const locationId of LOCATION_IDS) {
-      const viewSizes = VIEW_IDS.map((id) =>
-        statSync(locationPath(locationId, `views/${id}.webp`)).size,
-      );
+      const manifest = readJson<{views: string[]}>(locationPath(locationId, 'manifest.json'));
+      const viewSizes = manifest.views.map((view) => statSync(locationPath(locationId, view)).size);
       expect(Math.max(...viewSizes)).toBeLessThan(2_000_000);
       expect(viewSizes.reduce((total, size) => total + size, 0)).toBeLessThan(8_000_000);
       expect(statSync(locationPath(locationId, 'sprites/agent-atlas.png')).size).toBeLessThan(

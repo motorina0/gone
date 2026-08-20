@@ -72,7 +72,9 @@ export class MovementSystem {
           : {
               x: entity.position.x + (dx / length) * step,
               y: entity.position.y + (dy / length) * step,
-              elevation: entity.position.elevation,
+              elevation:
+                entity.position.elevation +
+                (target.elevation - entity.position.elevation) * (step / length),
             };
 
       if (!positionAvailable(candidate, id, entities)) continue;

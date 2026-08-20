@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "view-180",
+  "name": "180° izometric",
+  "kind": "isometric",
+  "matrix": [
+    0.866,
+    -0.866,
+    -0.5,
+    -0.5
+  ],
+  "origin": {
+    "x": 384.594141,
+    "y": 586.04157
+  },
+  "scale": 0.852248260352,
+  "azimuth": 180,
+  "elevation": 35.264
+}

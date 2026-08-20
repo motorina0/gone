@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-terrain-source",
+  "retrievedAt": "2026-08-20",
+  "sourceUrl": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N46_00_E023_00_DEM/Copernicus_DSM_COG_10_N46_00_E023_00_DEM.tif",
+  "sourceTile": "Copernicus_DSM_COG_10_N46_00_E023_00_DEM",
+  "sourceSha256": "34afd209f6390857117a63821ce22ed5200f7490d7d733f5d41abe414ba68389",
+  "dataset": "Copernicus DEM GLO-30 DGED, 30 metre Digital Surface Model",
+  "horizontalCrs": "EPSG:4326 (WGS 84)",
+  "verticalCrs": "EPSG:3855 (EGM2008 height)",
+  "geographicBounds": {
+    "west": 23.5838,
+    "east": 23.5933,
+    "south": 46.7821,
+    "north": 46.7863
+  },
+  "grid": {
+    "columns": 7,
+    "rows": 5
+  },
+  "anchor": {
+    "latitude": 46.784046304041595,
+    "longitude": 23.58642071485519,
+    "anchorSampleElevationMeters": 341.288
+  },
+  "referenceElevationMeters": 336.559,
+  "canonicalModel": {
+    "type": "robust-planar-fit",
+    "anchorTerrainElevationMeters": 338.196,
+    "slopeEastMetersPerMeter": -0.005684726,
+    "slopeNorthMetersPerMeter": -0.00384408,
+    "method": "Independent least-squares slopes through per-column and per-row medians, with a median residual intercept at the map anchor."
+  },
+  "samples": [
+    {
+      "column": 0,
+      "row": 0,
+      "longitude": 23.5838,
+      "latitude": 46.7821,
+      "elevationMeters": 344.91
+    },
+    {
+      "column": 1,
+      "row": 0,
+      "longitude": 23.5853833,
+      "latitude": 46.7821,
+      "elevationMeters": 340.348
+    },
+    {
+      "column": 2,
+      "row": 0,
+      "longitude": 23.5869667,
+      "latitude": 46.7821,
+      "elevationMeters": 341.058
+    },
+    {
+      "column": 3,
+      "row": 0,
+      "longitude": 23.58855,
+      "latitude": 46.7821,
+      "elevationMeters": 337.507
+    },
+    {
+      "column": 4,
+      "row": 0,
+      "longitude": 23.5901333,
+      "latitude": 46.7821,
+      "elevationMeters": 336.402
+    },
+    {
+      "column": 5,
+      "row": 0,
+      "longitude": 23.5917167,
+      "latitude": 46.7821,
+      "elevationMeters": 336.559
+    },
+    {
+      "column": 6,
+      "row": 0,
+      "longitude": 23.5933,
+      "latitude": 46.7821,
+      "elevationMeters": 332.674
+    },
+    {
+      "column": 0,
+      "row": 1,
+      "longitude": 23.5838,
+      "latitude": 46.78315,
+      "elevationMeters": 344.619
+    },
+    {
+      "column": 1,
+      "row": 1,
+      "longitude": 23.5853833,
+      "latitude": 46.78315,
+      "elevationMeters": 342.45
+    },
+    {
+      "column": 2,
+      "row": 1,
+      "longitude": 23.5869667,
+      "latitude": 46.78315,
+      "elevationMeters": 339.651
+    },
+    {
+      "column": 3,
+      "row": 1,
+      "longitude": 23.58855,
+      "latitude": 46.78315,
+      "elevationMeters": 337.304
+    },
+    {
+      "column": 4,
+      "row": 1,
+      "longitude": 23.5901333,
+      "latitude": 46.78315,
+      "elevationMeters": 338.309
+    },
+    {
+      "column": 5,
+      "row": 1,
+      "longitude": 23.5917167,
+      "latitude": 46.78315,
+      "elevationMeters": 335.748
+    },
+    {
+      "column": 6,
+      "row": 1,
+      "longitude": 23.5933,
+      "latitude": 46.78315,
+      "elevationMeters": 334.995
+    },
+    {
+      "column": 0,
+      "row": 2,
+      "longitude": 23.5838,
+      "latitude": 46.7842,
+      "elevationMeters": 337.782
+    },
+    {
+      "column": 1,
+      "row": 2,
+      "longitude": 23.5853833,
+      "latitude": 46.7842,
+      "elevationMeters": 338.74
+    },
+    {
+      "column": 2,
+      "row": 2,
+      "longitude": 23.5869667,
+      "latitude": 46.7842,
+      "elevationMeters": 340.754
+    },
+    {
+      "column": 3,
+      "row": 2,
+      "longitude": 23.58855,
+      "latitude": 46.7842,
+      "elevationMeters": 336.282
+    },
+    {
+      "column": 4,
+      "row": 2,
+      "longitude": 23.5901333,
+      "latitude": 46.7842,
+      "elevationMeters": 335.724
+    },
+    {
+      "column": 5,
+      "row": 2,
+      "longitude": 23.5917167,
+      "latitude": 46.7842,
+      "elevationMeters": 335.85
+    },
+    {
+      "column": 6,
+      "row": 2,
+      "longitude": 23.5933,
+      "latitude": 46.7842,
+      "elevationMeters": 335.515
+    },
+    {
+      "column": 0,
+      "row": 3,
+      "longitude": 23.5838,
+      "latitude": 46.78525,
+      "elevationMeters": 336.538
+    },
+    {
+      "column": 1,
+      "row": 3,
+      "longitude": 23.5853833,
+      "latitude": 46.78525,
+      "elevationMeters": 336.222
+    },
+    {
+      "column": 2,
+      "row": 3,
+      "longitude": 23.5869667,
+      "latitude": 46.78525,
+      "elevationMeters": 336.748
+    },
+    {
+      "column": 3,
+      "row": 3,
+      "longitude": 23.58855,
+      "latitude": 46.78525,
+      "elevationMeters": 338.408
+    },
+    {
+      "column": 4,
+      "row": 3,
+      "longitude": 23.5901333,
+      "latitude": 46.78525,
+      "elevationMeters": 336.943
+    },
+    {
+      "column": 5,
+      "row": 3,
+      "longitude": 23.5917167,
+      "latitude": 46.78525,
+      "elevationMeters": 335.806
+    },
+    {
+      "column": 6,
+      "row": 3,
+      "longitude": 23.5933,
+      "latitude": 46.78525,
+      "elevationMeters": 334.778
+    },
+    {
+      "column": 0,
+      "row": 4,
+      "longitude": 23.5838,
+      "latitude": 46.7863,
+      "elevationMeters": 338.371
+    },
+    {
+      "column": 1,
+      "row": 4,
+      "longitude": 23.5853833,
+      "latitude": 46.7863,
+      "elevationMeters": 336.869
+    },
+    {
+      "column": 2,
+      "row": 4,
+      "longitude": 23.5869667,
+      "latitude": 46.7863,
+      "elevationMeters": 335.315
+    },
+    {
+      "column": 3,
+      "row": 4,
+      "longitude": 23.58855,
+      "latitude": 46.7863,
+      "elevationMeters": 336.277
+    },
+    {
+      "column": 4,
+      "row": 4,
+      "longitude": 23.5901333,
+      "latitude": 46.7863,
+      "elevationMeters": 335.116
+    },
+    {
+      "column": 5,
+      "row": 4,
+      "longitude": 23.5917167,
+      "latitude": 46.7863,
+      "elevationMeters": 335.483
+    },
+    {
+      "column": 6,
+      "row": 4,
+      "longitude": 23.5933,
+      "latitude": 46.7863,
+      "elevationMeters": 336.149
+    }
+  ],
+  "attribution": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "licence": "Copernicus WorldDEM-30 free licence",
+  "licenceUrl": "https://dataspace.copernicus.eu/sites/default/files/media/files/2025-06/copernicus_contributing_mission_data_access_v2_cop_dem_licenses.pdf",
+  "liabilityNotice": "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.",
+  "transformations": [
+    "Selected the N46 E023 one-degree DGED tile.",
+    "Sampled a deterministic 7 × 5 grid over the authored station bounds.",
+    "Used the median of each nearest 3 × 3 source-pixel neighbourhood to reduce DSM building and vegetation spikes.",
+    "Used the median of all 35 samples as the local gameplay datum because GLO-30 is a surface model and the anchor sample includes station infrastructure.",
+    "Fitted a conservative canonical terrain plane from per-column and per-row sample medians so individual buildings and vegetation do not become gameplay slopes.",
+    "Stored source elevations to three decimal places; gameplay terrain is relative to the fitted elevation at the map anchor."
+  ]
+}

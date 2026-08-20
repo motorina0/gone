@@ -1,0 +1,1903 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-blockers",
+  "name": "Garduri și bariere segmentate",
+  "rectangles": [
+    {
+      "id": "barrier-way-1049896267-1-1",
+      "x": 79.978,
+      "y": 118.965,
+      "width": 2.933,
+      "height": 3.368,
+      "minElevation": -0.457
+    },
+    {
+      "id": "barrier-way-1049896267-1-2",
+      "x": 77.544,
+      "y": 121.833,
+      "width": 2.933,
+      "height": 3.368,
+      "minElevation": -0.455
+    },
+    {
+      "id": "barrier-way-1049896267-1-3",
+      "x": 75.111,
+      "y": 124.701,
+      "width": 2.933,
+      "height": 3.368,
+      "minElevation": -0.452
+    },
+    {
+      "id": "barrier-way-1049896267-2-1",
+      "x": 72.709,
+      "y": 127.569,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.45
+    },
+    {
+      "id": "barrier-way-1049896267-2-2",
+      "x": 70.307,
+      "y": 130.675,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.448
+    },
+    {
+      "id": "barrier-way-1049896267-2-3",
+      "x": 67.904,
+      "y": 133.781,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.446
+    },
+    {
+      "id": "barrier-way-1049896267-2-4",
+      "x": 65.502,
+      "y": 136.888,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.444
+    },
+    {
+      "id": "barrier-way-1049896267-2-5",
+      "x": 63.1,
+      "y": 139.994,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.443
+    },
+    {
+      "id": "barrier-way-1049896267-2-6",
+      "x": 60.698,
+      "y": 143.1,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.441
+    },
+    {
+      "id": "barrier-way-1049896267-2-7",
+      "x": 58.296,
+      "y": 146.207,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.439
+    },
+    {
+      "id": "barrier-way-1049896267-2-8",
+      "x": 55.894,
+      "y": 149.313,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.438
+    },
+    {
+      "id": "barrier-way-1049896267-2-9",
+      "x": 53.492,
+      "y": 152.419,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.436
+    },
+    {
+      "id": "barrier-way-1049896267-2-10",
+      "x": 51.089,
+      "y": 155.525,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.434
+    },
+    {
+      "id": "barrier-way-1049896267-2-11",
+      "x": 48.687,
+      "y": 158.631,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.432
+    },
+    {
+      "id": "barrier-way-1049896267-2-12",
+      "x": 46.285,
+      "y": 161.738,
+      "width": 2.902,
+      "height": 3.606,
+      "minElevation": -0.431
+    },
+    {
+      "id": "barrier-way-1049896267-3-1",
+      "x": 46.285,
+      "y": 164.844,
+      "width": 0.739,
+      "height": 3.279,
+      "minElevation": -0.436
+    },
+    {
+      "id": "barrier-way-1049896267-3-2",
+      "x": 46.524,
+      "y": 167.623,
+      "width": 0.739,
+      "height": 3.279,
+      "minElevation": -0.448
+    },
+    {
+      "id": "barrier-way-1049896267-3-3",
+      "x": 46.764,
+      "y": 170.402,
+      "width": 0.739,
+      "height": 3.279,
+      "minElevation": -0.46
+    },
+    {
+      "id": "barrier-way-1049896267-4-1",
+      "x": 47.003,
+      "y": 173.181,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.479
+    },
+    {
+      "id": "barrier-way-1049896267-4-2",
+      "x": 50.871,
+      "y": 174.191,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.505
+    },
+    {
+      "id": "barrier-way-1049896267-4-3",
+      "x": 54.739,
+      "y": 175.201,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.531
+    },
+    {
+      "id": "barrier-way-1049896267-4-4",
+      "x": 58.607,
+      "y": 176.211,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.556
+    },
+    {
+      "id": "barrier-way-1049896267-4-5",
+      "x": 62.476,
+      "y": 177.221,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.582
+    },
+    {
+      "id": "barrier-way-1049896267-4-6",
+      "x": 66.344,
+      "y": 178.231,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.608
+    },
+    {
+      "id": "barrier-way-1049896267-4-7",
+      "x": 70.212,
+      "y": 179.241,
+      "width": 4.368,
+      "height": 1.51,
+      "minElevation": -0.634
+    },
+    {
+      "id": "barrier-way-1049896267-5-1",
+      "x": 74.08,
+      "y": 180.251,
+      "width": 3.764,
+      "height": 1.362,
+      "minElevation": -0.658
+    },
+    {
+      "id": "barrier-way-1049896267-5-2",
+      "x": 77.344,
+      "y": 181.113,
+      "width": 3.764,
+      "height": 1.361,
+      "minElevation": -0.68
+    },
+    {
+      "id": "barrier-way-1049896267-6-1",
+      "x": 80.609,
+      "y": 181.974,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.702
+    },
+    {
+      "id": "barrier-way-1049896267-6-2",
+      "x": 84.093,
+      "y": 182.878,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.726
+    },
+    {
+      "id": "barrier-way-1049896267-6-3",
+      "x": 87.577,
+      "y": 183.782,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.749
+    },
+    {
+      "id": "barrier-way-1049896267-6-4",
+      "x": 91.06,
+      "y": 184.687,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.772
+    },
+    {
+      "id": "barrier-way-1049896267-6-5",
+      "x": 94.544,
+      "y": 185.591,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.796
+    },
+    {
+      "id": "barrier-way-1049896267-6-6",
+      "x": 98.028,
+      "y": 186.495,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.819
+    },
+    {
+      "id": "barrier-way-1049896267-6-7",
+      "x": 101.512,
+      "y": 187.399,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.842
+    },
+    {
+      "id": "barrier-way-1049896267-6-8",
+      "x": 104.995,
+      "y": 188.304,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.865
+    },
+    {
+      "id": "barrier-way-1049896267-6-9",
+      "x": 108.479,
+      "y": 189.208,
+      "width": 3.984,
+      "height": 1.404,
+      "minElevation": -0.889
+    },
+    {
+      "id": "barrier-way-1049896267-7-1",
+      "x": 111.963,
+      "y": 186.37,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.896
+    },
+    {
+      "id": "barrier-way-1049896267-7-2",
+      "x": 113.139,
+      "y": 182.628,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.889
+    },
+    {
+      "id": "barrier-way-1049896267-7-3",
+      "x": 114.315,
+      "y": 178.886,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.881
+    },
+    {
+      "id": "barrier-way-1049896267-7-4",
+      "x": 115.491,
+      "y": 175.144,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.873
+    },
+    {
+      "id": "barrier-way-1049896267-7-5",
+      "x": 116.667,
+      "y": 171.403,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.866
+    },
+    {
+      "id": "barrier-way-1049896267-7-6",
+      "x": 117.843,
+      "y": 167.661,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.858
+    },
+    {
+      "id": "barrier-way-1049896267-7-7",
+      "x": 119.019,
+      "y": 163.919,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.85
+    },
+    {
+      "id": "barrier-way-1049896267-7-8",
+      "x": 120.195,
+      "y": 160.177,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.843
+    },
+    {
+      "id": "barrier-way-1049896267-7-9",
+      "x": 121.371,
+      "y": 156.435,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.835
+    },
+    {
+      "id": "barrier-way-1049896267-7-10",
+      "x": 122.547,
+      "y": 152.693,
+      "width": 1.676,
+      "height": 4.242,
+      "minElevation": -0.827
+    },
+    {
+      "id": "barrier-way-1049896267-8-1",
+      "x": 123.723,
+      "y": 152.693,
+      "width": 4.079,
+      "height": 2.219,
+      "minElevation": -0.837
+    },
+    {
+      "id": "barrier-way-1049896267-8-2",
+      "x": 127.302,
+      "y": 154.412,
+      "width": 4.079,
+      "height": 2.219,
+      "minElevation": -0.864
+    },
+    {
+      "id": "barrier-way-1049896267-8-3",
+      "x": 130.881,
+      "y": 156.132,
+      "width": 4.079,
+      "height": 2.219,
+      "minElevation": -0.891
+    },
+    {
+      "id": "barrier-way-1151051265-1-1",
+      "x": 270.093,
+      "y": 455.989,
+      "width": 2.73,
+      "height": 1.806,
+      "minElevation": -2.83
+    },
+    {
+      "id": "barrier-way-1151051265-1-2",
+      "x": 272.323,
+      "y": 457.295,
+      "width": 2.73,
+      "height": 1.806,
+      "minElevation": -2.848
+    },
+    {
+      "id": "barrier-way-1151051265-2-1",
+      "x": 274.553,
+      "y": 455.453,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.856
+    },
+    {
+      "id": "barrier-way-1151051265-2-2",
+      "x": 276.296,
+      "y": 452.306,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.853
+    },
+    {
+      "id": "barrier-way-1151051265-2-3",
+      "x": 278.039,
+      "y": 449.158,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.851
+    },
+    {
+      "id": "barrier-way-1151051265-2-4",
+      "x": 279.782,
+      "y": 446.011,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.849
+    },
+    {
+      "id": "barrier-way-1151051265-2-5",
+      "x": 281.526,
+      "y": 442.863,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.847
+    },
+    {
+      "id": "barrier-way-1151051265-2-6",
+      "x": 283.269,
+      "y": 439.716,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.845
+    },
+    {
+      "id": "barrier-way-1151051265-2-7",
+      "x": 285.012,
+      "y": 436.568,
+      "width": 2.243,
+      "height": 3.648,
+      "minElevation": -2.842
+    },
+    {
+      "id": "barrier-way-1151051265-3-1",
+      "x": 286.755,
+      "y": 434.5,
+      "width": 1.577,
+      "height": 2.568,
+      "minElevation": -2.84
+    },
+    {
+      "id": "barrier-way-1151051265-4-1",
+      "x": 285.987,
+      "y": 431.232,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.828
+    },
+    {
+      "id": "barrier-way-1151051265-4-2",
+      "x": 284.141,
+      "y": 427.963,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.805
+    },
+    {
+      "id": "barrier-way-1151051265-4-3",
+      "x": 282.296,
+      "y": 424.695,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.782
+    },
+    {
+      "id": "barrier-way-1151051265-4-4",
+      "x": 280.45,
+      "y": 421.427,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.759
+    },
+    {
+      "id": "barrier-way-1151051265-4-5",
+      "x": 278.605,
+      "y": 418.159,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.736
+    },
+    {
+      "id": "barrier-way-1151051265-4-6",
+      "x": 276.76,
+      "y": 414.89,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.713
+    },
+    {
+      "id": "barrier-way-1151051265-4-7",
+      "x": 274.914,
+      "y": 411.622,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.69
+    },
+    {
+      "id": "barrier-way-1151051265-4-8",
+      "x": 273.069,
+      "y": 408.354,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.667
+    },
+    {
+      "id": "barrier-way-1151051265-4-9",
+      "x": 271.223,
+      "y": 405.086,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.644
+    },
+    {
+      "id": "barrier-way-1151051265-4-10",
+      "x": 269.378,
+      "y": 401.817,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.621
+    },
+    {
+      "id": "barrier-way-1151051265-4-11",
+      "x": 267.533,
+      "y": 398.549,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.597
+    },
+    {
+      "id": "barrier-way-1151051265-4-12",
+      "x": 265.687,
+      "y": 395.281,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.574
+    },
+    {
+      "id": "barrier-way-1151051265-4-13",
+      "x": 263.842,
+      "y": 392.013,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.551
+    },
+    {
+      "id": "barrier-way-1151051265-4-14",
+      "x": 261.996,
+      "y": 388.744,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.528
+    },
+    {
+      "id": "barrier-way-1151051265-4-15",
+      "x": 260.151,
+      "y": 385.476,
+      "width": 2.345,
+      "height": 3.768,
+      "minElevation": -2.505
+    },
+    {
+      "id": "barrier-way-1151051265-5-1",
+      "x": 256.465,
+      "y": 384.372,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.481
+    },
+    {
+      "id": "barrier-way-1151051265-5-2",
+      "x": 252.779,
+      "y": 383.269,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.456
+    },
+    {
+      "id": "barrier-way-1151051265-5-3",
+      "x": 249.093,
+      "y": 382.165,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.431
+    },
+    {
+      "id": "barrier-way-1151051265-5-4",
+      "x": 245.406,
+      "y": 381.061,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.406
+    },
+    {
+      "id": "barrier-way-1151051265-5-5",
+      "x": 241.72,
+      "y": 379.957,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.38
+    },
+    {
+      "id": "barrier-way-1151051265-5-6",
+      "x": 238.034,
+      "y": 378.854,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.355
+    },
+    {
+      "id": "barrier-way-1151051265-5-7",
+      "x": 234.348,
+      "y": 377.75,
+      "width": 4.186,
+      "height": 1.604,
+      "minElevation": -2.33
+    },
+    {
+      "id": "barrier-way-1151051265-6-1",
+      "x": 230.813,
+      "y": 376.694,
+      "width": 4.035,
+      "height": 1.556,
+      "minElevation": -2.305
+    },
+    {
+      "id": "barrier-way-1151051265-7-1",
+      "x": 227.394,
+      "y": 375.671,
+      "width": 3.919,
+      "height": 1.523,
+      "minElevation": -2.281
+    },
+    {
+      "id": "barrier-way-1151051265-7-2",
+      "x": 223.976,
+      "y": 374.648,
+      "width": 3.919,
+      "height": 1.523,
+      "minElevation": -2.258
+    },
+    {
+      "id": "barrier-way-1151051265-7-3",
+      "x": 220.557,
+      "y": 373.625,
+      "width": 3.919,
+      "height": 1.523,
+      "minElevation": -2.235
+    },
+    {
+      "id": "barrier-way-1151051265-8-1",
+      "x": 219.498,
+      "y": 373.625,
+      "width": 1.559,
+      "height": 3.916,
+      "minElevation": -2.227
+    },
+    {
+      "id": "barrier-way-1151051265-8-2",
+      "x": 218.438,
+      "y": 377.041,
+      "width": 1.56,
+      "height": 3.916,
+      "minElevation": -2.234
+    },
+    {
+      "id": "barrier-way-1151051265-8-3",
+      "x": 217.378,
+      "y": 380.457,
+      "width": 1.56,
+      "height": 3.916,
+      "minElevation": -2.241
+    },
+    {
+      "id": "barrier-way-1151051265-8-4",
+      "x": 216.319,
+      "y": 383.872,
+      "width": 1.559,
+      "height": 3.916,
+      "minElevation": -2.248
+    },
+    {
+      "id": "barrier-way-1151051270-1-1",
+      "x": 133.581,
+      "y": 374.277,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.741
+    },
+    {
+      "id": "barrier-way-1151051270-1-2",
+      "x": 134.634,
+      "y": 370.561,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.733
+    },
+    {
+      "id": "barrier-way-1151051270-1-3",
+      "x": 135.686,
+      "y": 366.844,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.725
+    },
+    {
+      "id": "barrier-way-1151051270-1-4",
+      "x": 136.739,
+      "y": 363.127,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.716
+    },
+    {
+      "id": "barrier-way-1151051270-1-5",
+      "x": 137.792,
+      "y": 359.411,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.708
+    },
+    {
+      "id": "barrier-way-1151051270-1-6",
+      "x": 138.844,
+      "y": 355.694,
+      "width": 1.553,
+      "height": 4.217,
+      "minElevation": -1.7
+    },
+    {
+      "id": "barrier-way-1151051270-2-1",
+      "x": 139.079,
+      "y": 353.082,
+      "width": 1.317,
+      "height": 3.113,
+      "minElevation": -1.688
+    },
+    {
+      "id": "barrier-way-1151051270-2-2",
+      "x": 138.262,
+      "y": 350.469,
+      "width": 1.317,
+      "height": 3.113,
+      "minElevation": -1.674
+    },
+    {
+      "id": "barrier-way-1151051270-3-1",
+      "x": 135.887,
+      "y": 348.646,
+      "width": 2.875,
+      "height": 2.323,
+      "minElevation": -1.656
+    },
+    {
+      "id": "barrier-way-1151051270-3-2",
+      "x": 133.513,
+      "y": 346.823,
+      "width": 2.874,
+      "height": 2.323,
+      "minElevation": -1.635
+    },
+    {
+      "id": "barrier-way-1151051270-4-1",
+      "x": 129.893,
+      "y": 345.746,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.613
+    },
+    {
+      "id": "barrier-way-1151051270-4-2",
+      "x": 126.272,
+      "y": 344.669,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.588
+    },
+    {
+      "id": "barrier-way-1151051270-4-3",
+      "x": 122.652,
+      "y": 343.591,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.563
+    },
+    {
+      "id": "barrier-way-1151051270-4-4",
+      "x": 119.032,
+      "y": 342.514,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.539
+    },
+    {
+      "id": "barrier-way-1151051270-4-5",
+      "x": 115.412,
+      "y": 341.437,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.514
+    },
+    {
+      "id": "barrier-way-1151051270-4-6",
+      "x": 111.791,
+      "y": 340.36,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.489
+    },
+    {
+      "id": "barrier-way-1151051270-4-7",
+      "x": 108.171,
+      "y": 339.283,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.465
+    },
+    {
+      "id": "barrier-way-1151051270-4-8",
+      "x": 104.551,
+      "y": 338.205,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.44
+    },
+    {
+      "id": "barrier-way-1151051270-4-9",
+      "x": 100.93,
+      "y": 337.128,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.415
+    },
+    {
+      "id": "barrier-way-1151051270-4-10",
+      "x": 97.31,
+      "y": 336.051,
+      "width": 4.12,
+      "height": 1.577,
+      "minElevation": -1.39
+    },
+    {
+      "id": "barrier-way-1151051270-5-1",
+      "x": 94.273,
+      "y": 334.642,
+      "width": 3.537,
+      "height": 1.909,
+      "minElevation": -1.367
+    },
+    {
+      "id": "barrier-way-1151051270-5-2",
+      "x": 91.236,
+      "y": 333.233,
+      "width": 3.537,
+      "height": 1.909,
+      "minElevation": -1.344
+    },
+    {
+      "id": "barrier-way-1151051270-5-3",
+      "x": 88.198,
+      "y": 331.824,
+      "width": 3.537,
+      "height": 1.909,
+      "minElevation": -1.321
+    },
+    {
+      "id": "barrier-way-1151051270-5-4",
+      "x": 85.161,
+      "y": 330.415,
+      "width": 3.537,
+      "height": 1.909,
+      "minElevation": -1.299
+    },
+    {
+      "id": "barrier-way-1151051270-6-1",
+      "x": 81.447,
+      "y": 329.433,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.275
+    },
+    {
+      "id": "barrier-way-1151051270-6-2",
+      "x": 77.734,
+      "y": 328.451,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.25
+    },
+    {
+      "id": "barrier-way-1151051270-6-3",
+      "x": 74.02,
+      "y": 327.469,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.225
+    },
+    {
+      "id": "barrier-way-1151051270-6-4",
+      "x": 70.307,
+      "y": 326.486,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.2
+    },
+    {
+      "id": "barrier-way-1151051270-6-5",
+      "x": 66.593,
+      "y": 325.504,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.175
+    },
+    {
+      "id": "barrier-way-1151051270-6-6",
+      "x": 62.88,
+      "y": 324.522,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.15
+    },
+    {
+      "id": "barrier-way-1151051270-6-7",
+      "x": 59.166,
+      "y": 323.54,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.126
+    },
+    {
+      "id": "barrier-way-1151051270-6-8",
+      "x": 55.453,
+      "y": 322.558,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.101
+    },
+    {
+      "id": "barrier-way-1151051270-6-9",
+      "x": 51.739,
+      "y": 321.576,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.076
+    },
+    {
+      "id": "barrier-way-1151051270-6-10",
+      "x": 48.026,
+      "y": 320.594,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.051
+    },
+    {
+      "id": "barrier-way-1151051270-6-11",
+      "x": 44.312,
+      "y": 319.612,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.026
+    },
+    {
+      "id": "barrier-way-1151051270-6-12",
+      "x": 40.599,
+      "y": 318.629,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -1.001
+    },
+    {
+      "id": "barrier-way-1151051270-6-13",
+      "x": 36.885,
+      "y": 317.647,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.976
+    },
+    {
+      "id": "barrier-way-1151051270-6-14",
+      "x": 33.172,
+      "y": 316.665,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.951
+    },
+    {
+      "id": "barrier-way-1151051270-6-15",
+      "x": 29.458,
+      "y": 315.683,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.926
+    },
+    {
+      "id": "barrier-way-1151051270-6-16",
+      "x": 25.745,
+      "y": 314.701,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.902
+    },
+    {
+      "id": "barrier-way-1151051270-6-17",
+      "x": 22.031,
+      "y": 313.719,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.877
+    },
+    {
+      "id": "barrier-way-1151051270-6-18",
+      "x": 18.318,
+      "y": 312.737,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.852
+    },
+    {
+      "id": "barrier-way-1151051270-6-19",
+      "x": 14.604,
+      "y": 311.755,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.827
+    },
+    {
+      "id": "barrier-way-1151051270-6-20",
+      "x": 10.891,
+      "y": 310.772,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.802
+    },
+    {
+      "id": "barrier-way-1151051270-6-21",
+      "x": 7.177,
+      "y": 309.79,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.777
+    },
+    {
+      "id": "barrier-way-1151051270-6-22",
+      "x": 3.464,
+      "y": 308.808,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.752
+    },
+    {
+      "id": "barrier-way-1151051270-6-23",
+      "x": -0.25,
+      "y": 307.826,
+      "width": 4.214,
+      "height": 1.482,
+      "minElevation": -0.727
+    },
+    {
+      "id": "barrier-way-1163811084-1-1",
+      "x": 140.354,
+      "y": 29.676,
+      "width": 1.661,
+      "height": 3.316,
+      "minElevation": -0.454
+    },
+    {
+      "id": "barrier-way-1163811084-1-2",
+      "x": 139.194,
+      "y": 32.492,
+      "width": 1.661,
+      "height": 3.316,
+      "minElevation": -0.458
+    },
+    {
+      "id": "barrier-way-1163811084-1-3",
+      "x": 138.033,
+      "y": 35.309,
+      "width": 1.661,
+      "height": 3.316,
+      "minElevation": -0.462
+    },
+    {
+      "id": "barrier-way-1163811085-1-1",
+      "x": 157.269,
+      "y": 29.098,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.549
+    },
+    {
+      "id": "barrier-way-1163811085-1-2",
+      "x": 158.786,
+      "y": 32.342,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.571
+    },
+    {
+      "id": "barrier-way-1163811085-1-3",
+      "x": 160.303,
+      "y": 35.586,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.592
+    },
+    {
+      "id": "barrier-way-1163811085-1-4",
+      "x": 161.82,
+      "y": 38.831,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.613
+    },
+    {
+      "id": "barrier-way-1163811085-1-5",
+      "x": 163.337,
+      "y": 42.075,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.634
+    },
+    {
+      "id": "barrier-way-1163811085-1-6",
+      "x": 164.854,
+      "y": 45.319,
+      "width": 2.017,
+      "height": 3.744,
+      "minElevation": -0.655
+    },
+    {
+      "id": "barrier-way-1163811085-2-1",
+      "x": 166.371,
+      "y": 48.563,
+      "width": 1.516,
+      "height": 2.679,
+      "minElevation": -0.673
+    },
+    {
+      "id": "barrier-way-1163811085-3-1",
+      "x": 167.387,
+      "y": 50.742,
+      "width": 1.515,
+      "height": 2.679,
+      "minElevation": -0.687
+    },
+    {
+      "id": "barrier-way-1163811085-4-1",
+      "x": 168.402,
+      "y": 52.921,
+      "width": 1.547,
+      "height": 2.735,
+      "minElevation": -0.701
+    },
+    {
+      "id": "barrier-way-1163811085-4-2",
+      "x": 169.448,
+      "y": 55.156,
+      "width": 1.547,
+      "height": 2.734,
+      "minElevation": -0.716
+    },
+    {
+      "id": "barrier-way-1180201394-1-1",
+      "x": 396.35,
+      "y": 276.755,
+      "width": 3.938,
+      "height": 1.034,
+      "minElevation": -2.861
+    },
+    {
+      "id": "barrier-way-1180201394-1-2",
+      "x": 399.788,
+      "y": 276.221,
+      "width": 3.938,
+      "height": 1.034,
+      "minElevation": -2.878
+    },
+    {
+      "id": "barrier-way-1180201394-1-3",
+      "x": 403.226,
+      "y": 275.688,
+      "width": 3.938,
+      "height": 1.034,
+      "minElevation": -2.896
+    },
+    {
+      "id": "barrier-way-1180201394-1-4",
+      "x": 406.664,
+      "y": 275.154,
+      "width": 3.938,
+      "height": 1.034,
+      "minElevation": -2.913
+    },
+    {
+      "id": "barrier-way-1180201394-2-1",
+      "x": 410.102,
+      "y": 275.154,
+      "width": 3.016,
+      "height": 1.072,
+      "minElevation": -2.93
+    },
+    {
+      "id": "barrier-way-1180201394-2-2",
+      "x": 412.618,
+      "y": 275.726,
+      "width": 3.016,
+      "height": 1.072,
+      "minElevation": -2.947
+    },
+    {
+      "id": "barrier-way-1180201394-3-1",
+      "x": 415.134,
+      "y": 276.299,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -2.967
+    },
+    {
+      "id": "barrier-way-1180201394-3-2",
+      "x": 418.914,
+      "y": 277.17,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -2.992
+    },
+    {
+      "id": "barrier-way-1180201394-3-3",
+      "x": 422.695,
+      "y": 278.04,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.017
+    },
+    {
+      "id": "barrier-way-1180201394-3-4",
+      "x": 426.475,
+      "y": 278.911,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.042
+    },
+    {
+      "id": "barrier-way-1180201394-3-5",
+      "x": 430.255,
+      "y": 279.782,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.067
+    },
+    {
+      "id": "barrier-way-1180201394-3-6",
+      "x": 434.036,
+      "y": 280.652,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.092
+    },
+    {
+      "id": "barrier-way-1180201394-3-7",
+      "x": 437.816,
+      "y": 281.523,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.117
+    },
+    {
+      "id": "barrier-way-1180201394-3-8",
+      "x": 441.596,
+      "y": 282.393,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.141
+    },
+    {
+      "id": "barrier-way-1180201394-3-9",
+      "x": 445.377,
+      "y": 283.264,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.166
+    },
+    {
+      "id": "barrier-way-1180201394-3-10",
+      "x": 449.157,
+      "y": 284.135,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.191
+    },
+    {
+      "id": "barrier-way-1180201394-3-11",
+      "x": 452.937,
+      "y": 285.005,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.216
+    },
+    {
+      "id": "barrier-way-1180201394-3-12",
+      "x": 456.717,
+      "y": 285.876,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.241
+    },
+    {
+      "id": "barrier-way-1180201394-3-13",
+      "x": 460.498,
+      "y": 286.747,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.266
+    },
+    {
+      "id": "barrier-way-1180201394-3-14",
+      "x": 464.278,
+      "y": 287.617,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.29
+    },
+    {
+      "id": "barrier-way-1180201394-3-15",
+      "x": 468.058,
+      "y": 288.488,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.315
+    },
+    {
+      "id": "barrier-way-1180201394-3-16",
+      "x": 471.839,
+      "y": 289.358,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.34
+    },
+    {
+      "id": "barrier-way-1180201394-3-17",
+      "x": 475.619,
+      "y": 290.229,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.365
+    },
+    {
+      "id": "barrier-way-1180201394-3-18",
+      "x": 479.399,
+      "y": 291.1,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.39
+    },
+    {
+      "id": "barrier-way-1180201394-3-19",
+      "x": 483.18,
+      "y": 291.97,
+      "width": 4.28,
+      "height": 1.371,
+      "minElevation": -3.415
+    },
+    {
+      "id": "barrier-way-1180201394-4-1",
+      "x": 486.96,
+      "y": 292.841,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.439
+    },
+    {
+      "id": "barrier-way-1180201394-4-2",
+      "x": 490.773,
+      "y": 293.709,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.464
+    },
+    {
+      "id": "barrier-way-1180201394-4-3",
+      "x": 494.587,
+      "y": 294.577,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.489
+    },
+    {
+      "id": "barrier-way-1180201394-4-4",
+      "x": 498.4,
+      "y": 295.445,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.515
+    },
+    {
+      "id": "barrier-way-1180201394-4-5",
+      "x": 502.214,
+      "y": 296.312,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.54
+    },
+    {
+      "id": "barrier-way-1180201394-4-6",
+      "x": 506.027,
+      "y": 297.18,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.565
+    },
+    {
+      "id": "barrier-way-1180201394-4-7",
+      "x": 509.84,
+      "y": 298.048,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.59
+    },
+    {
+      "id": "barrier-way-1180201394-4-8",
+      "x": 513.654,
+      "y": 298.916,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.615
+    },
+    {
+      "id": "barrier-way-1180201394-4-9",
+      "x": 517.467,
+      "y": 299.784,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.64
+    },
+    {
+      "id": "barrier-way-1180201394-4-10",
+      "x": 521.281,
+      "y": 300.652,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.665
+    },
+    {
+      "id": "barrier-way-1180201394-4-11",
+      "x": 525.094,
+      "y": 301.519,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.69
+    },
+    {
+      "id": "barrier-way-1180201394-4-12",
+      "x": 528.908,
+      "y": 302.387,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.715
+    },
+    {
+      "id": "barrier-way-1180201394-4-13",
+      "x": 532.721,
+      "y": 303.255,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.74
+    },
+    {
+      "id": "barrier-way-1180201394-4-14",
+      "x": 536.534,
+      "y": 304.123,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.765
+    },
+    {
+      "id": "barrier-way-1180201394-4-15",
+      "x": 540.348,
+      "y": 304.991,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.79
+    },
+    {
+      "id": "barrier-way-1180201394-4-16",
+      "x": 544.161,
+      "y": 305.859,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.815
+    },
+    {
+      "id": "barrier-way-1180201394-4-17",
+      "x": 547.975,
+      "y": 306.726,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.84
+    },
+    {
+      "id": "barrier-way-1180201394-4-18",
+      "x": 551.788,
+      "y": 307.594,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.865
+    },
+    {
+      "id": "barrier-way-1180201394-4-19",
+      "x": 555.601,
+      "y": 308.462,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.89
+    },
+    {
+      "id": "barrier-way-1180201394-4-20",
+      "x": 559.415,
+      "y": 309.33,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.915
+    },
+    {
+      "id": "barrier-way-1180201394-4-21",
+      "x": 563.228,
+      "y": 310.198,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.94
+    },
+    {
+      "id": "barrier-way-1180201394-4-22",
+      "x": 567.042,
+      "y": 311.066,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.965
+    },
+    {
+      "id": "barrier-way-1180201394-4-23",
+      "x": 570.855,
+      "y": 311.933,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -3.99
+    },
+    {
+      "id": "barrier-way-1180201394-4-24",
+      "x": 574.668,
+      "y": 312.801,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.015
+    },
+    {
+      "id": "barrier-way-1180201394-4-25",
+      "x": 578.482,
+      "y": 313.669,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.04
+    },
+    {
+      "id": "barrier-way-1180201394-4-26",
+      "x": 582.295,
+      "y": 314.537,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.065
+    },
+    {
+      "id": "barrier-way-1180201394-4-27",
+      "x": 586.109,
+      "y": 315.405,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.09
+    },
+    {
+      "id": "barrier-way-1180201394-4-28",
+      "x": 589.922,
+      "y": 316.273,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.115
+    },
+    {
+      "id": "barrier-way-1180201394-4-29",
+      "x": 593.735,
+      "y": 317.141,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.14
+    },
+    {
+      "id": "barrier-way-1180201394-4-30",
+      "x": 597.549,
+      "y": 318.008,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.165
+    },
+    {
+      "id": "barrier-way-1180201394-4-31",
+      "x": 601.362,
+      "y": 318.876,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.19
+    },
+    {
+      "id": "barrier-way-1180201394-4-32",
+      "x": 605.176,
+      "y": 319.744,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.215
+    },
+    {
+      "id": "barrier-way-1180201394-4-33",
+      "x": 608.989,
+      "y": 320.612,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.24
+    },
+    {
+      "id": "barrier-way-1180201394-4-34",
+      "x": 612.803,
+      "y": 321.48,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.265
+    },
+    {
+      "id": "barrier-way-1180201394-4-35",
+      "x": 616.616,
+      "y": 322.348,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.29
+    },
+    {
+      "id": "barrier-way-1180201394-4-36",
+      "x": 620.429,
+      "y": 323.215,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.315
+    },
+    {
+      "id": "barrier-way-1180201394-4-37",
+      "x": 624.243,
+      "y": 324.083,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.34
+    },
+    {
+      "id": "barrier-way-1180201394-4-38",
+      "x": 628.056,
+      "y": 324.951,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.365
+    },
+    {
+      "id": "barrier-way-1180201394-4-39",
+      "x": 631.87,
+      "y": 325.819,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.39
+    },
+    {
+      "id": "barrier-way-1180201394-4-40",
+      "x": 635.683,
+      "y": 326.687,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.415
+    },
+    {
+      "id": "barrier-way-1180201394-4-41",
+      "x": 639.496,
+      "y": 327.555,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.44
+    },
+    {
+      "id": "barrier-way-1180201394-4-42",
+      "x": 643.31,
+      "y": 328.422,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.465
+    },
+    {
+      "id": "barrier-way-1180201394-4-43",
+      "x": 647.123,
+      "y": 329.29,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.49
+    },
+    {
+      "id": "barrier-way-1180201394-4-44",
+      "x": 650.937,
+      "y": 330.158,
+      "width": 4.313,
+      "height": 1.368,
+      "minElevation": -4.515
+    },
+    {
+      "id": "barrier-way-1180201394-5-1",
+      "x": 654.75,
+      "y": 331.026,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.54
+    },
+    {
+      "id": "barrier-way-1180201394-5-2",
+      "x": 658.457,
+      "y": 331.873,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.564
+    },
+    {
+      "id": "barrier-way-1180201394-5-3",
+      "x": 662.164,
+      "y": 332.719,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.588
+    },
+    {
+      "id": "barrier-way-1180201394-5-4",
+      "x": 665.871,
+      "y": 333.566,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.613
+    },
+    {
+      "id": "barrier-way-1180201394-5-5",
+      "x": 669.579,
+      "y": 334.413,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.637
+    },
+    {
+      "id": "barrier-way-1180201394-5-6",
+      "x": 673.286,
+      "y": 335.259,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.661
+    },
+    {
+      "id": "barrier-way-1180201394-5-7",
+      "x": 676.993,
+      "y": 336.106,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.686
+    },
+    {
+      "id": "barrier-way-1180201394-5-8",
+      "x": 680.7,
+      "y": 336.952,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.71
+    },
+    {
+      "id": "barrier-way-1180201394-5-9",
+      "x": 684.407,
+      "y": 337.799,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.734
+    },
+    {
+      "id": "barrier-way-1180201394-5-10",
+      "x": 688.114,
+      "y": 338.646,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.759
+    },
+    {
+      "id": "barrier-way-1180201394-5-11",
+      "x": 691.822,
+      "y": 339.492,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.783
+    },
+    {
+      "id": "barrier-way-1180201394-5-12",
+      "x": 695.529,
+      "y": 340.339,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.807
+    },
+    {
+      "id": "barrier-way-1180201394-5-13",
+      "x": 699.236,
+      "y": 341.186,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.832
+    },
+    {
+      "id": "barrier-way-1180201394-5-14",
+      "x": 702.943,
+      "y": 342.032,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.856
+    },
+    {
+      "id": "barrier-way-1180201394-5-15",
+      "x": 706.65,
+      "y": 342.879,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.88
+    },
+    {
+      "id": "barrier-way-1180201394-5-16",
+      "x": 710.357,
+      "y": 343.725,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.905
+    },
+    {
+      "id": "barrier-way-1180201394-5-17",
+      "x": 714.065,
+      "y": 344.572,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.929
+    },
+    {
+      "id": "barrier-way-1180201394-5-18",
+      "x": 717.772,
+      "y": 345.419,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.953
+    },
+    {
+      "id": "barrier-way-1180201394-5-19",
+      "x": 721.479,
+      "y": 346.265,
+      "width": 4.207,
+      "height": 1.347,
+      "minElevation": -4.978
+    }
+  ]
+}

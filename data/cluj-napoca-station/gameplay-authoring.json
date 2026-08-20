@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-gameplay-authoring",
+  "geographicBounds": {
+    "west": 23.5838,
+    "east": 23.5933,
+    "south": 46.7821,
+    "north": 46.7863
+  },
+  "anchor": {
+    "latitude": 46.784046304041595,
+    "longitude": 23.58642071485519
+  },
+  "playerSpawn": {
+    "latitude": 46.783988,
+    "longitude": 23.587708,
+    "elevation": 0,
+    "note": "Public forecourt beside the mapped eastern underpass stair; approximate deployment point."
+  },
+  "authoredGroundAreas": [
+    {
+      "id": "piata-garii-forecourt",
+      "name": "Piața Gării — zona pietonală",
+      "elevation": 0,
+      "sourceRefs": ["way/262209819", "way/585508296", "way/892692963"],
+      "note": "Conservative pedestrian apron between the station façade and mapped road/transport platforms.",
+      "coordinates": [
+        [23.58492, 46.78387],
+        [23.58791, 46.78403],
+        [23.58778, 46.78418],
+        [23.5851, 46.78409]
+      ]
+    },
+    {
+      "id": "gara-mica-pedestrian-apron",
+      "name": "Acces Gara Mică",
+      "elevation": 0,
+      "sourceRefs": ["way/275493607", "way/892692964"],
+      "note": "Small public apron around the mapped old-station transport stop.",
+      "coordinates": [
+        [23.58782, 46.78408],
+        [23.58924, 46.78434],
+        [23.58908, 46.78452],
+        [23.58772, 46.78426]
+      ]
+    }
+  ],
+  "legitimateRailCrossings": [
+    {
+      "id": "crossing-west",
+      "elevation": 0.55,
+      "sourceRefs": ["node/10961455522", "node/10961455523", "node/10961455524", "node/10961455525"],
+      "note": "Mapped pedestrian rail crossing; width is conservatively approximated.",
+      "coordinates": [
+        [23.585301, 46.784503],
+        [23.585392, 46.784333]
+      ]
+    },
+    {
+      "id": "crossing-central",
+      "elevation": 0.55,
+      "sourceRefs": ["node/8457437699", "node/8457437700", "node/8457437701", "node/8457437702"],
+      "note": "Mapped barrier-free passenger crossing; width is conservatively approximated.",
+      "coordinates": [
+        [23.587165, 46.784813],
+        [23.587242, 46.784651]
+      ]
+    }
+  ],
+  "passengerPlatformLinks": [
+    {
+      "id": "mapped-central-passenger-crossing",
+      "sourceRef": "way/910820809",
+      "widthMeters": 4,
+      "elevationOffset": 0.55,
+      "note": "Mapped passenger footway through the tagged central railway-crossing nodes; treated as a legitimate platform-level crossing."
+    },
+    {
+      "id": "mapped-link-platform-1-east",
+      "sourceRef": "way/1180200456",
+      "widthMeters": 4,
+      "elevationOffset": 0.55,
+      "note": "Mapped passenger footway linking the central crossing to the eastern Peronul 1 geometry; treated as a legitimate platform-level path."
+    },
+    {
+      "id": "mapped-link-platform-0",
+      "sourceRef": "way/1180200460",
+      "widthMeters": 4,
+      "elevationOffset": 0.55,
+      "note": "Mapped passenger footway joining Peronul 1 and Peronul 0; treated as a legitimate platform-level path."
+    }
+  ],
+  "authoredSurfaceLinks": [
+    {
+      "id": "conservative-link-platform-1-east",
+      "sourceRefs": ["way/1180200456", "way/215798529"],
+      "widthMeters": 3,
+      "elevationOffset": 0.55,
+      "coordinates": [[23.5888469, 46.7848226], [23.58902, 46.78489]],
+      "note": "Short conservative connector between the mapped passenger footway endpoint and the mapped Peronul 1 edge; exact kerb/ramp geometry is not present in OSM."
+    }
+  ],
+  "authoredVerticalAccesses": [
+    {
+      "id": "approximate-stairs-platform-4-5",
+      "type": "stairs",
+      "sourceRefs": ["way/242182112", "way/910820807", "way/215798532"],
+      "longitude": 23.5860176,
+      "latitude": 46.7846659,
+      "fromOffset": 0.55,
+      "toOffset": -3.2,
+      "note": "Conservative platform access at the mapped junction of the passenger tunnel, its eastern branch, and Peronul 4;5. OSM does not map the exact vertical structure, so its precise placement is approximate."
+    },
+    {
+      "id": "approximate-stairs-platform-6-7",
+      "type": "stairs",
+      "sourceRefs": ["way/242182112", "way/1416233688"],
+      "longitude": 23.58596,
+      "latitude": 46.784793,
+      "fromOffset": 0.55,
+      "toOffset": -3.2,
+      "note": "Conservative platform access at the mapped passenger-tunnel/Peronul 6;7 intersection. OSM does not map the exact stair footprint, so its precise placement is approximate."
+    }
+  ],
+  "approximateCanopies": [
+    {
+      "id": "canopy-platform-1",
+      "name": "Copertină Peronul 1",
+      "sourceRef": "way/910819019",
+      "widthMeters": 7,
+      "coordinates": [[23.58525, 46.78435], [23.58742, 46.78471]]
+    },
+    {
+      "id": "canopy-platform-2-3",
+      "name": "Copertină Peronul 2;3",
+      "sourceRef": "way/215798526",
+      "widthMeters": 7,
+      "coordinates": [[23.58545, 46.78457], [23.58856, 46.78508]]
+    },
+    {
+      "id": "canopy-platform-4-5",
+      "name": "Copertină Peronul 4;5",
+      "sourceRef": "way/215798532",
+      "widthMeters": 7,
+      "coordinates": [[23.58568, 46.78475], [23.58876, 46.78525]]
+    },
+    {
+      "id": "canopy-platform-6-7",
+      "name": "Copertină Peronul 6;7",
+      "sourceRef": "way/1416233688",
+      "widthMeters": 7,
+      "coordinates": [[23.58602, 46.78494], [23.58906, 46.78543]]
+    }
+  ],
+  "heightOverrides": {
+    "way/262209819": {
+      "heightMeters": 11,
+      "reason": "OSM maps one level but not the varied historic roof/pavilion height; conservative gameplay-art approximation."
+    },
+    "way/275493607": {
+      "heightMeters": 8,
+      "reason": "Approximate two-storey visual framing for Gara Mică; no authoritative open height found."
+    }
+  },
+  "elevationModel": {
+    "ground": 0,
+    "platform": 0.55,
+    "trackBed": -0.35,
+    "passengerTunnel": -3.2,
+    "canopyClearance": 4.2,
+    "note": "Gameplay-relative conservative approximations. Copernicus DEM supplies the local absolute terrain datum but is too coarse to resolve station structures."
+  },
+  "approximations": [
+    "Platform and track construction state follows the 2026-08-20 OSM snapshot and may change.",
+    "Building heights use mapped levels where present, otherwise conservative type-based defaults.",
+    "Footway widths, tunnel clearances, platform heights, track-bed depth, fence thickness, and crossing widths are gameplay approximations.",
+    "Canopy and catenary styling is original Gone artwork aligned to mapped roof and electrified-rail geometry; individual fixtures are not survey positions.",
+    "The Peronul 4;5 stair is placed conservatively at the mapped junction of the passenger tunnel, its eastern branch, and the platform because the exact vertical structure is absent from OSM.",
+    "The Peronul 6;7 stair is placed conservatively at the mapped tunnel/platform intersection because the exact vertical structure is absent from OSM.",
+    "A short Peronul 1 connector bridges the six-metre mapping gap between the passenger footway and platform edge; its exact kerb or ramp form is unknown.",
+    "The conflicting line representation of Peronul 1 is retained as source artwork but is not itself walkable where it overlaps mapped rail; mapped passenger links provide safe access to the platform polygon.",
+    "Station interiors, service yards, and construction areas are intentionally inaccessible."
+  ]
+}

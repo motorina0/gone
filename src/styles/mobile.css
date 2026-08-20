@@ -1,4 +1,8 @@
 @media (max-width: 900px) {
+  .map-attribution {
+    bottom: max(202px, calc(env(safe-area-inset-bottom) + 192px));
+  }
+
   .intel-strip {
     right: max(9px, env(safe-area-inset-right));
     font-size: 0.7rem;
@@ -59,6 +63,26 @@
 }
 
 @media (max-width: 560px) {
+  .map-attribution {
+    right: max(6px, env(safe-area-inset-right));
+    bottom: max(184px, calc(env(safe-area-inset-bottom) + 174px));
+    left: max(6px, env(safe-area-inset-left));
+    justify-content: center;
+    overflow: visible;
+    font-size: 0.56rem;
+    white-space: nowrap;
+  }
+
+  .map-attribution .attribution-legal {
+    position: static;
+  }
+
+  .map-attribution .attribution-notice {
+    right: 0;
+    left: 0;
+    width: auto;
+  }
+
   #hud {
     padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
       max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));

@@ -2,6 +2,14 @@
 
 Every runtime-visible asset in Gone is original to this repository. No stock library, map-provider image, extracted game file, traced commercial asset, third-party texture, font, icon, character, or environment mesh is used.
 
+## Gara Cluj-Napoca
+
+- `data/cluj-napoca-station/osm-source.json` is a normalized, clipped ODbL source snapshot used for geographic geometry; it is data rather than artwork.
+- `data/cluj-napoca-station/terrain-source.json` contains sampled Copernicus GLO-30 elevations, the canonical terrain-plane derivation, and the required source and liability notices. No DEM raster is shipped.
+- `data/cluj-napoca-station/gameplay-authoring.json` records conservative original gameplay interpretation and every material station approximation.
+- `tools/generate-cluj-station.ts` deterministically creates the five runtime beauty SVGs and their separate detail, occlusion, and backdrop layers. All colors, patterns, façade and mapped-entrance treatment, platform/canopy styling, ballast, rails, fences and walls, vegetation rendering, wet-surface treatment, icons, and typography are original Gone vectors. No raster map or aerial image is used as an art input.
+- `data/cluj-napoca-station/openaerialmap-coverage.json` records that OAM returned no catalogue image. The OAM viewer basemap was not downloaded or used.
+
 ## Vatra Central Station
 
 - `art/vatra/build_vatra_scene.py` constructs the fictional station, surrounding district, material-specific architecture, roads and markings, rails and catenary, platforms and canopies, footbridge, static trains and cars, station furniture, freight dressing, vegetation, rain treatment, and practical lighting from Gone's `environment.json` resource.

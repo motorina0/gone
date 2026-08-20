@@ -75,6 +75,57 @@ canvas.cursor-blocked {
   cursor: not-allowed;
 }
 
+.map-attribution {
+  position: absolute;
+  z-index: 7;
+  right: max(9px, env(safe-area-inset-right));
+  bottom: max(122px, calc(env(safe-area-inset-bottom) + 112px));
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid #59655a;
+  background: #101713de;
+  color: #d9dccb;
+  font-size: 0.64rem;
+  pointer-events: auto;
+}
+
+.map-attribution[hidden] {
+  display: none;
+}
+
+.map-attribution a {
+  color: #d9dccb;
+}
+
+.attribution-legal {
+  position: relative;
+}
+
+.attribution-legal summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.attribution-notice {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.65rem);
+  width: min(620px, calc(100vw - 18px));
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px solid #6f7b70;
+  background: #101713f7;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.map-attribution a + a::before {
+  margin-right: 0.35rem;
+  color: #8f977f;
+  content: "·";
+}
+
 .error {
   max-width: 34rem;
   margin: 10vh auto;

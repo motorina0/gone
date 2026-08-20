@@ -1,0 +1,2055 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-vision-blockers",
+  "name": "Clădiri care blochează vizibilitatea",
+  "rectangles": [
+    {
+      "id": "building-way-156452299",
+      "x": 0,
+      "y": 354.877,
+      "width": 137.474,
+      "height": 112.023,
+      "minElevation": -1.501
+    },
+    {
+      "id": "building-way-259723460",
+      "x": 134.71,
+      "y": 98.193,
+      "width": 45.045,
+      "height": 66.411,
+      "minElevation": -0.93
+    },
+    {
+      "id": "building-way-259723461",
+      "x": 182.512,
+      "y": 113.979,
+      "width": 25.451,
+      "height": 27.981,
+      "minElevation": -1.132
+    },
+    {
+      "id": "building-way-259723462",
+      "x": 200.915,
+      "y": 84.865,
+      "width": 56.912,
+      "height": 33.639,
+      "minElevation": -1.225
+    },
+    {
+      "id": "building-way-259723463",
+      "x": 338.84,
+      "y": 151.031,
+      "width": 30.934,
+      "height": 44.422,
+      "minElevation": -2.211
+    },
+    {
+      "id": "building-way-259723464",
+      "x": 334.036,
+      "y": 190.417,
+      "width": 65.442,
+      "height": 40.009,
+      "minElevation": -2.424
+    },
+    {
+      "id": "building-way-259723465",
+      "x": 392.507,
+      "y": 151.531,
+      "width": 37.279,
+      "height": 49.314,
+      "minElevation": -2.545
+    },
+    {
+      "id": "building-way-259723466",
+      "x": 406.297,
+      "y": 210.06,
+      "width": 33.867,
+      "height": 50.081,
+      "minElevation": -2.84
+    },
+    {
+      "id": "building-way-262209817",
+      "x": 252.551,
+      "y": 84.798,
+      "width": 17.869,
+      "height": 96.559,
+      "minElevation": -1.529
+    },
+    {
+      "id": "building-way-262209819",
+      "x": 132.297,
+      "y": 224.234,
+      "width": 131.975,
+      "height": 51.526,
+      "minElevation": -1.619
+    },
+    {
+      "id": "building-way-275493607",
+      "x": 337.9,
+      "y": 271.758,
+      "width": 36.234,
+      "height": 25.991,
+      "minElevation": -2.649
+    },
+    {
+      "id": "building-way-275798311",
+      "x": 169.767,
+      "y": 134.356,
+      "width": 48.673,
+      "height": 39.164,
+      "minElevation": -1.226
+    },
+    {
+      "id": "building-way-275798312",
+      "x": 158.29,
+      "y": 156.211,
+      "width": 89.297,
+      "height": 51.248,
+      "minElevation": -1.383
+    },
+    {
+      "id": "building-way-275798314",
+      "x": 72.75,
+      "y": 214.629,
+      "width": 50.269,
+      "height": 26.236,
+      "minElevation": -0.963
+    },
+    {
+      "id": "building-way-275799133",
+      "x": 229.742,
+      "y": 192.93,
+      "width": 41.846,
+      "height": 24.078,
+      "minElevation": -1.744
+    },
+    {
+      "id": "building-way-275799134",
+      "x": 254.681,
+      "y": 181.302,
+      "width": 16.907,
+      "height": 11.783,
+      "minElevation": -1.746
+    },
+    {
+      "id": "building-way-275799135",
+      "x": 301.178,
+      "y": 144.472,
+      "width": 39.563,
+      "height": 41.843,
+      "minElevation": -1.991
+    },
+    {
+      "id": "building-way-275799138",
+      "x": 335.632,
+      "y": 113.612,
+      "width": 17.334,
+      "height": 17.264,
+      "minElevation": -1.958
+    },
+    {
+      "id": "building-way-275799139",
+      "x": 345.414,
+      "y": 80.963,
+      "width": 20.083,
+      "height": 23.322,
+      "minElevation": -1.907
+    },
+    {
+      "id": "building-way-275799140",
+      "x": 295.359,
+      "y": 31.238,
+      "width": 20.641,
+      "height": 84.042,
+      "minElevation": -1.55
+    },
+    {
+      "id": "building-way-275799141",
+      "x": 336.48,
+      "y": 39.531,
+      "width": 48.009,
+      "height": 28.592,
+      "minElevation": -1.787
+    },
+    {
+      "id": "building-way-275799142",
+      "x": 315.641,
+      "y": 25.379,
+      "width": 74.735,
+      "height": 17.909,
+      "minElevation": -1.669
+    },
+    {
+      "id": "building-way-275799143",
+      "x": 360.931,
+      "y": 7.626,
+      "width": 33.821,
+      "height": 18.509,
+      "minElevation": -1.743
+    },
+    {
+      "id": "building-way-275799144",
+      "x": 387.054,
+      "y": 0,
+      "width": 12.096,
+      "height": 6.57,
+      "minElevation": -1.778
+    },
+    {
+      "id": "building-way-275799146",
+      "x": 294.504,
+      "y": 10.783,
+      "width": 33.217,
+      "height": 23.19,
+      "minElevation": -1.385
+    },
+    {
+      "id": "building-way-275799147",
+      "x": 294.344,
+      "y": 0,
+      "width": 23.71,
+      "height": 11.239,
+      "minElevation": -1.293
+    },
+    {
+      "id": "building-way-275799148",
+      "x": 325.003,
+      "y": 1,
+      "width": 16.608,
+      "height": 6.771,
+      "minElevation": -1.442
+    },
+    {
+      "id": "building-way-276162629",
+      "x": 199.273,
+      "y": 0,
+      "width": 9.362,
+      "height": 3.279,
+      "minElevation": -0.696
+    },
+    {
+      "id": "building-way-276162699",
+      "x": 166.468,
+      "y": 14.919,
+      "width": 14.952,
+      "height": 16.741,
+      "minElevation": -0.609
+    },
+    {
+      "id": "building-way-276162706",
+      "x": 223.381,
+      "y": 0,
+      "width": 10.469,
+      "height": 4.091,
+      "minElevation": -0.838
+    },
+    {
+      "id": "building-way-276162715",
+      "x": 156.266,
+      "y": 0,
+      "width": 40.106,
+      "height": 11.85,
+      "minElevation": -0.556
+    },
+    {
+      "id": "building-way-276162742",
+      "x": 175.96,
+      "y": 9.205,
+      "width": 11.798,
+      "height": 12.517,
+      "minElevation": -0.624
+    },
+    {
+      "id": "building-way-276162747",
+      "x": 199.854,
+      "y": 0,
+      "width": 22.122,
+      "height": 14.919,
+      "minElevation": -0.758
+    },
+    {
+      "id": "building-way-276162750",
+      "x": 190.454,
+      "y": 51.248,
+      "width": 56.064,
+      "height": 32.238,
+      "minElevation": -1.032
+    },
+    {
+      "id": "building-way-276162769",
+      "x": 175.479,
+      "y": 32.928,
+      "width": 19.64,
+      "height": 21.822,
+      "minElevation": -0.753
+    },
+    {
+      "id": "building-way-276175849",
+      "x": 296.627,
+      "y": 349.83,
+      "width": 64.923,
+      "height": 39.431,
+      "minElevation": -2.822
+    },
+    {
+      "id": "building-way-276175851",
+      "x": 10.729,
+      "y": 285.42,
+      "width": 14.86,
+      "height": 10.706,
+      "minElevation": -0.752
+    },
+    {
+      "id": "building-way-276175853",
+      "x": 540.625,
+      "y": 423.756,
+      "width": 20.183,
+      "height": 8.86,
+      "minElevation": -4.307
+    },
+    {
+      "id": "building-way-276175854",
+      "x": 97.827,
+      "y": 305.297,
+      "width": 53.125,
+      "height": 22.578,
+      "minElevation": -1.455
+    },
+    {
+      "id": "building-way-276175855",
+      "x": 453.924,
+      "y": 417.953,
+      "width": 33.103,
+      "height": 14.14,
+      "minElevation": -3.839
+    },
+    {
+      "id": "building-way-276175856",
+      "x": 86.808,
+      "y": 310.577,
+      "width": 16.967,
+      "height": 8.382,
+      "minElevation": -1.282
+    },
+    {
+      "id": "building-way-276175857",
+      "x": 488.066,
+      "y": 401.545,
+      "width": 24.512,
+      "height": 22.811,
+      "minElevation": -3.962
+    },
+    {
+      "id": "building-way-276175858",
+      "x": 163.651,
+      "y": 328.142,
+      "width": 25.741,
+      "height": 12.495,
+      "minElevation": -1.82
+    },
+    {
+      "id": "building-way-276175859",
+      "x": 226.183,
+      "y": 333.177,
+      "width": 12.959,
+      "height": 7.282,
+      "minElevation": -2.148
+    },
+    {
+      "id": "building-way-276175861",
+      "x": 427.335,
+      "y": 389.772,
+      "width": 24.184,
+      "height": 10.461,
+      "minElevation": -3.547
+    },
+    {
+      "id": "building-way-276175862",
+      "x": 0,
+      "y": 203.846,
+      "width": 12.867,
+      "height": 11.006,
+      "minElevation": -0.372
+    },
+    {
+      "id": "building-way-276175863",
+      "x": 0,
+      "y": 278.895,
+      "width": 5.803,
+      "height": 6.992,
+      "minElevation": -0.633
+    },
+    {
+      "id": "building-way-276175865",
+      "x": 358.251,
+      "y": 369.518,
+      "width": 69.435,
+      "height": 28.358,
+      "minElevation": -3.24
+    },
+    {
+      "id": "building-way-276175867",
+      "x": 512.715,
+      "y": 416.619,
+      "width": 24.298,
+      "height": 10.45,
+      "minElevation": -4.136
+    },
+    {
+      "id": "building-way-276175869",
+      "x": 37.501,
+      "y": 295.636,
+      "width": 23.97,
+      "height": 13.385,
+      "minElevation": -0.974
+    },
+    {
+      "id": "building-way-276175876",
+      "x": 245.205,
+      "y": 337.735,
+      "width": 52.651,
+      "height": 24.046,
+      "minElevation": -2.419
+    },
+    {
+      "id": "building-way-276175877",
+      "x": 192.156,
+      "y": 336.034,
+      "width": 19.671,
+      "height": 10.394,
+      "minElevation": -1.991
+    },
+    {
+      "id": "building-way-276175879",
+      "x": 471.64,
+      "y": 391.907,
+      "width": 29.499,
+      "height": 17.52,
+      "minElevation": -3.836
+    },
+    {
+      "id": "building-way-276175881",
+      "x": 393.408,
+      "y": 395.864,
+      "width": 44.61,
+      "height": 23.757,
+      "minElevation": -3.461
+    },
+    {
+      "id": "building-way-276175884",
+      "x": 451.519,
+      "y": 386.693,
+      "width": 24.145,
+      "height": 26.024,
+      "minElevation": -3.703
+    },
+    {
+      "id": "building-way-276175885",
+      "x": 19.961,
+      "y": 205.18,
+      "width": 44.756,
+      "height": 20.433,
+      "minElevation": -0.599
+    },
+    {
+      "id": "building-way-276175886",
+      "x": 427.434,
+      "y": 382.013,
+      "width": 25.559,
+      "height": 12.25,
+      "minElevation": -3.525
+    },
+    {
+      "id": "building-way-276472185",
+      "x": 645.103,
+      "y": 130.198,
+      "width": 23.588,
+      "height": 21.789,
+      "minElevation": -3.807
+    },
+    {
+      "id": "building-way-276472190",
+      "x": 91.405,
+      "y": 96.559,
+      "width": 25.237,
+      "height": 22.967,
+      "minElevation": -0.537
+    },
+    {
+      "id": "building-way-276472195",
+      "x": 587.114,
+      "y": 153.577,
+      "width": 29.369,
+      "height": 31.86,
+      "minElevation": -3.603
+    },
+    {
+      "id": "building-way-276472200",
+      "x": 375.333,
+      "y": 87.633,
+      "width": 35.844,
+      "height": 25.412,
+      "minElevation": -2.152
+    },
+    {
+      "id": "building-way-276472211",
+      "x": 530.217,
+      "y": 160.68,
+      "width": 32.24,
+      "height": 52.282,
+      "minElevation": -3.355
+    },
+    {
+      "id": "building-way-276472212",
+      "x": 0,
+      "y": 70.324,
+      "width": 49.918,
+      "height": 23.545,
+      "minElevation": 0.012
+    },
+    {
+      "id": "building-way-276472219",
+      "x": 674.052,
+      "y": 298.449,
+      "width": 27.864,
+      "height": 27.414,
+      "minElevation": -4.642
+    },
+    {
+      "id": "building-way-276472220",
+      "x": 714.478,
+      "y": 271.069,
+      "width": 10.958,
+      "height": 25.29,
+      "minElevation": -4.714
+    },
+    {
+      "id": "building-way-276472223",
+      "x": 565.786,
+      "y": 59.619,
+      "width": 34.898,
+      "height": 38.252,
+      "minElevation": -3.149
+    },
+    {
+      "id": "building-way-276472237",
+      "x": 652.197,
+      "y": 292.446,
+      "width": 19.763,
+      "height": 27.78,
+      "minElevation": -4.472
+    },
+    {
+      "id": "building-way-276472244",
+      "x": 86.472,
+      "y": 38.319,
+      "width": 30.736,
+      "height": 22.089,
+      "minElevation": -0.299
+    },
+    {
+      "id": "building-way-276472246",
+      "x": 588.657,
+      "y": 285.843,
+      "width": 21.58,
+      "height": 21.477,
+      "minElevation": -4.078
+    },
+    {
+      "id": "building-way-276472248",
+      "x": 552.133,
+      "y": 39.842,
+      "width": 37.86,
+      "height": 29.27,
+      "minElevation": -2.986
+    },
+    {
+      "id": "building-way-276472257",
+      "x": 54.026,
+      "y": 17.02,
+      "width": 39.838,
+      "height": 22.477,
+      "minElevation": -0.06
+    },
+    {
+      "id": "building-way-276472259",
+      "x": 523.352,
+      "y": 14.741,
+      "width": 37.372,
+      "height": 36.207,
+      "minElevation": -2.738
+    },
+    {
+      "id": "building-way-276472260",
+      "x": 655.695,
+      "y": 0,
+      "width": 29.552,
+      "height": 4.147,
+      "minElevation": -3.35
+    },
+    {
+      "id": "building-way-276472317",
+      "x": 4.36,
+      "y": 130.81,
+      "width": 24.024,
+      "height": 17.764,
+      "minElevation": -0.161
+    },
+    {
+      "id": "building-way-276472329",
+      "x": 461.644,
+      "y": 42.054,
+      "width": 45.718,
+      "height": 35.173,
+      "minElevation": -2.514
+    },
+    {
+      "id": "building-way-276472332",
+      "x": 495.671,
+      "y": 133.433,
+      "width": 48.543,
+      "height": 53.916,
+      "minElevation": -3.103
+    },
+    {
+      "id": "building-way-276472344",
+      "x": 395.34,
+      "y": 15.841,
+      "width": 36.386,
+      "height": 41.966,
+      "minElevation": -2.023
+    },
+    {
+      "id": "building-way-276472348",
+      "x": 101.775,
+      "y": 0,
+      "width": 40.219,
+      "height": 32.994,
+      "minElevation": -0.287
+    },
+    {
+      "id": "building-way-276472355",
+      "x": 57.187,
+      "y": 54.094,
+      "width": 14.906,
+      "height": 9.871,
+      "minElevation": -0.125
+    },
+    {
+      "id": "building-way-276472356",
+      "x": 526.674,
+      "y": 225.446,
+      "width": 9.82,
+      "height": 12.417,
+      "minElevation": -3.443
+    },
+    {
+      "id": "building-way-276472357",
+      "x": 499.566,
+      "y": 259.618,
+      "width": 13.661,
+      "height": 14.063,
+      "minElevation": -3.434
+    },
+    {
+      "id": "building-way-276472361",
+      "x": 429.603,
+      "y": 72.936,
+      "width": 24.871,
+      "height": 20.144,
+      "minElevation": -2.363
+    },
+    {
+      "id": "building-way-276472367",
+      "x": 599.76,
+      "y": 84.698,
+      "width": 35.149,
+      "height": 27.502,
+      "minElevation": -3.418
+    },
+    {
+      "id": "building-way-276472371",
+      "x": 55.431,
+      "y": 160.68,
+      "width": 23.054,
+      "height": 16.886,
+      "minElevation": -0.561
+    },
+    {
+      "id": "building-way-276472379",
+      "x": 150.761,
+      "y": 60.163,
+      "width": 8.331,
+      "height": 7.927,
+      "minElevation": -0.658
+    },
+    {
+      "id": "building-way-276472386",
+      "x": 122.988,
+      "y": 81.341,
+      "width": 19.404,
+      "height": 17.419,
+      "minElevation": -0.631
+    },
+    {
+      "id": "building-way-276472390",
+      "x": 694.547,
+      "y": 129.72,
+      "width": 22.168,
+      "height": 27.647,
+      "minElevation": -4.094
+    },
+    {
+      "id": "building-way-276472398",
+      "x": 127.104,
+      "y": 47.479,
+      "width": 11.989,
+      "height": 14.063,
+      "minElevation": -0.497
+    },
+    {
+      "id": "building-way-276472401",
+      "x": 471.19,
+      "y": 81.229,
+      "width": 14.195,
+      "height": 12.796,
+      "minElevation": -2.586
+    },
+    {
+      "id": "building-way-276472409",
+      "x": 679.359,
+      "y": 53.682,
+      "width": 16.372,
+      "height": 14.085,
+      "minElevation": -3.673
+    },
+    {
+      "id": "building-way-276472417",
+      "x": 626.853,
+      "y": 10.561,
+      "width": 10.82,
+      "height": 12.195,
+      "minElevation": -3.189
+    },
+    {
+      "id": "building-way-276472422",
+      "x": 452.519,
+      "y": 213.195,
+      "width": 27.681,
+      "height": 13.796,
+      "minElevation": -3.028
+    },
+    {
+      "id": "building-way-276472428",
+      "x": 59.501,
+      "y": 70.035,
+      "width": 11.004,
+      "height": 7.837,
+      "minElevation": -0.184
+    },
+    {
+      "id": "building-way-276472444",
+      "x": 516.067,
+      "y": 1.467,
+      "width": 10.34,
+      "height": 6.67,
+      "minElevation": -2.512
+    },
+    {
+      "id": "building-way-276472446",
+      "x": 16.548,
+      "y": 97.393,
+      "width": 12.408,
+      "height": 16.064,
+      "minElevation": -0.065
+    },
+    {
+      "id": "building-way-276472454",
+      "x": 636.589,
+      "y": 137.191,
+      "width": 10.706,
+      "height": 9.482,
+      "minElevation": -3.726
+    },
+    {
+      "id": "building-way-276472458",
+      "x": 670.02,
+      "y": 90.99,
+      "width": 28.239,
+      "height": 36.485,
+      "minElevation": -3.84
+    },
+    {
+      "id": "building-way-276472475",
+      "x": 0,
+      "y": 0,
+      "width": 10.431,
+      "height": 11.172,
+      "minElevation": 0.418
+    },
+    {
+      "id": "building-way-276472488",
+      "x": 417.63,
+      "y": 50.814,
+      "width": 10.629,
+      "height": 12.262,
+      "minElevation": -2.154
+    },
+    {
+      "id": "building-way-276472492",
+      "x": 364.535,
+      "y": 122.105,
+      "width": 25.009,
+      "height": 14.863,
+      "minElevation": -2.172
+    },
+    {
+      "id": "building-way-276472501",
+      "x": 585.816,
+      "y": 221.322,
+      "width": 15.555,
+      "height": 21.855,
+      "minElevation": -3.798
+    },
+    {
+      "id": "building-way-276472507",
+      "x": 594.216,
+      "y": 32.194,
+      "width": 11.263,
+      "height": 12.639,
+      "minElevation": -3.089
+    },
+    {
+      "id": "building-way-276472512",
+      "x": 639.017,
+      "y": 39.32,
+      "width": 17.594,
+      "height": 18.542,
+      "minElevation": -3.4
+    },
+    {
+      "id": "building-way-276472515",
+      "x": 687.919,
+      "y": 187.371,
+      "width": 12.02,
+      "height": 12.406,
+      "minElevation": -4.22
+    },
+    {
+      "id": "building-way-276472517",
+      "x": 645.913,
+      "y": 276.471,
+      "width": 12.66,
+      "height": 15.708,
+      "minElevation": -4.331
+    },
+    {
+      "id": "building-way-276472521",
+      "x": 53.514,
+      "y": 0,
+      "width": 13.089,
+      "height": 6.714,
+      "minElevation": 0.115
+    },
+    {
+      "id": "building-way-276472531",
+      "x": 31.95,
+      "y": 109.577,
+      "width": 17.677,
+      "height": 10.95,
+      "minElevation": -0.205
+    },
+    {
+      "id": "building-way-276472533",
+      "x": 623.187,
+      "y": 300.328,
+      "width": 10.485,
+      "height": 12.973,
+      "minElevation": -4.283
+    },
+    {
+      "id": "building-way-276472538",
+      "x": 553.851,
+      "y": 30.315,
+      "width": 10.378,
+      "height": 9.538,
+      "minElevation": -2.843
+    },
+    {
+      "id": "building-way-276472544",
+      "x": 652.564,
+      "y": 219.332,
+      "width": 8.682,
+      "height": 8.96,
+      "minElevation": -4.125
+    },
+    {
+      "id": "building-way-276472549",
+      "x": 82.661,
+      "y": 112.712,
+      "width": 16.327,
+      "height": 15.496,
+      "minElevation": -0.51
+    },
+    {
+      "id": "building-way-276472554",
+      "x": 466.554,
+      "y": 228.114,
+      "width": 23.466,
+      "height": 15.997,
+      "minElevation": -3.157
+    },
+    {
+      "id": "building-way-276472568",
+      "x": 591.001,
+      "y": 0,
+      "width": 16.105,
+      "height": 17.242,
+      "minElevation": -2.969
+    },
+    {
+      "id": "building-way-276472569",
+      "x": 102.172,
+      "y": 0,
+      "width": 13.02,
+      "height": 9.916,
+      "minElevation": -0.168
+    },
+    {
+      "id": "building-way-276472573",
+      "x": 697.075,
+      "y": 271.291,
+      "width": 14.577,
+      "height": 13.384,
+      "minElevation": -4.603
+    },
+    {
+      "id": "building-way-276472574",
+      "x": 653.427,
+      "y": 117.347,
+      "width": 12.08,
+      "height": 9.917,
+      "minElevation": -3.75
+    },
+    {
+      "id": "building-way-276472576",
+      "x": 133.404,
+      "y": 38.375,
+      "width": 22.526,
+      "height": 21.155,
+      "minElevation": -0.541
+    },
+    {
+      "id": "building-way-276472584",
+      "x": 556.432,
+      "y": 82.386,
+      "width": 16.96,
+      "height": 19.42,
+      "minElevation": -3.096
+    },
+    {
+      "id": "building-way-276472585",
+      "x": 651.342,
+      "y": 60.119,
+      "width": 22.626,
+      "height": 28.803,
+      "minElevation": -3.584
+    },
+    {
+      "id": "building-way-276472589",
+      "x": 538.609,
+      "y": 267.734,
+      "width": 18.671,
+      "height": 25.034,
+      "minElevation": -3.723
+    },
+    {
+      "id": "building-way-276472599",
+      "x": 657.275,
+      "y": 169.996,
+      "width": 10.752,
+      "height": 11.194,
+      "minElevation": -3.973
+    },
+    {
+      "id": "building-way-276472604",
+      "x": 683.941,
+      "y": 204.724,
+      "width": 10.446,
+      "height": 10.383,
+      "minElevation": -4.255
+    },
+    {
+      "id": "building-way-276472626",
+      "x": 58.485,
+      "y": 139.681,
+      "width": 14.639,
+      "height": 16.364,
+      "minElevation": -0.473
+    },
+    {
+      "id": "building-way-276472629",
+      "x": 651.105,
+      "y": 281.096,
+      "width": 14.478,
+      "height": 19.432,
+      "minElevation": -4.391
+    },
+    {
+      "id": "building-way-276472631",
+      "x": 638.422,
+      "y": 228.303,
+      "width": 14.753,
+      "height": 13.973,
+      "minElevation": -4.106
+    },
+    {
+      "id": "building-way-276472635",
+      "x": 646.485,
+      "y": 233.583,
+      "width": 20.939,
+      "height": 17.342,
+      "minElevation": -4.196
+    },
+    {
+      "id": "building-way-276472643",
+      "x": 453.848,
+      "y": 90.945,
+      "width": 19.648,
+      "height": 14.93,
+      "minElevation": -2.545
+    },
+    {
+      "id": "building-way-276472646",
+      "x": 44.03,
+      "y": 98.816,
+      "width": 8.064,
+      "height": 11.15,
+      "minElevation": -0.205
+    },
+    {
+      "id": "building-way-276472655",
+      "x": 8.003,
+      "y": 150.242,
+      "width": 13.974,
+      "height": 13.506,
+      "minElevation": -0.219
+    },
+    {
+      "id": "building-way-276472656",
+      "x": 665.576,
+      "y": 193.73,
+      "width": 14.081,
+      "height": 13.562,
+      "minElevation": -4.125
+    },
+    {
+      "id": "building-way-276472660",
+      "x": 602.28,
+      "y": 173.253,
+      "width": 25.856,
+      "height": 21.722,
+      "minElevation": -3.736
+    },
+    {
+      "id": "building-way-276472661",
+      "x": 549.346,
+      "y": 4.814,
+      "width": 8.552,
+      "height": 8.593,
+      "minElevation": -2.713
+    },
+    {
+      "id": "building-way-276472667",
+      "x": 446.059,
+      "y": 56.05,
+      "width": 18.395,
+      "height": 12.317,
+      "minElevation": -2.358
+    },
+    {
+      "id": "building-way-276472668",
+      "x": 628.334,
+      "y": 95.948,
+      "width": 14.288,
+      "height": 13.262,
+      "minElevation": -3.537
+    },
+    {
+      "id": "building-way-276472677",
+      "x": 108.922,
+      "y": 83.453,
+      "width": 6.72,
+      "height": 6.292,
+      "minElevation": -0.502
+    },
+    {
+      "id": "building-way-276472680",
+      "x": 716.311,
+      "y": 164.627,
+      "width": 9.125,
+      "height": 20.565,
+      "minElevation": -4.301
+    },
+    {
+      "id": "building-way-276472691",
+      "x": 409.138,
+      "y": 91.679,
+      "width": 12.462,
+      "height": 9.182,
+      "minElevation": -2.262
+    },
+    {
+      "id": "building-way-276472699",
+      "x": 632.404,
+      "y": 165.182,
+      "width": 13.845,
+      "height": 13.074,
+      "minElevation": -3.825
+    },
+    {
+      "id": "building-way-276472703",
+      "x": 616.88,
+      "y": 253.226,
+      "width": 18.121,
+      "height": 29.137,
+      "minElevation": -4.118
+    },
+    {
+      "id": "building-way-276472705",
+      "x": 5.154,
+      "y": 102.651,
+      "width": 7.598,
+      "height": 15.652,
+      "minElevation": -0.006
+    },
+    {
+      "id": "building-way-276472706",
+      "x": 677.29,
+      "y": 213.084,
+      "width": 11.003,
+      "height": 10.983,
+      "minElevation": -4.252
+    },
+    {
+      "id": "building-way-276472715",
+      "x": 620.836,
+      "y": 207.259,
+      "width": 18.456,
+      "height": 17.008,
+      "minElevation": -3.942
+    },
+    {
+      "id": "building-way-276472726",
+      "x": 692.829,
+      "y": 196.887,
+      "width": 11.149,
+      "height": 10.45,
+      "minElevation": -4.278
+    },
+    {
+      "id": "building-way-276472727",
+      "x": 71.161,
+      "y": 37.485,
+      "width": 11.752,
+      "height": 7.282,
+      "minElevation": -0.127
+    },
+    {
+      "id": "building-way-276472733",
+      "x": 61.143,
+      "y": 35.429,
+      "width": 10.988,
+      "height": 8.804,
+      "minElevation": -0.063
+    },
+    {
+      "id": "building-way-276472740",
+      "x": 123.683,
+      "y": 57.884,
+      "width": 11.66,
+      "height": 10.606,
+      "minElevation": -0.51
+    },
+    {
+      "id": "building-way-276472744",
+      "x": 616.2,
+      "y": 200.556,
+      "width": 17.846,
+      "height": 16.363,
+      "minElevation": -3.887
+    },
+    {
+      "id": "building-way-276472746",
+      "x": 51.048,
+      "y": 7.27,
+      "width": 19.541,
+      "height": 11.817,
+      "minElevation": 0.073
+    },
+    {
+      "id": "building-way-276472751",
+      "x": 115.543,
+      "y": 0,
+      "width": 6.208,
+      "height": 3.991,
+      "minElevation": -0.213
+    },
+    {
+      "id": "building-way-276472752",
+      "x": 423.28,
+      "y": 103.93,
+      "width": 36.432,
+      "height": 19.765,
+      "minElevation": -2.478
+    },
+    {
+      "id": "building-way-276472753",
+      "x": 414.254,
+      "y": 0,
+      "width": 15.968,
+      "height": 6.626,
+      "minElevation": -1.944
+    },
+    {
+      "id": "building-way-276472763",
+      "x": 589.375,
+      "y": 79.429,
+      "width": 41.983,
+      "height": 31.682,
+      "minElevation": -3.367
+    },
+    {
+      "id": "building-way-276472769",
+      "x": 598.843,
+      "y": 51.292,
+      "width": 20.488,
+      "height": 21.967,
+      "minElevation": -3.233
+    },
+    {
+      "id": "building-way-276472770",
+      "x": 617.583,
+      "y": 42.143,
+      "width": 10.942,
+      "height": 11.806,
+      "minElevation": -3.257
+    },
+    {
+      "id": "building-way-276472778",
+      "x": 667.729,
+      "y": 291.99,
+      "width": 11.149,
+      "height": 14.074,
+      "minElevation": -4.508
+    },
+    {
+      "id": "building-way-276472781",
+      "x": 62.624,
+      "y": 9.527,
+      "width": 25.169,
+      "height": 13.018,
+      "minElevation": -0.02
+    },
+    {
+      "id": "building-way-276472785",
+      "x": 112.855,
+      "y": 31.216,
+      "width": 10.683,
+      "height": 12.762,
+      "minElevation": -0.347
+    },
+    {
+      "id": "building-way-276472787",
+      "x": 540.541,
+      "y": 56.406,
+      "width": 14.295,
+      "height": 25.135,
+      "minElevation": -2.909
+    },
+    {
+      "id": "building-way-276472797",
+      "x": 532.241,
+      "y": 73.159,
+      "width": 18.212,
+      "height": 21.377,
+      "minElevation": -2.93
+    },
+    {
+      "id": "building-way-276472808",
+      "x": 623.585,
+      "y": 112.879,
+      "width": 16.249,
+      "height": 18.075,
+      "minElevation": -3.59
+    },
+    {
+      "id": "building-way-276472825",
+      "x": 438.629,
+      "y": 0,
+      "width": 12.699,
+      "height": 10.505,
+      "minElevation": -2.08
+    },
+    {
+      "id": "building-way-276472829",
+      "x": 671.173,
+      "y": 16.686,
+      "width": 17.693,
+      "height": 32.917,
+      "minElevation": -3.524
+    },
+    {
+      "id": "building-way-276472831",
+      "x": 608.32,
+      "y": 64.91,
+      "width": 17.204,
+      "height": 17.787,
+      "minElevation": -3.321
+    },
+    {
+      "id": "building-way-276472833",
+      "x": 536.059,
+      "y": 0,
+      "width": 10.041,
+      "height": 6.003,
+      "minElevation": -2.618
+    },
+    {
+      "id": "building-way-276472837",
+      "x": 631.396,
+      "y": 223.2,
+      "width": 12.317,
+      "height": 10.539,
+      "minElevation": -4.033
+    },
+    {
+      "id": "building-way-276472838",
+      "x": 94.123,
+      "y": 59.885,
+      "width": 14.249,
+      "height": 12.751,
+      "minElevation": -0.361
+    },
+    {
+      "id": "building-way-276472842",
+      "x": 469.09,
+      "y": 143.338,
+      "width": 32.782,
+      "height": 22.111,
+      "minElevation": -2.884
+    },
+    {
+      "id": "building-way-276472843",
+      "x": 572.323,
+      "y": 138.514,
+      "width": 21.251,
+      "height": 19.387,
+      "minElevation": -3.414
+    },
+    {
+      "id": "building-way-276472844",
+      "x": 116.368,
+      "y": 100.017,
+      "width": 18.288,
+      "height": 14.262,
+      "minElevation": -0.656
+    },
+    {
+      "id": "building-way-276472849",
+      "x": 663.72,
+      "y": 207.815,
+      "width": 11.462,
+      "height": 13.24,
+      "minElevation": -4.161
+    },
+    {
+      "id": "building-way-276472851",
+      "x": 611.787,
+      "y": 21.866,
+      "width": 17.517,
+      "height": 15.397,
+      "minElevation": -3.172
+    },
+    {
+      "id": "building-way-276472852",
+      "x": 169.217,
+      "y": 74.081,
+      "width": 13.807,
+      "height": 23.323,
+      "minElevation": -0.861
+    },
+    {
+      "id": "building-way-276472853",
+      "x": 631.816,
+      "y": 263.498,
+      "width": 11.287,
+      "height": 15.764,
+      "minElevation": -4.198
+    },
+    {
+      "id": "building-way-276472855",
+      "x": 600.5,
+      "y": 266.566,
+      "width": 16.472,
+      "height": 24.012,
+      "minElevation": -4.062
+    },
+    {
+      "id": "building-way-276472863",
+      "x": 359.648,
+      "y": 129.987,
+      "width": 50.101,
+      "height": 27.48,
+      "minElevation": -2.27
+    },
+    {
+      "id": "building-way-276472864",
+      "x": 519.122,
+      "y": 10.794,
+      "width": 25.619,
+      "height": 12.24,
+      "minElevation": -2.62
+    },
+    {
+      "id": "building-way-276472867",
+      "x": 161.352,
+      "y": 57.64,
+      "width": 12.081,
+      "height": 16.63,
+      "minElevation": -0.736
+    },
+    {
+      "id": "building-way-276472870",
+      "x": 388.108,
+      "y": 55.15,
+      "width": 21.511,
+      "height": 18.931,
+      "minElevation": -2.046
+    },
+    {
+      "id": "building-way-276472883",
+      "x": 679.657,
+      "y": 36.563,
+      "width": 13.401,
+      "height": 15.997,
+      "minElevation": -3.604
+    },
+    {
+      "id": "building-way-276472885",
+      "x": 576.172,
+      "y": 0,
+      "width": 20.602,
+      "height": 26.458,
+      "minElevation": -2.915
+    },
+    {
+      "id": "building-way-276472891",
+      "x": 379.357,
+      "y": 78.517,
+      "width": 24.978,
+      "height": 19.521,
+      "minElevation": -2.098
+    },
+    {
+      "id": "building-way-276472897",
+      "x": 0,
+      "y": 23.367,
+      "width": 7.987,
+      "height": 23.167,
+      "minElevation": 0.312
+    },
+    {
+      "id": "building-way-276472902",
+      "x": 528.705,
+      "y": 257.795,
+      "width": 18.762,
+      "height": 13.707,
+      "minElevation": -3.607
+    },
+    {
+      "id": "building-way-276472911",
+      "x": 135.908,
+      "y": 55.305,
+      "width": 18.984,
+      "height": 19.599,
+      "minElevation": -0.607
+    },
+    {
+      "id": "building-way-276472912",
+      "x": 590.466,
+      "y": 45.389,
+      "width": 19.946,
+      "height": 15.163,
+      "minElevation": -3.148
+    },
+    {
+      "id": "building-way-276472915",
+      "x": 8.278,
+      "y": 26.346,
+      "width": 12.401,
+      "height": 17.198,
+      "minElevation": 0.253
+    },
+    {
+      "id": "building-way-276472918",
+      "x": 78.294,
+      "y": 65.8,
+      "width": 21.503,
+      "height": 25.245,
+      "minElevation": -0.338
+    },
+    {
+      "id": "building-way-276472925",
+      "x": 421.539,
+      "y": 195.453,
+      "width": 22.428,
+      "height": 19.099,
+      "minElevation": -2.779
+    },
+    {
+      "id": "building-way-276472928",
+      "x": 355.914,
+      "y": 138.725,
+      "width": 49.971,
+      "height": 28.114,
+      "minElevation": -2.283
+    },
+    {
+      "id": "building-way-276472931",
+      "x": 613.245,
+      "y": 242.843,
+      "width": 15.013,
+      "height": 15.275,
+      "minElevation": -4.022
+    },
+    {
+      "id": "building-way-276472955",
+      "x": 19.48,
+      "y": 10.205,
+      "width": 20.495,
+      "height": 9.116,
+      "minElevation": 0.244
+    },
+    {
+      "id": "building-way-276472961",
+      "x": 455.077,
+      "y": 10.061,
+      "width": 17.38,
+      "height": 12.35,
+      "minElevation": -2.229
+    },
+    {
+      "id": "building-way-276472978",
+      "x": 500.803,
+      "y": 110.778,
+      "width": 20.09,
+      "height": 20.41,
+      "minElevation": -2.9
+    },
+    {
+      "id": "building-way-276472987",
+      "x": 449.969,
+      "y": 148.385,
+      "width": 20.029,
+      "height": 14.708,
+      "minElevation": -2.744
+    },
+    {
+      "id": "building-way-276472990",
+      "x": 56.79,
+      "y": 43.978,
+      "width": 12.142,
+      "height": 8.671,
+      "minElevation": -0.074
+    },
+    {
+      "id": "building-way-276472991",
+      "x": 550.713,
+      "y": 179.089,
+      "width": 23.565,
+      "height": 40.432,
+      "minElevation": -3.494
+    },
+    {
+      "id": "building-way-276472992",
+      "x": 577.088,
+      "y": 149.808,
+      "width": 29.361,
+      "height": 18.621,
+      "minElevation": -3.506
+    },
+    {
+      "id": "building-way-276473000",
+      "x": 522.329,
+      "y": 247.813,
+      "width": 16.028,
+      "height": 19.876,
+      "minElevation": -3.536
+    },
+    {
+      "id": "building-way-276473009",
+      "x": 552.263,
+      "y": 258.618,
+      "width": 27.681,
+      "height": 38.008,
+      "minElevation": -3.816
+    },
+    {
+      "id": "building-way-276473013",
+      "x": 565.344,
+      "y": 21.144,
+      "width": 13.325,
+      "height": 13.929,
+      "minElevation": -2.89
+    },
+    {
+      "id": "building-way-276473015",
+      "x": 26.1,
+      "y": 29.893,
+      "width": 18.541,
+      "height": 21.044,
+      "minElevation": 0.113
+    },
+    {
+      "id": "building-way-276473021",
+      "x": 470.731,
+      "y": 262.242,
+      "width": 21.672,
+      "height": 15.941,
+      "minElevation": -3.307
+    },
+    {
+      "id": "building-way-276473046",
+      "x": 576.599,
+      "y": 56.917,
+      "width": 24.085,
+      "height": 28.881,
+      "minElevation": -3.151
+    },
+    {
+      "id": "building-way-276473050",
+      "x": 372.668,
+      "y": 99.805,
+      "width": 38.898,
+      "height": 43.2,
+      "minElevation": -2.226
+    },
+    {
+      "id": "building-way-276473051",
+      "x": 382.702,
+      "y": 66.055,
+      "width": 33.225,
+      "height": 25.624,
+      "minElevation": -2.104
+    },
+    {
+      "id": "building-way-276473054",
+      "x": 452.626,
+      "y": 0,
+      "width": 20.091,
+      "height": 14.963,
+      "minElevation": -2.19
+    },
+    {
+      "id": "building-way-276473057",
+      "x": 633.366,
+      "y": 267.1,
+      "width": 13.929,
+      "height": 22.611,
+      "minElevation": -4.241
+    },
+    {
+      "id": "building-way-276473059",
+      "x": 480.086,
+      "y": 98.605,
+      "width": 25.764,
+      "height": 24.067,
+      "minElevation": -2.758
+    },
+    {
+      "id": "building-way-276473063",
+      "x": 101.645,
+      "y": 26.88,
+      "width": 16.616,
+      "height": 14.596,
+      "minElevation": -0.287
+    },
+    {
+      "id": "building-way-276473072",
+      "x": 613.978,
+      "y": 30.204,
+      "width": 19.182,
+      "height": 16.686,
+      "minElevation": -3.224
+    },
+    {
+      "id": "building-way-276473073",
+      "x": 594.575,
+      "y": 247.957,
+      "width": 19.121,
+      "height": 17.642,
+      "minElevation": -3.952
+    },
+    {
+      "id": "building-way-276473088",
+      "x": 423.38,
+      "y": 247.512,
+      "width": 38.241,
+      "height": 25.413,
+      "minElevation": -3.046
+    },
+    {
+      "id": "building-way-276473090",
+      "x": 610.114,
+      "y": 14.541,
+      "width": 16.998,
+      "height": 14.629,
+      "minElevation": -3.131
+    },
+    {
+      "id": "building-way-276473092",
+      "x": 69.191,
+      "y": 88.811,
+      "width": 17.151,
+      "height": 11.973,
+      "minElevation": -0.337
+    },
+    {
+      "id": "building-way-276473105",
+      "x": 449.671,
+      "y": 17.02,
+      "width": 23.435,
+      "height": 38.641,
+      "minElevation": -2.293
+    },
+    {
+      "id": "building-way-276473113",
+      "x": 59.692,
+      "y": 79.084,
+      "width": 10.95,
+      "height": 11.839,
+      "minElevation": -0.228
+    },
+    {
+      "id": "building-way-276473116",
+      "x": 141.765,
+      "y": 19.41,
+      "width": 15.754,
+      "height": 12.617,
+      "minElevation": -0.48
+    },
+    {
+      "id": "building-way-276473118",
+      "x": 585.862,
+      "y": 261.82,
+      "width": 21.435,
+      "height": 29.281,
+      "minElevation": -3.985
+    },
+    {
+      "id": "building-way-276473123",
+      "x": 654.855,
+      "y": 172.353,
+      "width": 22.855,
+      "height": 21.966,
+      "minElevation": -4.023
+    },
+    {
+      "id": "building-way-276473127",
+      "x": 6.567,
+      "y": 52.07,
+      "width": 40.495,
+      "height": 17.354,
+      "minElevation": 0.083
+    },
+    {
+      "id": "building-way-276473131",
+      "x": 689.553,
+      "y": 204.591,
+      "width": 21.893,
+      "height": 22.456,
+      "minElevation": -4.342
+    },
+    {
+      "id": "building-way-276473136",
+      "x": 0,
+      "y": 129.131,
+      "width": 7.667,
+      "height": 16.72,
+      "minElevation": -0.081
+    },
+    {
+      "id": "building-way-276473144",
+      "x": 610.29,
+      "y": 181.957,
+      "width": 26.788,
+      "height": 24.591,
+      "minElevation": -3.823
+    },
+    {
+      "id": "building-way-276473146",
+      "x": 435.75,
+      "y": 241.698,
+      "width": 62.113,
+      "height": 22.879,
+      "minElevation": -3.157
+    },
+    {
+      "id": "building-way-276473148",
+      "x": 559.616,
+      "y": 204.202,
+      "width": 36.998,
+      "height": 27.936,
+      "minElevation": -3.656
+    },
+    {
+      "id": "building-way-276473153",
+      "x": 14.608,
+      "y": 0,
+      "width": 21.679,
+      "height": 8.593,
+      "minElevation": 0.308
+    },
+    {
+      "id": "building-way-276473164",
+      "x": 467.31,
+      "y": 61.053,
+      "width": 27.017,
+      "height": 22.333,
+      "minElevation": -2.542
+    },
+    {
+      "id": "building-way-276473176",
+      "x": 489.333,
+      "y": 30.626,
+      "width": 24.466,
+      "height": 29.148,
+      "minElevation": -2.556
+    },
+    {
+      "id": "building-way-276473177",
+      "x": 469.502,
+      "y": 7.526,
+      "width": 16.998,
+      "height": 30.682,
+      "minElevation": -2.336
+    },
+    {
+      "id": "building-way-276473190",
+      "x": 545.825,
+      "y": 229.648,
+      "width": 34.982,
+      "height": 30.704,
+      "minElevation": -3.675
+    },
+    {
+      "id": "building-way-276473208",
+      "x": 512.769,
+      "y": 274.959,
+      "width": 12.11,
+      "height": 8.983,
+      "minElevation": -3.554
+    },
+    {
+      "id": "building-way-276473209",
+      "x": 666.057,
+      "y": 157.645,
+      "width": 17.296,
+      "height": 17.92,
+      "minElevation": -4.007
+    },
+    {
+      "id": "building-way-276473258",
+      "x": 458.529,
+      "y": 115.402,
+      "width": 30.43,
+      "height": 34.795,
+      "minElevation": -2.734
+    },
+    {
+      "id": "building-way-276473262",
+      "x": 651.983,
+      "y": 8.115,
+      "width": 37.578,
+      "height": 8.827,
+      "minElevation": -3.392
+    },
+    {
+      "id": "building-way-276473270",
+      "x": 412.773,
+      "y": 104.997,
+      "width": 36.531,
+      "height": 42.688,
+      "minElevation": -2.467
+    },
+    {
+      "id": "building-way-276473273",
+      "x": 408.161,
+      "y": 5.847,
+      "width": 56.057,
+      "height": 31.327,
+      "minElevation": -2.093
+    },
+    {
+      "id": "building-way-276982254",
+      "x": 215.928,
+      "y": 108.076,
+      "width": 18.8,
+      "height": 13.496,
+      "minElevation": -1.253
+    },
+    {
+      "id": "building-way-276982475",
+      "x": 372.798,
+      "y": 203.713,
+      "width": 11.362,
+      "height": 9.493,
+      "minElevation": -2.484
+    },
+    {
+      "id": "building-way-323690015",
+      "x": 125.134,
+      "y": 71.991,
+      "width": 20.198,
+      "height": 17.732,
+      "minElevation": -0.61
+    },
+    {
+      "id": "building-way-323690016",
+      "x": 101.126,
+      "y": 91.346,
+      "width": 15.868,
+      "height": 14.607,
+      "minElevation": -0.53
+    },
+    {
+      "id": "building-way-439032976",
+      "x": 340.764,
+      "y": 448.157,
+      "width": 12.905,
+      "height": 15.497,
+      "minElevation": -3.257
+    },
+    {
+      "id": "building-way-439032989",
+      "x": 289.502,
+      "y": 413.484,
+      "width": 8.217,
+      "height": 8.616,
+      "minElevation": -2.806
+    },
+    {
+      "id": "building-way-439033016",
+      "x": 362.893,
+      "y": 446.723,
+      "width": 18.007,
+      "height": 16.397,
+      "minElevation": -3.394
+    },
+    {
+      "id": "building-way-439033033",
+      "x": 203.901,
+      "y": 393.941,
+      "width": 79.378,
+      "height": 62.298,
+      "minElevation": -2.549
+    },
+    {
+      "id": "building-way-838964280",
+      "x": 505.056,
+      "y": 269.968,
+      "width": 9.179,
+      "height": 12.551,
+      "minElevation": -3.49
+    },
+    {
+      "id": "building-way-895236157",
+      "x": 205.894,
+      "y": 220.232,
+      "width": 4.734,
+      "height": 2.635,
+      "minElevation": -1.566
+    },
+    {
+      "id": "building-way-1049895024",
+      "x": 80.378,
+      "y": 163.07,
+      "width": 31.828,
+      "height": 23.634,
+      "minElevation": -0.75
+    },
+    {
+      "id": "building-way-1089443452",
+      "x": 371.744,
+      "y": 232.46,
+      "width": 10.645,
+      "height": 6.015,
+      "minElevation": -2.579
+    },
+    {
+      "id": "building-way-1151051269",
+      "x": 214.156,
+      "y": 387.538,
+      "width": 7.446,
+      "height": 8.504,
+      "minElevation": -2.275
+    },
+    {
+      "id": "building-way-1165345143",
+      "x": 426.129,
+      "y": 164.482,
+      "width": 30.407,
+      "height": 33.261,
+      "minElevation": -2.736
+    },
+    {
+      "id": "building-way-1165345144",
+      "x": 454.237,
+      "y": 176.077,
+      "width": 54.591,
+      "height": 51.181,
+      "minElevation": -3.043
+    },
+    {
+      "id": "building-way-1204937096",
+      "x": 537.502,
+      "y": 93.947,
+      "width": 23.199,
+      "height": 18.932,
+      "minElevation": -3.05
+    },
+    {
+      "id": "building-way-1204937097",
+      "x": 542,
+      "y": 105.442,
+      "width": 34.935,
+      "height": 37.785,
+      "minElevation": -3.189
+    },
+    {
+      "id": "building-way-1204937098",
+      "x": 563.16,
+      "y": 128.631,
+      "width": 23.779,
+      "height": 20.666,
+      "minElevation": -3.334
+    },
+    {
+      "id": "building-way-1241880449",
+      "x": 186.109,
+      "y": 51.615,
+      "width": 17.716,
+      "height": 18.842,
+      "minElevation": -0.874
+    },
+    {
+      "id": "building-way-1537920508",
+      "x": 297.803,
+      "y": 425.123,
+      "width": 20.854,
+      "height": 29.026,
+      "minElevation": -2.973
+    }
+  ]
+}

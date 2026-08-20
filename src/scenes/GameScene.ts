@@ -27,9 +27,10 @@ const DOUBLE_TAP_MS = 360;
 const EDGE_SCROLL_ZONE = 24;
 const CAMERA_PAN_SPEED = 320;
 const CAMERA_ACCELERATION = 8;
-const CAMERA_STOP_EPSILON = 0.25;
+const CAMERA_STOP_EPSILON = 1;
 const CAMERA_FOLLOW_SPEED = 5;
 const PATH_PREVIEW_INTERVAL = 70;
+const MAX_SYNCHRONOUS_PREVIEW_HAZARDS = 1_000;
 
 interface TapRecord {
   at: number;
@@ -88,8 +89,11 @@ export class GameScene extends Phaser.Scene {
       content.blockers,
       content.walkable.cellSize,
       content.walkable.areas,
+      content.walkable.connections,
+      content.walkable.hazards,
     );
     this.settings = this.settingsStore.load();
+    this.renderAttribution(content);
     const initialViewIndex = this.registry.get('initialViewIndex') as number;
     const initialView = VIEW_IDS[initialViewIndex] ?? 'view-0';
     this.loadedViews.add(initialViewIndex);
@@ -283,7 +287,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     const screen = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-    const point = this.projections.get(this.world.activeView).screenToWorld(screen);
+    const rawPoint = this.projections.get(this.world.activeView).screenToWorld(screen);
+    const point = this.navigation.resolveDestination(rawPoint);
     const now = performance.now();
     const doubleTap = Boolean(
       this.lastTap &&
@@ -292,8 +297,8 @@ export class GameScene extends Phaser.Scene {
     );
     this.lastTap = {at: now, x: pointer.x, y: pointer.y};
 
-    if (!this.navigation.isWalkable(point)) {
-      this.destination = point;
+    if (!point) {
+      this.destination = rawPoint;
       this.previewPath = [];
       this.invalidFeedbackUntil = this.world.simulationTime + 0.8;
       this.world.session.message = 'Route blocked. Choose a clear destination.';
@@ -321,23 +326,29 @@ export class GameScene extends Phaser.Scene {
   private updateCursor(pointer: Phaser.Input.Pointer): void {
     const canvas = this.game.canvas;
     const screen = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-    const point = this.projections.get(this.world.activeView).screenToWorld(screen);
-    const walkable = this.navigation.isWalkable(point);
+    const rawPoint = this.projections.get(this.world.activeView).screenToWorld(screen);
+    const point = this.navigation.resolveDestination(rawPoint);
+    const walkable = point !== undefined;
     canvas.classList.toggle('cursor-move', walkable);
     canvas.classList.toggle('cursor-blocked', !walkable);
+    if ((this.world.content.walkable.hazards?.length ?? 0) > MAX_SYNCHRONOUS_PREVIEW_HAZARDS) {
+      this.previewPath = [];
+      return;
+    }
     if (pointer.wasTouch || performance.now() - this.previewUpdatedAt < PATH_PREVIEW_INTERVAL) {
       return;
     }
     if (
       this.previewPoint &&
+      point &&
       Math.hypot(point.x - this.previewPoint.x, point.y - this.previewPoint.y) <
         this.world.content.walkable.cellSize * 0.5
     ) {
       return;
     }
     this.previewUpdatedAt = performance.now();
-    this.previewPoint = point;
-    this.previewPath = walkable
+    this.previewPoint = point ?? rawPoint;
+    this.previewPath = point
       ? this.navigation.findPath(this.world.player.position, point)
       : [];
   }
@@ -797,6 +808,9 @@ export class GameScene extends Phaser.Scene {
           following: this.following,
           routePreviewLength: this.previewPath.length,
           activeRouteLength: this.movement.getRemainingPath(player.id).length,
+          activeRouteElevations: [
+            ...new Set(this.movement.getRemainingPath(player.id).map((point) => point.elevation)),
+          ],
           animation: this.activeAnimation,
           animationFrame: this.sprite.anims.currentFrame?.index ?? 0,
           cameraVelocity: {...this.cameraVelocity},
@@ -813,22 +827,56 @@ export class GameScene extends Phaser.Scene {
             APP_WIDTH,
             APP_HEIGHT,
           ),
-          testDestination: [
-            {x: player.position.x + 40, y: player.position.y, elevation: 0},
-            {x: player.position.x - 40, y: player.position.y, elevation: 0},
-            {x: player.position.x, y: player.position.y + 40, elevation: 0},
-            {x: player.position.x, y: player.position.y - 40, elevation: 0},
-          ]
-            .filter((world) => this.navigation.isWalkable(world))
+          testDestination: [20, 40]
+            .flatMap((distance) => [
+              {
+                x: player.position.x + distance,
+                y: player.position.y,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x - distance,
+                y: player.position.y,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x,
+                y: player.position.y + distance,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x,
+                y: player.position.y - distance,
+                elevation: player.position.elevation,
+              },
+            ])
+            .map((world) => this.navigation.resolveDestination(world))
+            .filter((world): world is WorldPoint => world !== undefined)
             .map((world) => ({world, screen: projection.worldToScreen(world)}))[0],
           testBlockedDestination: Array.from({length: 15}, (_, index) => (index + 1) * 4)
             .flatMap((distance) => [
-              {x: player.position.x + distance, y: player.position.y, elevation: 0},
-              {x: player.position.x - distance, y: player.position.y, elevation: 0},
-              {x: player.position.x, y: player.position.y + distance, elevation: 0},
-              {x: player.position.x, y: player.position.y - distance, elevation: 0},
+              {
+                x: player.position.x + distance,
+                y: player.position.y,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x - distance,
+                y: player.position.y,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x,
+                y: player.position.y + distance,
+                elevation: player.position.elevation,
+              },
+              {
+                x: player.position.x,
+                y: player.position.y - distance,
+                elevation: player.position.elevation,
+              },
             ])
-            .filter((world) => !this.navigation.isWalkable(world))
+            .filter((world) => this.navigation.resolveDestination(world) === undefined)
             .map((world) => ({world, screen: projection.worldToScreen(world)}))
             .find(
               ({screen}) =>
@@ -837,6 +885,12 @@ export class GameScene extends Phaser.Scene {
                 Math.abs(screen.y - this.cameras.main.midPoint.y) <
                   this.cameras.main.height / (2 * this.cameras.main.zoom) - 5,
             ),
+          testElevatedDestination: this.world.content.world.spawns.platformAccess
+            ? {
+                world: {...this.world.content.world.spawns.platformAccess},
+                screen: projection.worldToScreen(this.world.content.world.spawns.platformAccess),
+              }
+            : undefined,
         };
       },
     });
@@ -848,5 +902,38 @@ export class GameScene extends Phaser.Scene {
     this.input.removeAllListeners();
     this.hud.destroy();
     Reflect.deleteProperty(window, '__GONE_TEST__');
+  }
+
+  private renderAttribution(content: LoadedContent): void {
+    const root = document.querySelector<HTMLElement>('[data-map-attribution]');
+    if (!root) return;
+    root.replaceChildren();
+    const attribution = content.environment.attribution;
+    if (!attribution) {
+      root.hidden = true;
+      return;
+    }
+    for (const item of [attribution.primary, attribution.secondary].filter(
+      (candidate): candidate is {label: string; url: string} => candidate !== undefined,
+    )) {
+      const link = document.createElement('a');
+      link.href = item.url;
+      link.textContent = item.label;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      root.append(link);
+    }
+    if (attribution.legalNotice) {
+      const details = document.createElement('details');
+      details.className = 'attribution-legal';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Notă legală DEM';
+      const notice = document.createElement('p');
+      notice.className = 'attribution-notice';
+      notice.textContent = attribution.legalNotice;
+      details.append(summary, notice);
+      root.append(details);
+    }
+    root.hidden = false;
   }
 }

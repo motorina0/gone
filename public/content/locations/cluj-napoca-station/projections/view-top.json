@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "view-top",
+  "name": "Plan ortografic",
+  "kind": "top",
+  "matrix": [
+    1,
+    0,
+    0,
+    -1
+  ],
+  "origin": {
+    "x": 68.261855,
+    "y": 597
+  },
+  "scale": 1.135146712358,
+  "azimuth": 0,
+  "elevation": 90
+}

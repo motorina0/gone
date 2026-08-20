@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "cluj-napoca-station-openaerialmap-coverage-check",
+  "retrievedAt": "2026-08-20",
+  "endpoint": "https://api.openaerialmap.org/meta?bbox=23.5838,46.7821,23.5933,46.7863&limit=100",
+  "queryBounds": {
+    "west": 23.5838,
+    "east": 23.5933,
+    "south": 46.7821,
+    "north": 46.7863
+  },
+  "provider": "OpenAerialMap",
+  "catalogueLicence": "CC BY 4.0",
+  "found": 0,
+  "result": [],
+  "decision": "No OpenAerialMap image was available. The basemap displayed by the OAM viewer was not treated as downloadable OAM imagery and no raster imagery was used."
+}

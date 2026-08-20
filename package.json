@@ -17,6 +17,9 @@
     "validate:content": "tsx tools/validate-content.ts",
     "generate:views": "python3 tools/generate-cathedral-textures.py && tsx tools/generate-placeholder-views.ts",
     "generate:vatra:3d": "blender --background --python art/vatra/build_vatra_scene.py && node tools/process-vatra-renders.mjs",
+    "import:cluj:osm": "node tools/import-cluj-station-osm.mjs",
+    "import:cluj:dem": "node tools/sample-cluj-station-dem.mjs",
+    "generate:cluj": "tsx tools/generate-cluj-station.ts",
     "generate:agent": "blender --background --python art/agent/build_agent_atlas.py && node tools/assemble-agent-atlas.mjs",
     "verify": "npm run validate:content && npm run typecheck && npm run lint && npm test && npm run build && npm run test:e2e"
   },

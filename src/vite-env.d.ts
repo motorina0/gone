@@ -16,6 +16,10 @@ declare global {
         world: {x: number; y: number; elevation: number};
         screen: {x: number; y: number};
       };
+      testElevatedDestination?: {
+        world: {x: number; y: number; elevation: number};
+        screen: {x: number; y: number};
+      };
       playerScale: number;
       playerMoving: boolean;
       movementPace?: string;
@@ -35,6 +39,7 @@ declare global {
       following: boolean;
       routePreviewLength: number;
       activeRouteLength: number;
+      activeRouteElevations: number[];
       animation: string;
       animationFrame: number;
       cameraVelocity: {x: number; y: number};

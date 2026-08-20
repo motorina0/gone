@@ -10,6 +10,29 @@
     "schemaVersion": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
     "name": {"type": "string", "minLength": 1},
     "disclaimer": {"type": "string"},
+    "attribution": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "object",
+          "properties": {
+            "label": {"type": "string", "minLength": 1},
+            "url": {"type": "string", "pattern": "^https://"}
+          },
+          "required": ["label", "url"]
+        },
+        "secondary": {
+          "type": "object",
+          "properties": {
+            "label": {"type": "string", "minLength": 1},
+            "url": {"type": "string", "pattern": "^https://"}
+          },
+          "required": ["label", "url"]
+        },
+        "legalNotice": {"type": "string", "minLength": 1}
+      },
+      "required": ["primary"]
+    },
     "atmosphere": {
       "type": "object",
       "properties": {

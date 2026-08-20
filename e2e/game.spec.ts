@@ -67,6 +67,25 @@ const diagnosticDestinationClient = async (
   return {x: clientX, y: clientY};
 };
 
+const elevatedDestinationClient = async (page: Page): Promise<{x: number; y: number}> => {
+  const canvas = page.locator('canvas');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const state = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(state.testElevatedDestination).toBeDefined();
+  const target = state.testElevatedDestination!.screen;
+  return {
+    x:
+      box!.x +
+      (box!.width / 960) *
+        (480 + (target.x - state.cameraScreenCenter.x) * state.cameraZoom),
+    y:
+      box!.y +
+      (box!.height / 640) *
+        (320 + (target.y - state.cameraScreenCenter.y) * state.cameraZoom),
+  };
+};
+
 const clickDiagnosticDestination = async (page: Page): Promise<void> => {
   const target = await diagnosticDestinationClient(page);
   await page.mouse.click(target.x, target.y);
@@ -277,7 +296,7 @@ for (const viewport of viewports) {
   });
 }
 
-for (const locationId of ['piata-unirii', 'vatra-central-station']) {
+for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-station']) {
   test(`${locationId} moves one operative and preserves position across views`, async ({page}) => {
     await page.setViewportSize({width: 1280, height: 720});
     const errors = await openExploration(page, locationId);
@@ -323,6 +342,92 @@ test('location picker deploys the selected station district', async ({page}) => 
   await expect(page.locator('[data-location-picker]')).toBeHidden();
   await expect(page.locator('canvas')).toBeVisible({timeout: 30_000});
   await expect(page.locator('[data-location-name]')).toContainText('Vatra');
+});
+
+test('Cluj station loads attributed Pages assets and routes through its passenger tunnel', async ({page}) => {
+  await page.setViewportSize({width: 1280, height: 720});
+  const errors = await openExploration(page, 'cluj-napoca-station');
+
+  await expect(page.locator('[data-location-name]')).toContainText('Gara Cluj-Napoca');
+  const attribution = page.locator('[data-map-attribution]');
+  await expect(attribution).toBeVisible();
+  await expect(attribution).toContainText('OpenStreetMap contributors');
+  await expect(attribution).toContainText('Copernicus DEM');
+  await expect(attribution.locator('a').first()).toHaveAttribute(
+    'href',
+    'https://www.openstreetmap.org/copyright',
+  );
+  await attribution.locator('summary').click();
+  await expect(attribution.locator('.attribution-notice')).toContainText(
+    'produced using Copernicus WorldDEM-30',
+  );
+  await expect(attribution.locator('.attribution-notice')).toContainText(
+    'do not incur any liability',
+  );
+  await attribution.locator('summary').click();
+  expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(1);
+
+  await zoomOutToFullMap(page);
+  const destination = await elevatedDestinationClient(page);
+  await page.mouse.move(destination.x, destination.y);
+  await expect(page.locator('canvas')).toHaveClass(/cursor-move/);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.routePreviewLength)).toBe(0);
+  await page.locator('[data-pace="run"]').click();
+  await page.mouse.click(destination.x, destination.y);
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBeGreaterThan(2);
+  await expect
+    .poll(() =>
+      page.evaluate(() => Math.min(...window.__GONE_TEST__!.activeRouteElevations)),
+    )
+    .toBeLessThan(-3);
+  await expect
+    .poll(() =>
+      page.evaluate(() => Math.max(...window.__GONE_TEST__!.activeRouteElevations)),
+    )
+    .toBeGreaterThan(0);
+  await expect.poll(
+    () => page.evaluate(() => window.__GONE_TEST__!.player.elevation),
+    {timeout: 15_000},
+  ).toBeLessThan(-2.5);
+
+  await page.locator('button[data-view="view-top"]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
+  expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
+  expect(errors).toEqual([]);
+});
+
+test('Cluj attribution and controls remain inside a mobile safe-area viewport', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  const errors = await openExploration(page, 'cluj-napoca-station');
+  const attribution = await page.locator('[data-map-attribution]').boundingBox();
+  const consoleBox = await page.locator('.command-console').boundingBox();
+
+  expect(attribution).not.toBeNull();
+  expect(consoleBox).not.toBeNull();
+  expect(attribution!.x).toBeGreaterThanOrEqual(0);
+  expect(attribution!.x + attribution!.width).toBeLessThanOrEqual(390);
+  expect(attribution!.y + attribution!.height).toBeLessThan(consoleBox!.y);
+  await page.locator('[data-map-attribution] summary').click();
+  const legalNotice = page.locator('[data-map-attribution] .attribution-notice');
+  await expect(legalNotice).toBeVisible();
+  const legalBox = await legalNotice.boundingBox();
+  expect(legalBox).not.toBeNull();
+  expect(legalBox!.x).toBeGreaterThanOrEqual(0);
+  expect(legalBox!.x + legalBox!.width).toBeLessThanOrEqual(390);
+  expect(legalBox!.y).toBeGreaterThanOrEqual(0);
+  expect(legalBox!.y + legalBox!.height).toBeLessThanOrEqual(attribution!.y);
+  await page.locator('[data-map-attribution] summary').click();
+
+  await page.setViewportSize({width: 844, height: 390});
+  const landscapeAttribution = await page.locator('[data-map-attribution]').boundingBox();
+  const landscapeConsole = await page.locator('.command-console').boundingBox();
+  expect(landscapeAttribution).not.toBeNull();
+  expect(landscapeConsole).not.toBeNull();
+  expect(landscapeAttribution!.x + landscapeAttribution!.width).toBeLessThanOrEqual(844);
+  expect(landscapeAttribution!.y + landscapeAttribution!.height).toBeLessThan(
+    landscapeConsole!.y,
+  );
+  expect(errors).toEqual([]);
 });
 
 test('keyboard controls switch views, pace, and pause', async ({page}) => {
@@ -556,7 +661,7 @@ test('route feedback, animated movement, follow, and lazy view loading work toge
   expect(errors).toEqual([]);
 });
 
-test('real touch gestures and orientation changes preserve exploration state', async ({browser}) => {
+test('Cluj real touch gestures and orientation changes preserve exploration state', async ({browser}) => {
   const context = await browser.newContext({
     hasTouch: true,
     isMobile: true,
@@ -564,7 +669,7 @@ test('real touch gestures and orientation changes preserve exploration state', a
     viewport: {width: 390, height: 844},
   });
   const page = await context.newPage();
-  const errors = await openExploration(page);
+  const errors = await openExploration(page, 'cluj-napoca-station');
   const session = await context.newCDPSession(page);
   const canvasBox = await page.locator('canvas').boundingBox();
   expect(canvasBox).not.toBeNull();
