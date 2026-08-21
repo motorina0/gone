@@ -9,5 +9,7 @@
     "elevation": 0
   },
   "speed": 8,
-  "runSpeed": 13
+  "runSpeed": 13,
+  "worldHeightMeters": 2,
+  "visualScale": 3.5
 }

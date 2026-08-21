@@ -8,6 +8,7 @@ export interface HudActions {
   view(id: string): void;
   zoom(delta: number): void;
   follow(): void;
+  agentSize(percentage: number): void;
 }
 
 export class HudController {
@@ -18,6 +19,7 @@ export class HudController {
   private readonly coordinates = this.root.querySelector<HTMLElement>('[data-coordinates]')!;
   private readonly movement = this.root.querySelector<HTMLElement>('[data-movement-status]')!;
   private readonly pause = this.root.querySelector<HTMLButtonElement>('[data-pause]')!;
+  private readonly agentSize = this.root.querySelector<HTMLInputElement>('[data-agent-size]')!;
 
   constructor(actions: HudActions) {
     const options = {signal: this.abortController.signal};
@@ -57,6 +59,18 @@ export class HudController {
         options,
       ),
     );
+    this.agentSize.addEventListener(
+      'input',
+      () => {
+        const percentage = Number(this.agentSize.value);
+        if (!Number.isFinite(percentage)) return;
+        const clamped = Math.min(1000, Math.max(0, percentage));
+        if (clamped !== percentage) this.agentSize.value = String(clamped);
+        actions.agentSize(clamped);
+      },
+      options,
+    );
+    this.agentSize.addEventListener('keydown', (event) => event.stopPropagation(), options);
 
     const fullscreen = this.root.querySelector<HTMLButtonElement>('[data-fullscreen]')!;
     fullscreen.disabled = !document.documentElement.requestFullscreen;
@@ -98,6 +112,13 @@ export class HudController {
     this.root.dataset.moving = String(Boolean(player.moving));
     this.root.dataset.following = String(following);
     this.root.dataset.zoomLevel = String(zoomLevel);
+    if (document.activeElement !== this.agentSize) {
+      const percentage = Math.min(
+        1000,
+        Math.max(0, ((player.visualScale ?? 1) - 1) * 100),
+      );
+      this.agentSize.value = String(Number(percentage.toFixed(2)));
+    }
     const follow = this.root.querySelector<HTMLButtonElement>('[data-follow]')!;
     follow.setAttribute('aria-pressed', String(following));
     follow.setAttribute('aria-label', following ? 'Stop following operative' : 'Follow operative');

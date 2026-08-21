@@ -16,6 +16,14 @@
     "runSpeed": {
       "type": "number",
       "exclusiveMinimum": 0
+    },
+    "worldHeightMeters": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "visualScale": {
+      "type": "number",
+      "exclusiveMinimum": 0
     }
   },
   "required": [

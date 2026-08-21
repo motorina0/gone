@@ -235,6 +235,39 @@ button img {
   letter-spacing: 0.08em;
 }
 
+.agent-size-control {
+  display: flex;
+  width: 68px;
+  flex: 0 0 68px;
+  flex-direction: column;
+  gap: 2px;
+  color: #c8b778;
+  font: 800 0.48rem/1 ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.agent-size-control[hidden] {
+  display: none;
+}
+
+.agent-size-control input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.25rem 0.2rem;
+  border: 1px solid #718066;
+  border-radius: 2px;
+  background: #0b110c;
+  color: #e8edcf;
+  font: 800 0.76rem/1 ui-monospace, monospace;
+  text-align: center;
+}
+
+.agent-size-control input:focus-visible {
+  outline: 3px solid #d6c071;
+  outline-offset: 2px;
+}
+
 .command-message {
   grid-column: 2 / 6;
   align-self: center;

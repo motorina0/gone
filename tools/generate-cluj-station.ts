@@ -980,7 +980,7 @@ const environment: EnvironmentResource & {
   id: 'cluj-napoca-station-environment',
   name: 'Gara Cluj-Napoca și Piața Gării',
   disclaimer:
-    'Geometrie derivată din date deschise; artă vectorială originală Gone. Fără imagini Google sau alte imagini proprietare.',
+    'Geometrie derivată din date deschise; finisaj vizual provizoriu, autorizat numai pentru această versiune privată de test.',
   attribution: {
     primary: {label: '© OpenStreetMap contributors', url: osm.licenceUrl},
     secondary: {label: 'Teren: Copernicus DEM GLO-30', url: terrain.licenceUrl},
@@ -1008,7 +1008,9 @@ const environment: EnvironmentResource & {
   streetFurniture,
 };
 
-const viewPaths = projections.map((projection) => `views/${projection.id}.svg`);
+const sourceViewPaths = projections.map((projection) => `views/${projection.id}.svg`);
+const viewPaths = projections.map((projection) => `views/${projection.id}.webp`);
+const trialRuntimeRoot = path.join(projectRoot, 'art/cluj-napoca-station/trials/runtime');
 const backdropPaths = projections.map((projection) => `backdrops/${projection.id}.svg`);
 const occlusionPaths = projections.map((projection) => `occlusion/${projection.id}.svg`);
 const detailPaths = projections.map((projection) => `details/${projection.id}.svg`);
@@ -1033,7 +1035,7 @@ const manifest = {
   patrols: [],
   interactions: {},
   projections: projections.map((projection) => `projections/${projection.id}.json`),
-  sourceViews: viewPaths,
+  sourceViews: sourceViewPaths,
   views: viewPaths,
   backdrops: backdropPaths,
   backdropScale: 4,
@@ -1089,6 +1091,8 @@ await writeJson('entities/player.json', {
   spawn: playerSpawn,
   speed: 8,
   runSpeed: 13,
+  worldHeightMeters: 2,
+  visualScale: 2.4,
 });
 await writeJson('mission.json', {
   schemaVersion: '1.0.0',
@@ -1387,7 +1391,11 @@ for (const [viewIndex, projection] of projections.entries()) {
   const detailSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${tunnelLabels}</g></svg>`;
   const occlusionSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${renderedBuildings.map((building) => building.occlusion).join('')}</g></svg>`;
   const backdropSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><defs><pattern id="outer" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#374542"/><path d="M0 12h24M12 0v24" stroke="#56625c" stroke-width=".45" opacity=".45"/></pattern><radialGradient id="fade"><stop stop-color="#718078" stop-opacity=".18"/><stop offset="1" stop-color="#101a18" stop-opacity=".75"/></radialGradient></defs><rect width="960" height="640" fill="url(#outer)"/><rect width="960" height="640" fill="url(#fade)"/></svg>`;
-  await writeText(viewPaths[viewIndex]!, beautySvg);
+  await writeText(sourceViewPaths[viewIndex]!, beautySvg);
+  await copyFile(
+    path.join(trialRuntimeRoot, `${projection.id}.webp`),
+    path.join(locationRoot, viewPaths[viewIndex]!),
+  );
   await writeText(detailPaths[viewIndex]!, detailSvg);
   await writeText(occlusionPaths[viewIndex]!, occlusionSvg);
   await writeText(backdropPaths[viewIndex]!, backdropSvg);

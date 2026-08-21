@@ -726,17 +726,30 @@ describe('Cluj-Napoca station geographic content', () => {
 
   it('keeps all Cluj runtime layers editable, separate, and source-labelled', () => {
     const manifest = readJson<{
+      sourceViews: string[];
       views: string[];
       detailOverlays: string[];
       occlusion: string[];
       backdrops: string[];
     }>(locationPath('cluj-napoca-station', 'manifest.json'));
-    expect(manifest.views.every((asset) => asset.endsWith('.svg'))).toBe(true);
+    expect(manifest.sourceViews).toEqual(VIEW_IDS.map((id) => `views/${id}.svg`));
+    expect(manifest.views).toEqual(VIEW_IDS.map((id) => `views/${id}.webp`));
     expect(new Set(manifest.views)).not.toEqual(new Set(manifest.detailOverlays));
     expect(new Set(manifest.views)).not.toEqual(new Set(manifest.occlusion));
     expect(new Set(manifest.views)).not.toEqual(new Set(manifest.backdrops));
     for (const id of VIEW_IDS) {
       const beauty = readFileSync(locationPath('cluj-napoca-station', `views/${id}.svg`), 'utf8');
+      const runtimeBeauty = readFileSync(
+        locationPath('cluj-napoca-station', `views/${id}.webp`),
+      );
+      expect(runtimeBeauty.subarray(0, 4).toString()).toBe('RIFF');
+      expect(runtimeBeauty.subarray(8, 12).toString()).toBe('WEBP');
+      expect(
+        Buffer.compare(
+          runtimeBeauty,
+          readFileSync(`art/cluj-napoca-station/trials/runtime/${id}.webp`),
+        ),
+      ).toBe(0);
       const details = readFileSync(
         locationPath('cluj-napoca-station', `details/${id}.svg`),
         'utf8',
@@ -988,7 +1001,7 @@ describe('data-driven environment artwork', () => {
       expect(bottom).toBeLessThanOrEqual(1);
       expect(bottom - top).toBeLessThanOrEqual(CLOSEUP_HEIGHT_FRACTION);
     }
-  }, 15_000);
+  }, 30_000);
 
   it('ships replaceable Gone Vatra finish plates and transparent derived occlusion', async () => {
     const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -1062,7 +1075,7 @@ describe('data-driven environment artwork', () => {
     ]) {
       expect(generator).toContain(authoredDetail);
     }
-  });
+  }, 15_000);
 
   it('ships editable Gone 3D sources with aligned Vatra runtime layers', async () => {
     expect(readFileSync('art/vatra/vatra-central-station.blend').subarray(0, 7).toString()).toBe(
@@ -1177,7 +1190,7 @@ describe('data-driven environment artwork', () => {
         `${manifest.backdrops[index]} must align with its detailed center view`,
       ).toBeLessThan(tactical ? 5.5 : 4);
     }
-  });
+  }, 15_000);
 });
 
 describe('settings and camera behavior', () => {

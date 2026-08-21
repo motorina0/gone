@@ -85,6 +85,20 @@
               <button data-fullscreen aria-label="Enter full screen" aria-pressed="false">
                 <img data-icon="fullscreen" alt="" />
               </button>
+              <label class="agent-size-control" hidden>
+                <span>AGENT +%</span>
+                <input
+                  data-agent-size
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="1"
+                  value="250"
+                  inputmode="numeric"
+                  aria-label="Temporary agent size increase percentage"
+                  autocomplete="off"
+                />
+              </label>
             </div>
           </section>
 

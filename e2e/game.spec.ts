@@ -352,6 +352,10 @@ for (const viewport of viewports) {
 for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-station']) {
   test(`${locationId} moves one operative and preserves position across views`, async ({page}) => {
     await page.setViewportSize({width: 1280, height: 720});
+    const loadedBeautyUrls: string[] = [];
+    page.on('response', (response) => {
+      if (response.url().includes('/views/')) loadedBeautyUrls.push(response.url());
+    });
     const errors = await openExploration(page, locationId);
     await zoomOutToLevelOne(page);
     const initial = await page.evaluate(() => window.__GONE_TEST__!.player);
@@ -377,6 +381,11 @@ for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-
         const state = await page.evaluate(() => window.__GONE_TEST__!);
         expect(state.zoomLevel).toBe(zoomLevelBeforeViews);
         expectTacticalViewportInsideMap(state);
+      }
+    }
+    if (locationId === 'cluj-napoca-station') {
+      for (const id of VIEW_IDS) {
+        expect(loadedBeautyUrls.some((url) => url.endsWith(`/views/${id}.webp`))).toBe(true);
       }
     }
 

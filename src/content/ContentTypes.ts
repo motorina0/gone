@@ -86,6 +86,8 @@ export interface EntityResource {
   spawn: WorldPoint;
   speed: number;
   runSpeed?: number;
+  worldHeightMeters?: number;
+  visualScale?: number;
   entities?: EntityResource[];
 }
 

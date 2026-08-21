@@ -4,7 +4,12 @@ import {WorldState} from '../world/WorldState';
 import type {MovementPace, WorldPoint} from '../world/WorldTypes';
 import {GameClock} from '../world/GameClock';
 import {ProjectionService} from '../projection/ProjectionService';
-import {entityScaleForProjection, projectedEntityHeight} from '../projection/EntityScale';
+import {
+  DEFAULT_AGENT_SIZE_INCREASE_PERCENTAGE,
+  entityScaleForProjection,
+  projectedEntityHeight,
+  visualScaleForIncreasePercentage,
+} from '../projection/EntityScale';
 import {VIEW_IDS, type ViewId} from '../views/ViewManager';
 import {GridNavigationService} from '../navigation/Pathfinding';
 import {MovementSystem} from '../systems/MovementSystem';
@@ -96,6 +101,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     const content = this.registry.get('content') as LoadedContent;
     this.world = new WorldState(content);
+    this.applyDefaultAgentSize();
     this.projections = new ProjectionService(content.projections);
     this.navigation = new GridNavigationService(
       content.walkable.bounds,
@@ -173,6 +179,7 @@ export class GameScene extends Phaser.Scene {
       view: (id) => this.switchView(id as ViewId),
       zoom: (delta) => this.adjustZoom(delta),
       follow: () => this.toggleFollow(),
+      agentSize: (percentage) => this.setAgentSizePercentage(percentage),
     });
     this.applyView(initialView, initialViewIndex, this.world.camera.focus);
 
@@ -500,6 +507,8 @@ export class GameScene extends Phaser.Scene {
             projectedEntityHeight: projectedEntityHeight(
               this.world.content.manifest,
               projection,
+              this.world.player.worldHeightMeters,
+              this.world.player.visualScale,
             ),
           });
     const nextZoom =
@@ -592,6 +601,8 @@ export class GameScene extends Phaser.Scene {
       projectedEntityHeight: projectedEntityHeight(
         this.world.content.manifest,
         this.projectionResource(this.world.activeView),
+        this.world.player.worldHeightMeters,
+        this.world.player.visualScale,
       ),
     });
     const nextZoom = levels[nextLevel - 1]!;
@@ -696,6 +707,21 @@ export class GameScene extends Phaser.Scene {
       this.world.content.manifest,
       this.projectionResource(id),
       visibleHeightPixels,
+      this.world.player.worldHeightMeters,
+      this.world.player.visualScale,
+    );
+  }
+
+  private setAgentSizePercentage(percentage: number): void {
+    const clamped = Phaser.Math.Clamp(percentage, 0, 1000);
+    this.world.player.visualScale = visualScaleForIncreasePercentage(clamped);
+    this.world.session.message = `Temporary agent size calibration: +${Number(clamped.toFixed(2))}%.`;
+    this.renderWorld();
+  }
+
+  private applyDefaultAgentSize(): void {
+    this.world.player.visualScale = visualScaleForIncreasePercentage(
+      DEFAULT_AGENT_SIZE_INCREASE_PERCENTAGE,
     );
   }
 
@@ -979,6 +1005,7 @@ export class GameScene extends Phaser.Scene {
     this.destination = undefined;
     this.previewPath = [];
     this.world.reset();
+    this.applyDefaultAgentSize();
     this.world.activeView = view;
     this.world.camera.zoom = this.zoomLevel;
     this.cameras.main.setZoom(this.zoomLevel);

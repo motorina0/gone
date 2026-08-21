@@ -1,6 +1,6 @@
 # Cluj-Napoca station realism trials
 
-These five PNG files are private, non-runtime art-direction trials. They must not be copied into `public/`, used for collision or projection alignment, or treated as final distributable Gone artwork.
+These five PNG files are private, provisional art-direction trials. At the user's request, the optimized derivatives in `runtime/` provide all five beauty plates in the private runtime build. `tools/generate-cluj-station.ts` copies those deterministic WebP masters into the generated location. They must not be used for collision or projection alignment, treated as final distributable Gone artwork, or published without replacement by cleanly sourced artwork.
 
 ## Provenance and input roles
 
@@ -8,7 +8,7 @@ These five PNG files are private, non-runtime art-direction trials. They must no
 - The strict edit targets were temporary PNG rasterizations of the canonical SVGs in `public/content/locations/cluj-napoca-station/views/`.
 - The corresponding files in `images/gara/` were user-authorized temporary aerial references for factual material, color, roof, façade, road, platform, canopy, and vegetation direction.
 - `view-0.png` became the finish, lighting, palette, and texture-density reference for the other four trials.
-- No generated trial is loaded by the game, and no runtime manifest points to this directory.
+- The runtime manifest loads one derived WebP plate for each matching view: 0°, 90°, 180°, 270°, and SAT/top. The generator retains the canonical SVGs separately as editable `sourceViews` and retains the existing data-driven overlays, occlusion, projection, and gameplay geometry.
 
 The `images/gara/` captures visibly derive from Google imagery. Their use was explicitly authorized only for this private trial after the earlier production restriction was discussed. These trials are therefore not cleared final assets and should not be redistributed. Replace those references with the user's own photographs, then regenerate or manually author the final artwork with clean provenance.
 

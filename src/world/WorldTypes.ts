@@ -15,6 +15,8 @@ export interface EntityState {
   position: WorldPoint;
   speed: number;
   runSpeed?: number;
+  worldHeightMeters?: number;
+  visualScale?: number;
   route: WorldPoint[];
   routeIndex: number;
   selected: boolean;

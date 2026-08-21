@@ -31,11 +31,11 @@
     "views/view-top.svg"
   ],
   "views": [
-    "views/view-0.svg",
-    "views/view-90.svg",
-    "views/view-180.svg",
-    "views/view-270.svg",
-    "views/view-top.svg"
+    "views/view-0.webp",
+    "views/view-90.webp",
+    "views/view-180.webp",
+    "views/view-270.webp",
+    "views/view-top.webp"
   ],
   "backdrops": [
     "backdrops/view-0.svg",

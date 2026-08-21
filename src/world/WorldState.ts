@@ -30,6 +30,8 @@ export class WorldState {
         position: clone(data.spawn),
         speed: data.speed,
         runSpeed: data.runSpeed ?? data.speed * 1.6,
+        worldHeightMeters: data.worldHeightMeters,
+        visualScale: data.visualScale,
         route: (patrolByEntity.get(data.id) ?? []).map(clone),
         routeIndex: 0,
         selected: data.kind === 'player',

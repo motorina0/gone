@@ -1,13 +1,14 @@
 # Art provenance
 
-Every runtime-visible asset in Gone is original to this repository. No stock library, map-provider image, extracted game file, traced commercial asset, third-party texture, font, icon, character, or environment mesh is used.
+Except for the explicitly temporary Cluj realism trial described below, runtime-visible assets in Gone are original to this repository. No stock library, extracted game file, traced commercial asset, third-party texture, font, icon, character, or environment mesh is used.
 
 ## Gara Cluj-Napoca
 
 - `data/cluj-napoca-station/osm-source.json` is a normalized, clipped ODbL source snapshot used for geographic geometry; it is data rather than artwork.
 - `data/cluj-napoca-station/terrain-source.json` contains sampled Copernicus GLO-30 elevations, the canonical terrain-plane derivation, and the required source and liability notices. No DEM raster is shipped.
 - `data/cluj-napoca-station/gameplay-authoring.json` records conservative original gameplay interpretation and every material station approximation.
-- `tools/generate-cluj-station.ts` deterministically creates the five runtime beauty SVGs and their separate icon, occlusion, and backdrop layers. All colors, patterns, façade and mapped-entrance treatment, platform/canopy styling, ballast, rails, fences and walls, vegetation rendering, wet-surface treatment, and text-free icons are original Gone vectors. The visible layers are clipped to the editable source-supported footprint; no invented edge filler, raster map, or aerial image is used as an art input.
+- `tools/generate-cluj-station.ts` deterministically creates five canonical beauty SVG source views and their separate icon, occlusion, and backdrop layers. The canonical vectors remain editable and clipped to the source-supported footprint. For the current private trial build, the generator copies one optimized WebP beauty master per angle from `art/cluj-napoca-station/trials/runtime/` while leaving canonical gameplay and overlay resources unchanged; the corresponding full-resolution PNG sources remain beside that directory.
+- The provisional realism plates were generated with Codex's built-in image-generation tool. Their strict layout targets were the canonical Gone SVG views; temporary user-authorized captures under `images/gara/`, visibly derived from Google imagery, supplied material, color, roof, façade, road, platform, canopy, and vegetation direction. They are not cleared for redistribution and must be replaced using the user's own photographs before a public or final release. The complete prompt, input roles, rejected drafts, and reliability limitations are recorded in `art/cluj-napoca-station/trials/README.md`.
 - `data/cluj-napoca-station/openaerialmap-coverage.json` records that OAM returned no catalogue image. The OAM viewer basemap was not downloaded or used.
 
 ## Vatra Central Station
