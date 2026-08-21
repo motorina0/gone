@@ -44,11 +44,28 @@ declare global {
       activeRouteElevations: number[];
       animation: string;
       animationFrame: number;
+      animationPlaying: boolean;
+      animationFrameCount: number;
       closeAgentLoaded: boolean;
       retainedCloseAgentDirections: number[];
       pendingCloseAgentDirectionCount: number;
       agentTexture: string;
       cameraVelocity: {x: number; y: number};
+      overlayWorldMetrics: {
+        worldUnitsPerScreenPixel: number;
+        agentRingWidth: number;
+        agentRingHeight: number;
+        agentRingStrokeWidth: number;
+        previewPathStrokeWidth: number;
+        previewPathOutlineWidth: number;
+        activePathStrokeWidth: number;
+        activePathOutlineWidth: number;
+        destinationStrokeWidth: number;
+        destinationRadius: number;
+        destinationDotRadius: number;
+        invalidStrokeWidth: number;
+        invalidSize: number;
+      };
       projectedWorldBounds: Array<{x: number; y: number}>;
       backdropBounds: {left: number; top: number; right: number; bottom: number};
       visibleStage: {

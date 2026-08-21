@@ -25,11 +25,13 @@ import {
   overviewForPolygon,
   visibleStageRect,
 } from '../src/views/CameraBounds';
+import {dampedCameraVelocity} from '../src/views/CameraMotion';
 import {
   CLOSEUP_HEIGHT_FRACTION,
   tacticalZoomLevels,
   ZOOM_LEVEL_COUNT,
 } from '../src/views/ZoomLevels';
+import {OVERLAY_SCREEN_PIXELS, overlayWorldMetrics} from '../src/views/OverlayScale';
 import {VIEW_IDS, ViewManager} from '../src/views/ViewManager';
 import type {EntityState, WorldPoint} from '../src/world/WorldTypes';
 
@@ -1194,6 +1196,88 @@ describe('settings and camera behavior', () => {
     expect(store.load().zoom).toBe(1);
     raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 3.6});
     expect(store.load().zoom).toBe(4);
+  });
+
+  it('keeps every tactical overlay dimension fixed in screen pixels while zooming', () => {
+    const simulationTime = 0.37;
+    for (const zoom of [0.25, 0.9, 3, 18, 160]) {
+      const metrics = overlayWorldMetrics(zoom, simulationTime);
+      expect(metrics.worldUnitsPerScreenPixel * zoom).toBeCloseTo(1, 12);
+      expect(metrics.agentShadowOffsetY * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentShadowOffsetY,
+        12,
+      );
+      expect(metrics.agentShadowWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentShadowWidth,
+        12,
+      );
+      expect(metrics.agentShadowHeight * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentShadowHeight,
+        12,
+      );
+      expect(metrics.agentRingOffsetY * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentRingOffsetY,
+        12,
+      );
+      expect(metrics.agentRingWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentRingWidth,
+        12,
+      );
+      expect(metrics.agentRingHeight * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentRingHeight,
+        12,
+      );
+      expect(metrics.agentRingStrokeWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.agentRingStrokeWidth,
+        12,
+      );
+      expect(metrics.previewPathStrokeWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.previewPathStrokeWidth,
+        12,
+      );
+      expect(metrics.previewPathOutlineWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.previewPathOutlineWidth,
+        12,
+      );
+      expect(metrics.activePathStrokeWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.activePathStrokeWidth,
+        12,
+      );
+      expect(metrics.activePathOutlineWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.activePathOutlineWidth,
+        12,
+      );
+      expect(metrics.destinationStrokeWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.destinationStrokeWidth,
+        12,
+      );
+      expect(metrics.destinationRadius * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.destinationRadius +
+          Math.sin(simulationTime * 5) * OVERLAY_SCREEN_PIXELS.destinationPulse,
+        12,
+      );
+      expect(metrics.destinationDotRadius * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.destinationDotRadius,
+        12,
+      );
+      expect(metrics.invalidStrokeWidth * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.invalidStrokeWidth,
+        12,
+      );
+      expect(metrics.invalidSize * zoom).toBeCloseTo(
+        OVERLAY_SCREEN_PIXELS.invalidSize +
+          Math.sin(simulationTime * 24) * OVERLAY_SCREEN_PIXELS.invalidPulse,
+        12,
+      );
+    }
+    expect(() => overlayWorldMetrics(0, simulationTime)).toThrow(/positive/);
+  });
+
+  it('settles camera momentum by elapsed time without integrating a stalled frame', () => {
+    expect(dampedCameraVelocity(320, 0, 1, 8, 1)).toBe(0);
+    expect(dampedCameraVelocity(320, 0, 0, 8, 1)).toBe(320);
+    expect(dampedCameraVelocity(0, 320, 1, 8, 1)).toBeCloseTo(319.8927, 3);
+    expect(dampedCameraVelocity(0, 320, -1, 8, 1)).toBe(0);
   });
 
   it('constrains panning to the rendered map', () => {

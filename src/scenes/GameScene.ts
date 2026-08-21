@@ -18,11 +18,13 @@ import {
   visibleStageRect,
   type ScreenPoint,
 } from '../views/CameraBounds';
+import {dampedCameraVelocity} from '../views/CameraMotion';
 import {
   CLOSEUP_HEIGHT_FRACTION,
   tacticalZoomLevels,
   ZOOM_LEVEL_COUNT,
 } from '../views/ZoomLevels';
+import {overlayWorldMetrics, type OverlayWorldMetrics} from '../views/OverlayScale';
 
 const SATELLITE_BASE_ZOOM = 0.1;
 const TACTICAL_INITIAL_ZOOM = 3;
@@ -84,6 +86,8 @@ export class GameScene extends Phaser.Scene {
   private readonly loadedCloseAgentDirections = new Set<number>();
   private readonly closeAgentLoads = new Map<number, Promise<void>>();
   private desiredCloseAgentDirection?: number;
+  private overlayMetrics!: OverlayWorldMetrics;
+  private lastCameraUpdateAt?: number;
 
   constructor() {
     super('game');
@@ -179,8 +183,13 @@ export class GameScene extends Phaser.Scene {
     this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
   }
 
-  update(_time: number, delta: number): void {
-    this.updateCameraNavigation(Math.min(delta / 1000, 0.1));
+  update(time: number, delta: number): void {
+    const cameraElapsed =
+      this.lastCameraUpdateAt === undefined
+        ? delta / 1000
+        : (time - this.lastCameraUpdateAt) / 1000;
+    this.lastCameraUpdateAt = time;
+    this.updateCameraNavigation(cameraElapsed);
     this.clock.advance(Math.min(delta / 1000, 0.1), (dt) => this.step(dt));
     this.renderWorld();
     this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
@@ -397,43 +406,76 @@ export class GameScene extends Phaser.Scene {
         ),
       );
 
+    const metrics = overlayWorldMetrics(this.cameras.main.zoom, this.world.simulationTime);
+    this.overlayMetrics = metrics;
     this.markers.clear();
-    this.markers.fillStyle(0x07100a, 0.55).fillEllipse(point.x, point.y + 2, 9, 4);
-    this.markers.lineStyle(1, 0xb9d879, 0.95).strokeEllipse(point.x, point.y + 1, 12, 6);
+    this.markers
+      .fillStyle(0x07100a, 0.55)
+      .fillEllipse(
+        point.x,
+        point.y + metrics.agentShadowOffsetY,
+        metrics.agentShadowWidth,
+        metrics.agentShadowHeight,
+      );
+    this.markers
+      .lineStyle(metrics.agentRingStrokeWidth, 0xb9d879, 0.95)
+      .strokeEllipse(
+        point.x,
+        point.y + metrics.agentRingOffsetY,
+        metrics.agentRingWidth,
+        metrics.agentRingHeight,
+      );
 
-    const drawRoute = (route: WorldPoint[], color: number, alpha: number, width: number): void => {
+    const drawRoute = (
+      route: WorldPoint[],
+      color: number,
+      alpha: number,
+      strokeWidth: number,
+      outlineWidth: number,
+    ): void => {
       if (!route.length) return;
       const projected = [player.position, ...route].map((waypoint) =>
         projection.worldToScreen(waypoint),
       );
-      this.markers.lineStyle(width + 2, 0x07100a, alpha * 0.62);
+      this.markers.lineStyle(outlineWidth, 0x07100a, alpha * 0.62);
       this.markers.beginPath().moveTo(projected[0]!.x, projected[0]!.y);
       projected.slice(1).forEach((routePoint) => this.markers.lineTo(routePoint.x, routePoint.y));
       this.markers.strokePath();
-      this.markers.lineStyle(width, color, alpha);
+      this.markers.lineStyle(strokeWidth, color, alpha);
       this.markers.beginPath().moveTo(projected[0]!.x, projected[0]!.y);
       projected.slice(1).forEach((routePoint) => this.markers.lineTo(routePoint.x, routePoint.y));
       this.markers.strokePath();
     };
-    drawRoute(this.previewPath, 0xa8c97a, 0.34, 1);
-    drawRoute(this.movement.getRemainingPath(player.id), 0xd9c373, 0.82, 1.5);
+    drawRoute(
+      this.previewPath,
+      0xa8c97a,
+      0.34,
+      metrics.previewPathStrokeWidth,
+      metrics.previewPathOutlineWidth,
+    );
+    drawRoute(
+      this.movement.getRemainingPath(player.id),
+      0xd9c373,
+      0.82,
+      metrics.activePathStrokeWidth,
+      metrics.activePathOutlineWidth,
+    );
 
     if (this.destination) {
       const destination = projection.worldToScreen(this.destination);
       const walkable = this.navigation.isWalkable(this.destination);
-      const pulse = 4 + Math.sin(this.world.simulationTime * 5);
       this.markers
-        .lineStyle(1, walkable ? 0xd9c373 : 0xc65c4b, 0.95)
-        .strokeCircle(destination.x, destination.y, pulse);
+        .lineStyle(metrics.destinationStrokeWidth, walkable ? 0xd9c373 : 0xc65c4b, 0.95)
+        .strokeCircle(destination.x, destination.y, metrics.destinationRadius);
       this.markers.fillStyle(walkable ? 0xd9c373 : 0xc65c4b, 0.75).fillCircle(
         destination.x,
         destination.y,
-        2,
+        metrics.destinationDotRadius,
       );
       if (!walkable && this.world.simulationTime < this.invalidFeedbackUntil) {
-        const size = 6 + Math.sin(this.world.simulationTime * 24) * 1.5;
+        const size = metrics.invalidSize;
         this.markers
-          .lineStyle(2, 0xe46c58, 0.95)
+          .lineStyle(metrics.invalidStrokeWidth, 0xe46c58, 0.95)
           .lineBetween(destination.x - size, destination.y - size, destination.x + size, destination.y + size)
           .lineBetween(destination.x + size, destination.y - size, destination.x - size, destination.y + size);
       }
@@ -759,6 +801,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateCameraNavigation(dt: number): void {
+    const dampingElapsed = Math.min(Math.max(dt, 0), 1);
+    const movementElapsed = Math.min(dampingElapsed, 0.1);
     let horizontal = Number(Boolean(this.cursors?.right.isDown)) - Number(Boolean(this.cursors?.left.isDown));
     let vertical = Number(Boolean(this.cursors?.down.isDown)) - Number(Boolean(this.cursors?.up.isDown));
     if (this.edgePointer && !this.pointerStart) {
@@ -783,26 +827,35 @@ export class GameScene extends Phaser.Scene {
     const magnitude = Math.hypot(horizontal, vertical);
     const targetX = magnitude ? (horizontal / magnitude) * CAMERA_PAN_SPEED : 0;
     const targetY = magnitude ? (vertical / magnitude) * CAMERA_PAN_SPEED : 0;
-    const blend = 1 - Math.exp(-CAMERA_ACCELERATION * dt);
-    this.cameraVelocity.x += (targetX - this.cameraVelocity.x) * blend;
-    this.cameraVelocity.y += (targetY - this.cameraVelocity.y) * blend;
+    this.cameraVelocity.x = dampedCameraVelocity(
+      this.cameraVelocity.x,
+      targetX,
+      dampingElapsed,
+      CAMERA_ACCELERATION,
+      CAMERA_STOP_EPSILON,
+    );
+    this.cameraVelocity.y = dampedCameraVelocity(
+      this.cameraVelocity.y,
+      targetY,
+      dampingElapsed,
+      CAMERA_ACCELERATION,
+      CAMERA_STOP_EPSILON,
+    );
     const camera = this.cameras.main;
     if (magnitude > 0) this.setFollowing(false);
     if (this.following && this.world.player.moving && magnitude === 0) {
       const target = this.projections
         .get(this.world.activeView)
         .worldToScreen(this.world.player.position);
-      const followBlend = 1 - Math.exp(-CAMERA_FOLLOW_SPEED * dt);
+      const followBlend = 1 - Math.exp(-CAMERA_FOLLOW_SPEED * dampingElapsed);
       camera.centerOn(
         Phaser.Math.Linear(camera.midPoint.x, target.x, followBlend),
         Phaser.Math.Linear(camera.midPoint.y, target.y, followBlend),
       );
     } else {
-      camera.scrollX += (this.cameraVelocity.x * dt) / camera.zoom;
-      camera.scrollY += (this.cameraVelocity.y * dt) / camera.zoom;
+      camera.scrollX += (this.cameraVelocity.x * movementElapsed) / camera.zoom;
+      camera.scrollY += (this.cameraVelocity.y * movementElapsed) / camera.zoom;
     }
-    if (Math.abs(this.cameraVelocity.x) < CAMERA_STOP_EPSILON) this.cameraVelocity.x = 0;
-    if (Math.abs(this.cameraVelocity.y) < CAMERA_STOP_EPSILON) this.cameraVelocity.y = 0;
     this.constrainCamera();
   }
 
@@ -1016,7 +1069,10 @@ export class GameScene extends Phaser.Scene {
           pendingCloseAgentDirectionCount: this.closeAgentLoads.size,
           agentTexture: this.sprite.texture.key,
           animationFrame: this.sprite.anims.currentFrame?.index ?? 0,
+          animationPlaying: this.sprite.anims.isPlaying,
+          animationFrameCount: this.sprite.anims.currentAnim?.frames.length ?? 0,
           cameraVelocity: {...this.cameraVelocity},
+          overlayWorldMetrics: {...this.overlayMetrics},
           projectedWorldBounds: this.mapPolygon.map((point) => ({...point})),
           backdropBounds: {
             left: this.backdrop.x - this.backdrop.displayWidth / 2,

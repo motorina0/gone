@@ -150,6 +150,21 @@ const expectTacticalViewportInsideMap = (
   }
 };
 
+const expectFixedScreenSpaceOverlays = (
+  state: NonNullable<Window['__GONE_TEST__']>,
+): void => {
+  const screenPixels = (worldUnits: number): number => worldUnits * state.cameraZoom;
+  expect(screenPixels(state.overlayWorldMetrics.worldUnitsPerScreenPixel)).toBeCloseTo(1, 5);
+  expect(screenPixels(state.overlayWorldMetrics.agentRingWidth)).toBeCloseTo(12, 5);
+  expect(screenPixels(state.overlayWorldMetrics.agentRingHeight)).toBeCloseTo(6, 5);
+  expect(screenPixels(state.overlayWorldMetrics.agentRingStrokeWidth)).toBeCloseTo(1, 5);
+  expect(screenPixels(state.overlayWorldMetrics.previewPathStrokeWidth)).toBeCloseTo(1, 5);
+  expect(screenPixels(state.overlayWorldMetrics.previewPathOutlineWidth)).toBeCloseTo(3, 5);
+  expect(screenPixels(state.overlayWorldMetrics.activePathStrokeWidth)).toBeCloseTo(1.5, 5);
+  expect(screenPixels(state.overlayWorldMetrics.activePathOutlineWidth)).toBeCloseTo(3.5, 5);
+  expect(screenPixels(state.overlayWorldMetrics.destinationDotRadius)).toBeCloseTo(2, 5);
+};
+
 const zoomOutToLevelOne = async (page: Page): Promise<void> => {
   const zoomOut = page.locator('[data-zoom-out]');
   for (let step = 0; step < 5 && !(await zoomOut.isDisabled()); step += 1) {
@@ -598,6 +613,7 @@ test('five global tactical levels stay inside every perspective and end in a sha
     const zooms = [await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)];
     const levelOne = await page.evaluate(() => window.__GONE_TEST__!);
     expectTacticalViewportInsideMap(levelOne);
+    expectFixedScreenSpaceOverlays(levelOne);
     const renderedVertices = levelOne.projectedWorldBounds.map((point) => ({
       x: 480 + (point.x - levelOne.cameraScreenCenter.x) * levelOne.cameraZoom,
       y: 320 + (point.y - levelOne.cameraScreenCenter.y) * levelOne.cameraZoom,
@@ -618,6 +634,7 @@ test('five global tactical levels stay inside every perspective and end in a sha
       const state = await page.evaluate(() => window.__GONE_TEST__!);
       expect(state.zoomLevel).toBe(level);
       expectTacticalViewportInsideMap(state);
+      expectFixedScreenSpaceOverlays(state);
       zooms.push(state.cameraZoom);
     }
     expect(zooms.every((zoom, level) => level === 0 || zoom > zooms[level - 1]!)).toBe(true);
@@ -745,15 +762,19 @@ test('route feedback, animated movement, follow, and lazy view loading work toge
   const focusBeforeFollow = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
   await page.mouse.click(target.x, target.y);
   await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBeGreaterThan(0);
-  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animation)).toBe('agent-3-walk');
+  await expect
+    .poll(() =>
+      page.evaluate(() => ({
+        key: window.__GONE_TEST__!.animation,
+        playing: window.__GONE_TEST__!.animationPlaying,
+        frameCount: window.__GONE_TEST__!.animationFrameCount,
+      })),
+    )
+    .toEqual({key: 'agent-3-walk', playing: true, frameCount: 4});
   await expect.poll(async () => {
     const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
     return Math.hypot(focus.x - focusBeforeFollow.x, focus.y - focusBeforeFollow.y);
   }).toBeGreaterThan(0.2);
-  const animationFrame = await page.evaluate(() => window.__GONE_TEST__!.animationFrame);
-  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animationFrame)).not.toBe(
-    animationFrame,
-  );
   await page.locator('[data-pause]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
 
