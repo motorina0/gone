@@ -969,8 +969,10 @@ describe('data-driven environment artwork', () => {
     expect(frameBounds).toHaveLength(72);
     expect(Math.min(...frameBounds.map(({first}) => first))).toBe(definition.firstVisibleRow);
     expect(Math.max(...frameBounds.map(({last}) => last))).toBe(definition.lastVisibleRow);
+    // The runtime height keeps one transparent pixel of framing allowance above
+    // the tallest cleaned finish silhouette so animation cannot clip after scaling.
     expect(Math.max(...frameBounds.map(({height}) => height))).toBe(
-      definition.visibleHeightPixels,
+      definition.visibleHeightPixels - 1,
     );
     const sourceOrigin = 0.94 * definition.frameHeight;
     const sourceEnvelopeCenter =

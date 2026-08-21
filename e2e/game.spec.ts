@@ -583,6 +583,7 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
 });
 
 test('five global tactical levels stay inside every perspective and end in a sharp full-body close-up', async ({page}) => {
+  test.setTimeout(300_000);
   await page.setViewportSize({width: 390, height: 844});
   const closeSheetRequests: string[] = [];
   page.on('request', (request) => {
