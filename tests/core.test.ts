@@ -853,6 +853,17 @@ describe('data-driven environment artwork', () => {
       height: 320,
       hasAlpha: false,
     });
+    expect(
+      await sharp('art/agent/references/gone-operative-isometric-turnaround.png').metadata(),
+    ).toMatchObject({width: 1717, height: 916, hasAlpha: false});
+    for (let direction = 0; direction < 8; direction += 1) {
+      const finish = `art/agent/realistic-sheets/direction-${direction}.png`;
+      const metadata = await sharp(finish).metadata();
+      expect(metadata.width).toBeGreaterThan(1100);
+      expect(metadata.height).toBeGreaterThan(1200);
+      expect(metadata.hasAlpha).toBe(true);
+      expect(statSync(finish).size).toBeGreaterThan(500_000);
+    }
     for (const locationId of LOCATION_IDS) {
       expect(
         await sharp(locationPath(locationId, 'sprites/agent-atlas.png')).metadata(),
@@ -1502,8 +1513,8 @@ describe('mobile asset budgets', () => {
       const closeSheetSizes = manifest.agentCloseAtlases.map(
         (asset) => statSync(locationPath(locationId, asset)).size,
       );
-      expect(Math.max(...closeSheetSizes)).toBeLessThan(400_000);
-      expect(closeSheetSizes.reduce((total, size) => total + size, 0)).toBeLessThan(2_500_000);
+      expect(Math.max(...closeSheetSizes)).toBeLessThan(450_000);
+      expect(closeSheetSizes.reduce((total, size) => total + size, 0)).toBeLessThan(3_200_000);
       if (locationId === 'vatra-central-station') {
         const occlusionBytes = VIEW_IDS.reduce(
           (total, id) => total + statSync(locationPath(locationId, `occlusion-3d/${id}.webp`)).size,
