@@ -19,13 +19,13 @@ import {APP_HEIGHT, APP_WIDTH} from '../app/AppConfig';
 import {
   centerForAnchoredZoom,
   constrainCameraToPolygon,
-  overviewForPolygon,
   visibleStageRect,
   type ScreenPoint,
 } from '../views/CameraBounds';
 import {dampedCameraVelocity} from '../views/CameraMotion';
 import {
   CLOSEUP_HEIGHT_FRACTION,
+  satelliteZoomLevels,
   tacticalZoomLevels,
   ZOOM_LEVEL_COUNT,
 } from '../views/ZoomLevels';
@@ -285,7 +285,7 @@ export class GameScene extends Phaser.Scene {
     this.input.on(
       'wheel',
       (pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => {
-        if (this.world.activeView === 'view-top' || Math.abs(dy) < 1) return;
+        if (Math.abs(dy) < 1) return;
         this.adjustZoom(dy < 0 ? 1 : -1, {x: pointer.x, y: pointer.y});
       },
     );
@@ -298,10 +298,7 @@ export class GameScene extends Phaser.Scene {
     );
     if (this.pinchDistance > 0) {
       const change = distance - this.pinchDistance;
-      if (
-        this.world.activeView !== 'view-top' &&
-        Math.abs(change) >= PINCH_ZOOM_THRESHOLD
-      ) {
+      if (Math.abs(change) >= PINCH_ZOOM_THRESHOLD) {
         const centerX = (touches[0]!.x + touches[1]!.x) / 2;
         const centerY = (touches[0]!.y + touches[1]!.y) / 2;
         this.adjustZoom(change > 0 ? 1 : -1, {x: centerX, y: centerY});
@@ -508,26 +505,8 @@ export class GameScene extends Phaser.Scene {
     const container = this.getPlayableContainerRect();
     const visible = visibleStageRect(canvas, container, APP_WIDTH, APP_HEIGHT);
     if (!this.mapPolygon.length || visible.width <= 0 || visible.height <= 0) return;
-    const projection = this.projectionResource(this.world.activeView);
-    const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
-    const levels =
-      this.world.activeView === 'view-top'
-        ? [overview.zoom]
-        : tacticalZoomLevels({
-            polygon: this.mapPolygon,
-            viewportWidth: visible.width,
-            viewportHeight: visible.height,
-            projectedEntityHeight: projectedEntityHeight(
-              this.world.content.manifest,
-              projection,
-              this.world.player.worldHeightMeters,
-              this.world.player.visualScale,
-            ),
-          });
-    const nextZoom =
-      this.world.activeView === 'view-top'
-        ? overview.zoom
-        : levels[this.tacticalZoomLevel - 1]!;
+    const levels = this.cameraZoomLevels(visible.width, visible.height);
+    const nextZoom = levels[this.tacticalZoomLevel - 1]!;
     this.minimumZoom = levels[0]!;
     this.zoomLevel = nextZoom;
     this.world.camera.minimumZoom = this.minimumZoom;
@@ -559,15 +538,12 @@ export class GameScene extends Phaser.Scene {
         y: player.y - (targetAnchorY - visibleCenterY) / camera.zoom,
       };
     }
-    const bounded =
-      this.world.activeView === 'view-top'
-        ? overview.center
-        : constrainCameraToPolygon(
-            requestedVisibleCenter,
-            this.mapPolygon,
-            visible.width / (2 * camera.zoom),
-            visible.height / (2 * camera.zoom),
-          );
+    const bounded = constrainCameraToPolygon(
+      requestedVisibleCenter,
+      this.mapPolygon,
+      visible.width / (2 * camera.zoom),
+      visible.height / (2 * camera.zoom),
+    );
     const cameraCenter = {
       x: bounded.x - visibleOffset.x / camera.zoom,
       y: bounded.y - visibleOffset.y / camera.zoom,
@@ -576,6 +552,23 @@ export class GameScene extends Phaser.Scene {
     this.world.camera.focus = this.projections
       .get(this.world.activeView)
       .screenToWorld(cameraCenter);
+  }
+
+  private cameraZoomLevels(viewportWidth: number, viewportHeight: number): number[] {
+    if (this.world.activeView === 'view-top') {
+      return satelliteZoomLevels(this.mapPolygon, viewportWidth, viewportHeight);
+    }
+    return tacticalZoomLevels({
+      polygon: this.mapPolygon,
+      viewportWidth,
+      viewportHeight,
+      projectedEntityHeight: projectedEntityHeight(
+        this.world.content.manifest,
+        this.projectionResource(this.world.activeView),
+        this.world.player.worldHeightMeters,
+        this.world.player.visualScale,
+      ),
+    });
   }
 
   private getPlayableContainerRect(): {left: number; top: number; right: number; bottom: number} {
@@ -592,7 +585,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private adjustZoom(delta: number, anchor?: ScreenPoint): void {
-    if (this.world.activeView === 'view-top') return;
     const nextLevel = Phaser.Math.Clamp(
       this.tacticalZoomLevel + Math.sign(delta),
       1,
@@ -607,19 +599,9 @@ export class GameScene extends Phaser.Scene {
       APP_WIDTH,
       APP_HEIGHT,
     );
-    const levels = tacticalZoomLevels({
-      polygon: this.mapPolygon,
-      viewportWidth: visible.width,
-      viewportHeight: visible.height,
-      projectedEntityHeight: projectedEntityHeight(
-        this.world.content.manifest,
-        this.projectionResource(this.world.activeView),
-        this.world.player.worldHeightMeters,
-        this.world.player.visualScale,
-      ),
-    });
+    const levels = this.cameraZoomLevels(visible.width, visible.height);
     const nextZoom = levels[nextLevel - 1]!;
-    if (anchor && nextLevel !== ZOOM_LEVEL_COUNT) {
+    if (anchor) {
       const center = centerForAnchoredZoom(
         {x: camera.scrollX + camera.width / 2, y: camera.scrollY + camera.height / 2},
         anchor,
@@ -742,10 +724,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private isCloseup(): boolean {
-    return (
-      this.world.activeView !== 'view-top' &&
-      this.tacticalZoomLevel === ZOOM_LEVEL_COUNT
-    );
+    return false;
   }
 
   private renderingById(id: string) {

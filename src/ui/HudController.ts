@@ -1,5 +1,6 @@
 import type {MovementPace} from '../world/WorldTypes';
 import type {WorldState} from '../world/WorldState';
+import {ZOOM_LEVEL_COUNT} from '../views/ZoomLevels';
 
 export interface HudActions {
   pause(): void;
@@ -144,13 +145,19 @@ export class HudController {
     const zoomOut = this.root.querySelector<HTMLButtonElement>('[data-zoom-out]')!;
     const zoomIn = this.root.querySelector<HTMLButtonElement>('[data-zoom-in]')!;
     const satellite = world.activeView === 'view-top';
-    zoomOut.disabled = satellite || zoomLevel <= 1;
-    zoomIn.disabled = satellite || zoomLevel >= 5;
-    zoomOut.setAttribute('aria-label', `Zoom out. Current level ${zoomLevel} of 5`);
-    zoomIn.setAttribute('aria-label', `Zoom in. Current level ${zoomLevel} of 5`);
+    zoomOut.disabled = zoomLevel <= 1;
+    zoomIn.disabled = zoomLevel >= ZOOM_LEVEL_COUNT;
+    zoomOut.setAttribute(
+      'aria-label',
+      `Zoom out. Current level ${zoomLevel} of ${ZOOM_LEVEL_COUNT}`,
+    );
+    zoomIn.setAttribute(
+      'aria-label',
+      `Zoom in. Current level ${zoomLevel} of ${ZOOM_LEVEL_COUNT}`,
+    );
     this.root.querySelector<HTMLOutputElement>('[data-zoom-level]')!.textContent = satellite
-      ? 'SAT'
-      : `L${zoomLevel}/5`;
+      ? `SAT L${zoomLevel}/${ZOOM_LEVEL_COUNT}`
+      : `L${zoomLevel}/${ZOOM_LEVEL_COUNT}`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) =>
       button.setAttribute('aria-pressed', String(button.dataset.view === world.activeView)),
     );
