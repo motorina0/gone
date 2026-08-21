@@ -82,6 +82,25 @@
       "maxItems": 5
     },
     "agentAtlas": {"type": "string"},
+    "agentCloseAtlases": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 8,
+      "maxItems": 8
+    },
+    "agentCloseAnimation": {
+      "type": "object",
+      "properties": {
+        "frameWidth": {"type": "integer", "minimum": 128},
+        "frameHeight": {"type": "integer", "minimum": 160},
+        "visibleHeightPixels": {"type": "integer", "minimum": 1},
+        "firstVisibleRow": {"type": "integer", "minimum": 0},
+        "lastVisibleRow": {"type": "integer", "minimum": 1},
+        "columns": {"type": "integer", "minimum": 1},
+        "rows": {"type": "integer", "minimum": 1}
+      },
+      "required": ["frameWidth", "frameHeight", "visibleHeightPixels", "firstVisibleRow", "lastVisibleRow", "columns", "rows"]
+    },
     "agentAnimation": {
       "type": "object",
       "properties": {

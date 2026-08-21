@@ -223,6 +223,18 @@ button img {
   padding-inline: 0.48rem;
 }
 
+.camera-bank [data-zoom-level] {
+  display: inline-flex;
+  min-width: 3.2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #3e493b;
+  background: #0b110c;
+  color: #c6d590;
+  font: 800 0.62rem ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
 .command-message {
   grid-column: 2 / 6;
   align-self: center;

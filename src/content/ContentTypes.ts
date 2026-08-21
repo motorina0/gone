@@ -208,6 +208,16 @@ export interface Manifest {
   detailOverlays: string[];
   depthMaps?: string[];
   agentAtlas: string;
+  agentCloseAtlases?: string[];
+  agentCloseAnimation?: {
+    frameWidth: number;
+    frameHeight: number;
+    visibleHeightPixels: number;
+    firstVisibleRow: number;
+    lastVisibleRow: number;
+    columns: number;
+    rows: number;
+  };
   agentAnimation: {
     frameWidth: number;
     frameHeight: number;
@@ -240,4 +250,5 @@ export interface LoadedContent {
   detailOverlays: string[];
   depthMaps: string[];
   agentAtlas: string;
+  agentCloseAtlases: string[];
 }

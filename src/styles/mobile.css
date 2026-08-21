@@ -65,7 +65,7 @@
 @media (max-width: 560px) {
   .map-attribution {
     right: max(6px, env(safe-area-inset-right));
-    bottom: max(184px, calc(env(safe-area-inset-bottom) + 174px));
+    bottom: max(230px, calc(env(safe-area-inset-bottom) + 220px));
     left: max(6px, env(safe-area-inset-left));
     justify-content: center;
     overflow: visible;

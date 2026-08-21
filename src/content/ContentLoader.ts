@@ -107,5 +107,8 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     detailOverlays: manifest.detailOverlays.map((path) => new URL(path, baseUrl).href),
     depthMaps: (manifest.depthMaps ?? []).map((path) => new URL(path, baseUrl).href),
     agentAtlas: new URL(manifest.agentAtlas, baseUrl).href,
+    agentCloseAtlases: (manifest.agentCloseAtlases ?? []).map(
+      (path) => new URL(path, baseUrl).href,
+    ),
   };
 };

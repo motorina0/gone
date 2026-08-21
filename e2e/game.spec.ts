@@ -115,17 +115,55 @@ const expectFullMapVisible = (state: NonNullable<Window['__GONE_TEST__']>): void
   expect(visibleWorld.bottom).toBeLessThanOrEqual(state.backdropBounds.bottom);
 };
 
-const zoomOutToFullMap = async (page: Page): Promise<void> => {
+const pointInsideConvexPolygon = (
+  point: {x: number; y: number},
+  polygon: Array<{x: number; y: number}>,
+): boolean => {
+  let direction = 0;
+  for (let index = 0; index < polygon.length; index += 1) {
+    const start = polygon[index]!;
+    const end = polygon[(index + 1) % polygon.length]!;
+    const cross = (end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x);
+    if (Math.abs(cross) < 0.05) continue;
+    const nextDirection = Math.sign(cross);
+    if (direction && nextDirection !== direction) return false;
+    direction = nextDirection;
+  }
+  return true;
+};
+
+const expectTacticalViewportInsideMap = (
+  state: NonNullable<Window['__GONE_TEST__']>,
+): void => {
+  const corners = [
+    {x: state.visibleStage.left, y: state.visibleStage.top},
+    {x: state.visibleStage.right, y: state.visibleStage.top},
+    {x: state.visibleStage.right, y: state.visibleStage.bottom},
+    {x: state.visibleStage.left, y: state.visibleStage.bottom},
+  ];
+  for (const corner of corners) {
+    const worldScreenPoint = {
+      x: state.cameraScreenCenter.x + (corner.x - 480) / state.cameraZoom,
+      y: state.cameraScreenCenter.y + (corner.y - 320) / state.cameraZoom,
+    };
+    expect(pointInsideConvexPolygon(worldScreenPoint, state.projectedWorldBounds)).toBe(true);
+  }
+};
+
+const zoomOutToLevelOne = async (page: Page): Promise<void> => {
   const zoomOut = page.locator('[data-zoom-out]');
-  for (let step = 0; step < 6 && !(await zoomOut.isDisabled()); step += 1) {
-    const before = await page.evaluate(() => window.__GONE_TEST__!.cameraZoom);
+  for (let step = 0; step < 5 && !(await zoomOut.isDisabled()); step += 1) {
+    const before = await page.evaluate(() => window.__GONE_TEST__!.zoomLevel);
     await zoomOut.click();
     await expect
-      .poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom))
+      .poll(() => page.evaluate(() => window.__GONE_TEST__!.zoomLevel))
       .toBeLessThan(before);
   }
   await expect(zoomOut).toBeDisabled();
-  expectFullMapVisible(await page.evaluate(() => window.__GONE_TEST__!));
+  const state = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(state.zoomLevel).toBe(1);
+  expect(state.cameraZoom).toBeCloseTo(state.minimumZoom, 5);
+  expectTacticalViewportInsideMap(state);
 };
 
 const tacticalTopBandVariation = async (page: Page, viewId: string): Promise<number> =>
@@ -300,6 +338,7 @@ for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-
   test(`${locationId} moves one operative and preserves position across views`, async ({page}) => {
     await page.setViewportSize({width: 1280, height: 720});
     const errors = await openExploration(page, locationId);
+    await zoomOutToLevelOne(page);
     const initial = await page.evaluate(() => window.__GONE_TEST__!.player);
 
     await page.locator('[data-pace="run"]').click();
@@ -314,15 +353,15 @@ for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-
     await page.locator('[data-pause]').click();
     await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
     const positionBeforeViews = await page.evaluate(() => window.__GONE_TEST__!.player);
-    const focusBeforeViews = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+    const zoomLevelBeforeViews = await page.evaluate(() => window.__GONE_TEST__!.zoomLevel);
     for (const id of VIEW_IDS) {
       await page.locator(`button[data-view="${id}"]`).click();
       await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
       expect(await page.evaluate(() => window.__GONE_TEST__!.player)).toEqual(positionBeforeViews);
       if (id !== 'view-top') {
-        const focus = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
-        expect(focus.x).toBeCloseTo(focusBeforeViews.x, 4);
-        expect(focus.y).toBeCloseTo(focusBeforeViews.y, 4);
+        const state = await page.evaluate(() => window.__GONE_TEST__!);
+        expect(state.zoomLevel).toBe(zoomLevelBeforeViews);
+        expectTacticalViewportInsideMap(state);
       }
     }
 
@@ -353,10 +392,11 @@ test('Cluj station loads attributed Pages assets and routes through its passenge
   const initialVisibleAgentHeight = await page.evaluate(
     () => window.__GONE_TEST__!.playerVisibleHeight,
   );
-  expect(initialAgentHeight).toBeGreaterThan(5);
-  expect(initialAgentHeight).toBeLessThan(8);
-  expect(initialVisibleAgentHeight).toBeGreaterThan(4.5);
-  expect(initialVisibleAgentHeight).toBeLessThan(6.5);
+  const initialState = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(initialState.zoomLevel).toBe(3);
+  expect(initialAgentHeight).toBeGreaterThan(initialVisibleAgentHeight);
+  expect(initialVisibleAgentHeight).toBeGreaterThan(5);
+  expect(initialVisibleAgentHeight).toBeLessThan(initialState.visibleStage.height * 0.5);
   const attribution = page.locator('[data-map-attribution]');
   await expect(attribution).toBeVisible();
   await expect(attribution).toContainText('OpenStreetMap contributors');
@@ -375,7 +415,7 @@ test('Cluj station loads attributed Pages assets and routes through its passenge
   await attribution.locator('summary').click();
   expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(1);
 
-  await zoomOutToFullMap(page);
+  await zoomOutToLevelOne(page);
   const destination = await elevatedDestinationClient(page);
   await page.mouse.move(destination.x, destination.y);
   await expect(page.locator('canvas')).toHaveClass(/cursor-move/);
@@ -409,12 +449,15 @@ test('Cluj attribution and controls remain inside a mobile safe-area viewport', 
   const errors = await openExploration(page, 'cluj-napoca-station');
   const attribution = await page.locator('[data-map-attribution]').boundingBox();
   const consoleBox = await page.locator('.command-console').boundingBox();
+  const cameraBox = await page.locator('.camera-bank').boundingBox();
 
   expect(attribution).not.toBeNull();
   expect(consoleBox).not.toBeNull();
+  expect(cameraBox).not.toBeNull();
   expect(attribution!.x).toBeGreaterThanOrEqual(0);
   expect(attribution!.x + attribution!.width).toBeLessThanOrEqual(390);
   expect(attribution!.y + attribution!.height).toBeLessThan(consoleBox!.y);
+  expect(attribution!.y + attribution!.height).toBeLessThanOrEqual(cameraBox!.y);
   await page.locator('[data-map-attribution] summary').click();
   const legalNotice = page.locator('[data-map-attribution] .attribution-notice');
   await expect(legalNotice).toBeVisible();
@@ -524,8 +567,14 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
 });
 
-test('every tactical view zooms out to a complete portrait map', async ({page}) => {
+test('five global tactical levels stay inside every perspective and end in a sharp full-body close-up', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
+  const closeSheetRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/sprites/agent-close-direction-')) {
+      closeSheetRequests.push(request.url());
+    }
+  });
   const errors = await openExploration(page, 'vatra-central-station');
 
   for (const [index, id] of VIEW_IDS.slice(0, 4).entries()) {
@@ -533,8 +582,8 @@ test('every tactical view zooms out to a complete portrait map', async ({page}) 
       await page.locator(`button[data-view="${id}"]`).click();
       await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
     }
-    const closeView = await page.evaluate(() => window.__GONE_TEST__!);
-    expect(closeView.cameraZoom).toBeGreaterThan(closeView.minimumZoom);
+    const inheritedLevel = await page.evaluate(() => window.__GONE_TEST__!.zoomLevel);
+    if (index > 0) expect(inheritedLevel).toBe(5);
     expect(await tacticalTopBandVariation(page, id)).toBeGreaterThan(4);
     const visualMetrics = await tacticalVisualMetrics(page, id);
     // The blue-hour grade is intentionally low-key; local edge energy protects
@@ -545,15 +594,65 @@ test('every tactical view zooms out to a complete portrait map', async ({page}) 
     expect(perimeterAlpha.edgeMax).toBeLessThan(20);
     expect(perimeterAlpha.edgeMean).toBeLessThan(16);
     expect(perimeterAlpha.center).toBeGreaterThan(245);
-    await zoomOutToFullMap(page);
-    if (index < 3) {
+    await zoomOutToLevelOne(page);
+    const zooms = [await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)];
+    const levelOne = await page.evaluate(() => window.__GONE_TEST__!);
+    expectTacticalViewportInsideMap(levelOne);
+    const renderedVertices = levelOne.projectedWorldBounds.map((point) => ({
+      x: 480 + (point.x - levelOne.cameraScreenCenter.x) * levelOne.cameraZoom,
+      y: 320 + (point.y - levelOne.cameraScreenCenter.y) * levelOne.cameraZoom,
+    }));
+    expect(
+      renderedVertices.some(
+        (point) =>
+          point.x < levelOne.visibleStage.left ||
+          point.x > levelOne.visibleStage.right ||
+          point.y < levelOne.visibleStage.top ||
+          point.y > levelOne.visibleStage.bottom,
+      ),
+    ).toBe(true);
+
+    for (let level = 2; level <= 5; level += 1) {
       await page.locator('[data-zoom-in]').click();
-      await expect
-        .poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom))
-        .toBeGreaterThan(closeView.minimumZoom);
+      await expect(page.locator('#hud')).toHaveAttribute('data-zoom-level', String(level));
+      const state = await page.evaluate(() => window.__GONE_TEST__!);
+      expect(state.zoomLevel).toBe(level);
+      expectTacticalViewportInsideMap(state);
+      zooms.push(state.cameraZoom);
     }
+    expect(zooms.every((zoom, level) => level === 0 || zoom > zooms[level - 1]!)).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.agentTexture)).toContain(
+      'agent-close-direction-',
+    );
+    const closeup = await page.evaluate(() => window.__GONE_TEST__!);
+    expect(closeup.playerVisibleHeight / closeup.visibleStage.height).toBeCloseTo(0.94, 2);
+    expect(closeup.retainedCloseAgentDirections).toHaveLength(1);
+    expect(closeup.agentTexture).toBe(
+      `agent-close-direction-${closeup.retainedCloseAgentDirections[0]}`,
+    );
+    expect(closeup.playerStage.y).toBeLessThan(closeup.visibleStage.bottom);
+    expect(closeup.playerStage.y - closeup.playerVisibleHeight).toBeGreaterThanOrEqual(
+      closeup.visibleStage.top - 1,
+    );
+    expect(closeup.playerStage.x).toBeGreaterThan(closeup.visibleStage.left);
+    expect(closeup.playerStage.x).toBeLessThan(closeup.visibleStage.right);
+    expect(new Set(closeSheetRequests).size).toBeLessThanOrEqual(index + 1);
   }
 
+  await page.locator('button[data-view="view-0"]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
+  await page.locator('button[data-view="view-90"]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-90');
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.pendingCloseAgentDirectionCount))
+    .toBe(0);
+  expect(
+    await page.evaluate(() => window.__GONE_TEST__!.retainedCloseAgentDirections),
+  ).toHaveLength(1);
+  expect(new Set(closeSheetRequests).size).toBeGreaterThan(0);
+  expect(new Set(closeSheetRequests).size).toBeLessThanOrEqual(4);
   expect(errors).toEqual([]);
 });
 
@@ -619,6 +718,7 @@ for (const viewport of [
 test('route feedback, animated movement, follow, and lazy view loading work together', async ({page}) => {
   await page.setViewportSize({width: 1280, height: 720});
   const errors = await openExploration(page, 'vatra-central-station');
+  await zoomOutToLevelOne(page);
   expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(1);
 
   const blocked = await page.evaluate(() => window.__GONE_TEST__!.testBlockedDestination);
@@ -654,6 +754,8 @@ test('route feedback, animated movement, follow, and lazy view loading work toge
   await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animationFrame)).not.toBe(
     animationFrame,
   );
+  await page.locator('[data-pause]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
 
   await page.keyboard.down('ArrowRight');
   await expect(page.locator('#hud')).toHaveAttribute('data-following', 'false');
@@ -662,7 +764,9 @@ test('route feedback, animated movement, follow, and lazy view loading work toge
   await page.locator('button[data-view="view-90"]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-90');
   expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
-  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.animation)).toBe('agent-5-walk');
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.animation))
+    .toMatch(/^agent-5-(walk|idle)$/);
   await page.locator('button[data-view="view-0"]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
   expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
@@ -678,6 +782,7 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
   });
   const page = await context.newPage();
   const errors = await openExploration(page, 'cluj-napoca-station');
+  await zoomOutToLevelOne(page);
   const session = await context.newCDPSession(page);
   const canvasBox = await page.locator('canvas').boundingBox();
   expect(canvasBox).not.toBeNull();
@@ -695,6 +800,7 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
   expect(Math.hypot(afterTap.player.x - initial.player.x, afterTap.player.y - initial.player.y)).toBeGreaterThan(1);
 
   const zoomBeforePinch = afterTap.cameraZoom;
+  const levelBeforePinch = afterTap.zoomLevel;
   const pinchCenterX = canvasBox!.x + canvasBox!.width / 2;
   const pinchY = canvasBox!.y + canvasBox!.height * 0.3;
   await dispatchTouch(session, 'touchStart', [
@@ -714,6 +820,7 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
     zoomBeforePinch,
   );
   const afterPinch = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(afterPinch.zoomLevel).toBe(levelBeforePinch + 1);
   expect(afterPinch.player).toEqual(afterTap.player);
 
   const dragStart = {
@@ -762,7 +869,7 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
   const afterRotate = await page.evaluate(() => window.__GONE_TEST__!);
   expect(afterRotate.player).toEqual(beforeRotate.player);
   expect(afterRotate.activeView).toBe(beforeRotate.activeView);
-  expect(afterRotate.cameraZoom).toBeCloseTo(beforeRotate.cameraZoom, 5);
+  expect(afterRotate.zoomLevel).toBe(beforeRotate.zoomLevel);
   expect(afterRotate.session.pace).toBe(beforeRotate.session.pace);
   expect(errors).toEqual([]);
   await context.close();

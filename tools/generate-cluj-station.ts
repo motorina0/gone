@@ -1012,6 +1012,10 @@ const viewPaths = projections.map((projection) => `views/${projection.id}.svg`);
 const backdropPaths = projections.map((projection) => `backdrops/${projection.id}.svg`);
 const occlusionPaths = projections.map((projection) => `occlusion/${projection.id}.svg`);
 const detailPaths = projections.map((projection) => `details/${projection.id}.svg`);
+const agentClosePaths = Array.from(
+  {length: 8},
+  (_, direction) => `sprites/agent-close-direction-${direction}.webp`,
+);
 const manifest = {
   schemaVersion: '1.0.0',
   id: 'cluj-napoca-station',
@@ -1036,6 +1040,16 @@ const manifest = {
   occlusion: occlusionPaths,
   detailOverlays: detailPaths,
   agentAtlas: 'sprites/agent-atlas.png',
+  agentCloseAtlases: agentClosePaths,
+  agentCloseAnimation: {
+    frameWidth: 1024,
+    frameHeight: 1280,
+    visibleHeightPixels: 1119,
+    firstVisibleRow: 47,
+    lastVisibleRow: 1177,
+    columns: 3,
+    rows: 3,
+  },
   agentAnimation: {
     frameWidth: 128,
     frameHeight: 160,
@@ -1100,6 +1114,12 @@ await copyFile(
   path.join(projectRoot, 'public/content/locations/vatra-central-station/sprites/agent-atlas.png'),
   path.join(locationRoot, 'sprites/agent-atlas.png'),
 );
+for (const closePath of agentClosePaths) {
+  await copyFile(
+    path.join(projectRoot, 'public/content/locations/vatra-central-station', closePath),
+    path.join(locationRoot, closePath),
+  );
+}
 
 const escapeXml = (value: string): string =>
   value

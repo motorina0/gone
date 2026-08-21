@@ -8,6 +8,7 @@ declare global {
       activeView: string;
       player: {x: number; y: number; elevation: number};
       playerScreen: {x: number; y: number};
+      playerStage: {x: number; y: number};
       testDestination: {
         world: {x: number; y: number; elevation: number};
         screen: {x: number; y: number};
@@ -43,6 +44,10 @@ declare global {
       activeRouteElevations: number[];
       animation: string;
       animationFrame: number;
+      closeAgentLoaded: boolean;
+      retainedCloseAgentDirections: number[];
+      pendingCloseAgentDirectionCount: number;
+      agentTexture: string;
       cameraVelocity: {x: number; y: number};
       projectedWorldBounds: Array<{x: number; y: number}>;
       backdropBounds: {left: number; top: number; right: number; bottom: number};

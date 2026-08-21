@@ -4,7 +4,7 @@ import {WorldState} from '../world/WorldState';
 import type {MovementPace, WorldPoint} from '../world/WorldTypes';
 import {GameClock} from '../world/GameClock';
 import {ProjectionService} from '../projection/ProjectionService';
-import {entityScaleForProjection} from '../projection/EntityScale';
+import {entityScaleForProjection, projectedEntityHeight} from '../projection/EntityScale';
 import {VIEW_IDS, type ViewId} from '../views/ViewManager';
 import {GridNavigationService} from '../navigation/Pathfinding';
 import {MovementSystem} from '../systems/MovementSystem';
@@ -13,16 +13,19 @@ import {SettingsStore, type Settings} from '../persistence/SettingsStore';
 import {APP_HEIGHT, APP_WIDTH} from '../app/AppConfig';
 import {
   centerForAnchoredZoom,
-  constrainCameraCenter,
-  constrainCameraToPolygonBounds,
+  constrainCameraToPolygon,
   overviewForPolygon,
   visibleStageRect,
   type ScreenPoint,
 } from '../views/CameraBounds';
+import {
+  CLOSEUP_HEIGHT_FRACTION,
+  tacticalZoomLevels,
+  ZOOM_LEVEL_COUNT,
+} from '../views/ZoomLevels';
 
 const SATELLITE_BASE_ZOOM = 0.1;
 const TACTICAL_INITIAL_ZOOM = 3;
-const MAX_ZOOM_LEVEL = 5;
 const TAP_DISTANCE = 10;
 const DOUBLE_TAP_MS = 360;
 const EDGE_SCROLL_ZONE = 24;
@@ -32,6 +35,8 @@ const CAMERA_STOP_EPSILON = 1;
 const CAMERA_FOLLOW_SPEED = 5;
 const PATH_PREVIEW_INTERVAL = 70;
 const MAX_SYNCHRONOUS_PREVIEW_HAZARDS = 1_000;
+const PINCH_ZOOM_THRESHOLD = 36;
+const AGENT_ORIGIN_Y = 0.94;
 
 interface TapRecord {
   at: number;
@@ -72,10 +77,13 @@ export class GameScene extends Phaser.Scene {
   private edgePointer?: {x: number; y: number};
   private cameraVelocity = {x: 0, y: 0};
   private following = false;
-  private readonly cameraMemory = new Map<ViewId, {focus: WorldPoint; zoom: number}>();
+  private readonly cameraMemory = new Map<ViewId, {focus: WorldPoint}>();
   private loadedViews = new Set<number>();
   private viewRequest = 0;
   private activeAnimation = '';
+  private readonly loadedCloseAgentDirections = new Set<number>();
+  private readonly closeAgentLoads = new Map<number, Promise<void>>();
+  private desiredCloseAgentDirection?: number;
 
   constructor() {
     super('game');
@@ -100,12 +108,12 @@ export class GameScene extends Phaser.Scene {
     this.loadedViews.add(initialViewIndex);
     this.world.activeView = initialView;
     this.tacticalZoomLevel = Phaser.Math.Clamp(
-      this.settings.zoom,
-      SATELLITE_BASE_ZOOM,
-      MAX_ZOOM_LEVEL,
+      Math.round(this.settings.zoom),
+      1,
+      ZOOM_LEVEL_COUNT,
     );
     this.zoomLevel =
-      this.world.activeView === 'view-top' ? SATELLITE_BASE_ZOOM : this.tacticalZoomLevel;
+      this.world.activeView === 'view-top' ? SATELLITE_BASE_ZOOM : 1;
     this.world.camera.zoom = this.zoomLevel;
     this.world.camera.minimumZoom = this.minimumZoom;
 
@@ -139,7 +147,7 @@ export class GameScene extends Phaser.Scene {
     this.createAgentAnimations(content);
     this.sprite = this.add
       .sprite(0, 0, 'agent-atlas', 0)
-      .setOrigin(0.5, 0.94)
+      .setOrigin(0.5, AGENT_ORIGIN_Y)
       .setDepth(3)
       .setName(this.world.player.id)
       .setScale(this.entityScaleForView(initialView));
@@ -162,20 +170,20 @@ export class GameScene extends Phaser.Scene {
       zoom: (delta) => this.adjustZoom(delta),
       follow: () => this.toggleFollow(),
     });
-    this.applyView(initialView, initialViewIndex, this.world.camera.focus, this.zoomLevel);
+    this.applyView(initialView, initialViewIndex, this.world.camera.focus);
 
     document.addEventListener('visibilitychange', this.visibilityHandler);
     this.input.keyboard?.on('keydown', this.onKey);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.shutdown());
     this.installTestDiagnostics();
-    this.hud.render(this.world, this.following);
+    this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
   }
 
   update(_time: number, delta: number): void {
     this.updateCameraNavigation(Math.min(delta / 1000, 0.1));
     this.clock.advance(Math.min(delta / 1000, 0.1), (dt) => this.step(dt));
     this.renderWorld();
-    this.hud.render(this.world, this.following);
+    this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
   }
 
   private step(dt: number): void {
@@ -248,13 +256,8 @@ export class GameScene extends Phaser.Scene {
     this.input.on(
       'wheel',
       (pointer: Phaser.Input.Pointer, _objects: unknown, _dx: number, dy: number) => {
-        const next = Phaser.Math.Clamp(
-          this.zoomLevel - dy * 0.002,
-          this.minimumZoom,
-          MAX_ZOOM_LEVEL,
-        );
-        this.zoomAt(pointer.x, pointer.y, next);
-        this.rememberTacticalZoom();
+        if (this.world.activeView === 'view-top' || Math.abs(dy) < 1) return;
+        this.adjustZoom(dy < 0 ? 1 : -1, {x: pointer.x, y: pointer.y});
       },
     );
   }
@@ -265,17 +268,19 @@ export class GameScene extends Phaser.Scene {
       touches[0]!.y - touches[1]!.y,
     );
     if (this.pinchDistance > 0) {
-      const next = Phaser.Math.Clamp(
-        this.zoomLevel + (distance - this.pinchDistance) * 0.01,
-        this.minimumZoom,
-        MAX_ZOOM_LEVEL,
-      );
-      const centerX = (touches[0]!.x + touches[1]!.x) / 2;
-      const centerY = (touches[0]!.y + touches[1]!.y) / 2;
-      this.zoomAt(centerX, centerY, next);
-      this.rememberTacticalZoom();
+      const change = distance - this.pinchDistance;
+      if (
+        this.world.activeView !== 'view-top' &&
+        Math.abs(change) >= PINCH_ZOOM_THRESHOLD
+      ) {
+        const centerX = (touches[0]!.x + touches[1]!.x) / 2;
+        const centerY = (touches[0]!.y + touches[1]!.y) / 2;
+        this.adjustZoom(change > 0 ? 1 : -1, {x: centerX, y: centerY});
+        this.pinchDistance = distance;
+      }
+    } else {
+      this.pinchDistance = distance;
     }
-    this.pinchDistance = distance;
     this.panning = true;
     this.setFollowing(false);
     this.constrainCamera();
@@ -371,15 +376,26 @@ export class GameScene extends Phaser.Scene {
           ? 'run'
           : 'walk'
         : 'idle';
-    const animation = `agent-${direction}-${motion}`;
+    this.desiredCloseAgentDirection = this.isCloseup() ? direction : undefined;
+    const closeupArt = this.usingCloseAgent(direction);
+    const animation = `${closeupArt ? 'agent-close' : 'agent'}-${direction}-${motion}`;
     if (animation !== this.activeAnimation) {
       this.activeAnimation = animation;
       this.sprite.play(animation, true);
     }
+    this.evictCloseAgentDirectionsExcept(this.desiredCloseAgentDirection);
+    if (this.desiredCloseAgentDirection !== undefined && !closeupArt) {
+      void this.ensureCloseAgentLoaded(this.desiredCloseAgentDirection);
+    }
     this.sprite
       .setPosition(point.x, point.y)
       .setFlipX(false)
-      .setScale(this.entityScaleForView(this.world.activeView));
+      .setScale(
+        this.entityScaleForView(
+          this.world.activeView,
+          this.activeAgentVisibleHeightPixels(closeupArt),
+        ),
+      );
 
     this.markers.clear();
     this.markers.fillStyle(0x07100a, 0.55).fillEllipse(point.x, point.y + 2, 9, 4);
@@ -429,42 +445,61 @@ export class GameScene extends Phaser.Scene {
     const canvas = this.game.canvas.getBoundingClientRect();
     const container = this.getPlayableContainerRect();
     const visible = visibleStageRect(canvas, container, APP_WIDTH, APP_HEIGHT);
-    if (this.mapPolygon.length) {
-      const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
-      const wasAtMinimum = Math.abs(this.zoomLevel - this.minimumZoom) < 0.001;
-      this.minimumZoom = overview.zoom;
-      this.world.camera.minimumZoom = overview.zoom;
-      if (wasAtMinimum || this.zoomLevel < overview.zoom) {
-        this.zoomLevel = overview.zoom;
-        this.world.camera.zoom = overview.zoom;
-        camera.setZoom(overview.zoom);
-      }
-    }
+    if (!this.mapPolygon.length || visible.width <= 0 || visible.height <= 0) return;
+    const projection = this.projectionResource(this.world.activeView);
+    const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
+    const levels =
+      this.world.activeView === 'view-top'
+        ? [overview.zoom]
+        : tacticalZoomLevels({
+            polygon: this.mapPolygon,
+            viewportWidth: visible.width,
+            viewportHeight: visible.height,
+            projectedEntityHeight: projectedEntityHeight(
+              this.world.content.manifest,
+              projection,
+            ),
+          });
+    const nextZoom =
+      this.world.activeView === 'view-top'
+        ? overview.zoom
+        : levels[this.tacticalZoomLevel - 1]!;
+    this.minimumZoom = levels[0]!;
+    this.zoomLevel = nextZoom;
+    this.world.camera.minimumZoom = this.minimumZoom;
+    this.world.camera.zoom = nextZoom;
+    camera.setZoom(nextZoom);
     const visibleOffset = {
       x: (visible.left + visible.right) / 2 - camera.centerX,
       y: (visible.top + visible.bottom) / 2 - camera.centerY,
     };
-    const requestedVisibleCenter = {
+    let requestedVisibleCenter = {
       x: camera.scrollX + camera.width / 2 + visibleOffset.x / camera.zoom,
       y: camera.scrollY + camera.height / 2 + visibleOffset.y / camera.zoom,
     };
-    const center = constrainCameraCenter({
-      scrollX: requestedVisibleCenter.x - camera.width / 2,
-      scrollY: requestedVisibleCenter.y - camera.height / 2,
-      viewportWidth: camera.width,
-      viewportHeight: camera.height,
-      zoom: camera.zoom,
-      canvas,
-      container,
-      mapWidth: APP_WIDTH,
-      mapHeight: APP_HEIGHT,
-    });
-    const overview = overviewForPolygon(this.mapPolygon, visible.width, visible.height);
+    if (this.isCloseup()) {
+      const player = this.projections
+        .get(this.world.activeView)
+        .worldToScreen(this.world.player.position);
+      const visibleCenterY = (visible.top + visible.bottom) / 2;
+      const definition = this.world.content.manifest.agentCloseAnimation;
+      const targetAnchorY = definition
+        ? visibleCenterY +
+          (AGENT_ORIGIN_Y * definition.frameHeight -
+            (definition.firstVisibleRow + definition.lastVisibleRow) / 2) *
+            this.entityScaleForView(this.world.activeView, definition.visibleHeightPixels) *
+            camera.zoom
+        : visible.bottom - (visible.height * (1 - CLOSEUP_HEIGHT_FRACTION)) / 2;
+      requestedVisibleCenter = {
+        x: player.x,
+        y: player.y - (targetAnchorY - visibleCenterY) / camera.zoom,
+      };
+    }
     const bounded =
-      Math.abs(this.zoomLevel - this.minimumZoom) < 0.001
+      this.world.activeView === 'view-top'
         ? overview.center
-        : constrainCameraToPolygonBounds(
-            center,
+        : constrainCameraToPolygon(
+            requestedVisibleCenter,
             this.mapPolygon,
             visible.width / (2 * camera.zoom),
             visible.height / (2 * camera.zoom),
@@ -492,23 +527,55 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  private adjustZoom(delta: number): void {
-    const next = Phaser.Math.Clamp(
-      Math.round(this.zoomLevel) + delta,
-      this.minimumZoom,
-      MAX_ZOOM_LEVEL,
+  private adjustZoom(delta: number, anchor?: ScreenPoint): void {
+    if (this.world.activeView === 'view-top') return;
+    const nextLevel = Phaser.Math.Clamp(
+      this.tacticalZoomLevel + Math.sign(delta),
+      1,
+      ZOOM_LEVEL_COUNT,
     );
-    this.zoomLevel = next;
-    this.world.camera.zoom = next;
-    this.cameras.main.setZoom(next);
-    if (delta > 0) {
+    if (nextLevel === this.tacticalZoomLevel) return;
+    const camera = this.cameras.main;
+    const canvas = this.game.canvas.getBoundingClientRect();
+    const visible = visibleStageRect(
+      canvas,
+      this.getPlayableContainerRect(),
+      APP_WIDTH,
+      APP_HEIGHT,
+    );
+    const levels = tacticalZoomLevels({
+      polygon: this.mapPolygon,
+      viewportWidth: visible.width,
+      viewportHeight: visible.height,
+      projectedEntityHeight: projectedEntityHeight(
+        this.world.content.manifest,
+        this.projectionResource(this.world.activeView),
+      ),
+    });
+    const nextZoom = levels[nextLevel - 1]!;
+    if (anchor && nextLevel !== ZOOM_LEVEL_COUNT) {
+      const center = centerForAnchoredZoom(
+        {x: camera.scrollX + camera.width / 2, y: camera.scrollY + camera.height / 2},
+        anchor,
+        {x: camera.centerX, y: camera.centerY},
+        camera.zoom,
+        nextZoom,
+      );
+      camera.centerOn(center.x, center.y);
+    } else if (delta > 0) {
       const player = this.projections
         .get(this.world.activeView)
         .worldToScreen(this.world.player.position);
-      this.cameras.main.centerOn(player.x, player.y);
+      camera.centerOn(player.x, player.y);
     }
+    this.tacticalZoomLevel = nextLevel;
+    this.settings.zoom = nextLevel;
+    this.zoomLevel = nextZoom;
+    this.world.camera.zoom = nextZoom;
+    camera.setZoom(nextZoom);
     this.constrainCamera();
-    this.rememberTacticalZoom();
+    this.saveSettings();
+    this.world.session.message = `Camera zoom level ${nextLevel} of ${ZOOM_LEVEL_COUNT}.`;
   }
 
   private async switchView(id: ViewId): Promise<void> {
@@ -529,16 +596,15 @@ export class GameScene extends Phaser.Scene {
     }
     if (request !== this.viewRequest) return;
     const memory = this.cameraMemory.get(id);
-    const zoom = memory?.zoom ?? (id === 'view-top' ? SATELLITE_BASE_ZOOM : this.tacticalZoomLevel);
     const focus = memory?.focus ?? canonicalFocus;
-    this.applyView(id, index, focus, zoom);
+    this.applyView(id, index, focus);
     this.world.session.message = `${id === 'view-top' ? 'Satellite' : id.replace('view-', '') + '°'} view ready.`;
   }
 
-  private applyView(id: ViewId, index: number, canonicalFocus: WorldPoint, zoom: number): void {
+  private applyView(id: ViewId, index: number, canonicalFocus: WorldPoint): void {
     this.world.activeView = id;
     this.minimumZoom = SATELLITE_BASE_ZOOM;
-    this.zoomLevel = Phaser.Math.Clamp(zoom, this.minimumZoom, MAX_ZOOM_LEVEL);
+    this.zoomLevel = SATELLITE_BASE_ZOOM;
     this.world.camera.zoom = this.zoomLevel;
     this.world.camera.minimumZoom = this.minimumZoom;
     this.cameras.main.setZoom(this.zoomLevel);
@@ -577,10 +643,25 @@ export class GameScene extends Phaser.Scene {
     this.renderWorld();
   }
 
-  private entityScaleForView(id: string): number {
+  private projectionResource(id: string) {
     const projection = this.world.content.projections.find((candidate) => candidate.id === id);
     if (!projection) throw new Error(`Projection resource not found: ${id}`);
-    return entityScaleForProjection(this.world.content.manifest, projection);
+    return projection;
+  }
+
+  private entityScaleForView(id: string, visibleHeightPixels?: number): number {
+    return entityScaleForProjection(
+      this.world.content.manifest,
+      this.projectionResource(id),
+      visibleHeightPixels,
+    );
+  }
+
+  private isCloseup(): boolean {
+    return (
+      this.world.activeView !== 'view-top' &&
+      this.tacticalZoomLevel === ZOOM_LEVEL_COUNT
+    );
   }
 
   private ensureViewLoaded(index: number): Promise<void> {
@@ -609,11 +690,65 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private ensureCloseAgentLoaded(direction: number): Promise<void> {
+    if (this.loadedCloseAgentDirections.has(direction)) return Promise.resolve();
+    const pending = this.closeAgentLoads.get(direction);
+    if (pending) return pending;
+    const content = this.world.content;
+    const definition = content.manifest.agentCloseAnimation;
+    const url = content.agentCloseAtlases[direction];
+    if (!definition || !url) return Promise.resolve();
+    const load = this.loadSpriteSheet(
+      `agent-close-direction-${direction}`,
+      url,
+      definition.frameWidth,
+      definition.frameHeight,
+    )
+      .then(() => {
+        this.closeAgentLoads.delete(direction);
+        if (this.desiredCloseAgentDirection !== direction) {
+          this.removeCloseAgentDirection(direction);
+          return;
+        }
+        this.createCloseAgentAnimations(content, direction);
+        this.loadedCloseAgentDirections.add(direction);
+        this.activeAnimation = '';
+        this.renderWorld();
+      })
+      .catch((error: unknown) => {
+        this.closeAgentLoads.delete(direction);
+        if (this.desiredCloseAgentDirection === direction) {
+          this.world.session.message = 'High-resolution operative art could not be loaded.';
+        }
+        console.error(error);
+      });
+    this.closeAgentLoads.set(direction, load);
+    return load;
+  }
+
+  private loadSpriteSheet(
+    key: string,
+    url: string,
+    frameWidth: number,
+    frameHeight: number,
+  ): Promise<void> {
+    if (this.textures.exists(key)) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => {
+        this.textures.addSpriteSheet(key, image, {frameWidth, frameHeight});
+        resolve();
+      };
+      image.onerror = () => reject(new Error(`Failed to load sprite sheet: ${url}`));
+      image.src = url;
+    });
+  }
+
   private rememberCurrentCamera(): void {
     this.constrainCamera();
     this.cameraMemory.set(this.world.activeView as ViewId, {
       focus: {...this.world.camera.focus},
-      zoom: this.zoomLevel,
     });
     this.cameraVelocity = {x: 0, y: 0};
   }
@@ -671,29 +806,6 @@ export class GameScene extends Phaser.Scene {
     this.constrainCamera();
   }
 
-  private zoomAt(x: number, y: number, zoom: number): void {
-    const camera = this.cameras.main;
-    const center = centerForAnchoredZoom(
-      {x: camera.scrollX + camera.width / 2, y: camera.scrollY + camera.height / 2},
-      {x, y},
-      {x: camera.centerX, y: camera.centerY},
-      camera.zoom,
-      zoom,
-    );
-    this.zoomLevel = zoom;
-    this.world.camera.zoom = zoom;
-    camera.setZoom(zoom);
-    camera.centerOn(center.x, center.y);
-    this.constrainCamera();
-  }
-
-  private rememberTacticalZoom(): void {
-    if (this.world.activeView === 'view-top') return;
-    this.tacticalZoomLevel = this.zoomLevel;
-    this.settings.zoom = this.zoomLevel;
-    this.saveSettings();
-  }
-
   private createAgentAnimations(content: LoadedContent): void {
     const definition = content.manifest.agentAnimation;
     const motions = [
@@ -720,7 +832,69 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private createCloseAgentAnimations(content: LoadedContent, direction: number): void {
+    const definition = content.manifest.agentAnimation;
+    const motions = [
+      {name: 'idle', columns: definition.idle, frameRate: 1},
+      {name: 'walk', columns: definition.walk, frameRate: definition.walkFrameRate},
+      {name: 'run', columns: definition.run, frameRate: definition.runFrameRate},
+    ];
+    for (const motion of motions) {
+      const key = `agent-close-${direction}-${motion.name}`;
+      if (this.anims.exists(key)) continue;
+      this.anims.create({
+        key,
+        frames: motion.columns.map((frame) => ({
+          key: `agent-close-direction-${direction}`,
+          frame,
+        })),
+        frameRate: motion.frameRate,
+        repeat: -1,
+      });
+    }
+  }
+
+  private usingCloseAgent(direction?: number): boolean {
+    return (
+      this.isCloseup() &&
+      (direction === undefined
+        ? this.sprite.texture.key.startsWith('agent-close-direction-')
+        : this.loadedCloseAgentDirections.has(direction))
+    );
+  }
+
+  private evictCloseAgentDirectionsExcept(direction?: number): void {
+    for (const loadedDirection of [...this.loadedCloseAgentDirections]) {
+      if (loadedDirection !== direction) this.removeCloseAgentDirection(loadedDirection);
+    }
+  }
+
+  private removeCloseAgentDirection(direction: number): void {
+    for (const motion of ['idle', 'walk', 'run']) {
+      const animation = `agent-close-${direction}-${motion}`;
+      if (this.anims.exists(animation)) this.anims.remove(animation);
+    }
+    this.loadedCloseAgentDirections.delete(direction);
+    const texture = `agent-close-direction-${direction}`;
+    if (this.textures.exists(texture)) this.textures.remove(texture);
+  }
+
+  private activeAgentVisibleHeightPixels(closeupArt = this.usingCloseAgent()): number | undefined {
+    const manifest = this.world.content.manifest;
+    const close = manifest.agentCloseAnimation;
+    if (closeupArt) return close?.visibleHeightPixels;
+    if (this.isCloseup() && close) {
+      return (close.visibleHeightPixels * manifest.agentAnimation.frameHeight) / close.frameHeight;
+    }
+    return manifest.agentAnimation.visibleHeightPixels;
+  }
+
   private toggleFollow(): void {
+    if (this.isCloseup()) {
+      this.setFollowing(true);
+      this.world.session.message = 'Close-up camera remains locked to the operative.';
+      return;
+    }
     this.setFollowing(!this.following);
     this.world.session.message = this.following
       ? 'Camera follow enabled.'
@@ -756,7 +930,7 @@ export class GameScene extends Phaser.Scene {
     this.world.camera.zoom = this.zoomLevel;
     this.cameras.main.setZoom(this.zoomLevel);
     this.world.session.message = 'Operative reset to deployment point.';
-    this.applyView(view, viewIndex, this.world.player.position, this.zoomLevel);
+    this.applyView(view, viewIndex, this.world.player.position);
   }
 
   private visibilityHandler = (): void => {
@@ -794,6 +968,16 @@ export class GameScene extends Phaser.Scene {
           activeView: this.world.activeView,
           player: {...player.position},
           playerScreen: projection.worldToScreen(player.position),
+          playerStage: {
+            x:
+              APP_WIDTH / 2 +
+              (projection.worldToScreen(player.position).x - this.cameras.main.midPoint.x) *
+                this.cameras.main.zoom,
+            y:
+              APP_HEIGHT / 2 +
+              (projection.worldToScreen(player.position).y - this.cameras.main.midPoint.y) *
+                this.cameras.main.zoom,
+          },
           playerScale: this.sprite.scaleX,
           playerMoving: Boolean(player.moving),
           movementPace: player.pace,
@@ -804,13 +988,17 @@ export class GameScene extends Phaser.Scene {
           cameraScreenCenter: {x: this.cameras.main.midPoint.x, y: this.cameras.main.midPoint.y},
           cameraZoom: this.world.camera.zoom,
           minimumZoom: this.minimumZoom,
-          zoomLevel: this.zoomLevel,
+          zoomLevel: this.tacticalZoomLevel,
           playerDisplayHeight: this.sprite.displayHeight * this.cameras.main.zoom,
           playerVisibleHeight:
             this.sprite.displayHeight *
-            ((this.world.content.manifest.agentAnimation.visibleHeightPixels ??
-              this.world.content.manifest.agentAnimation.frameHeight) /
-              this.world.content.manifest.agentAnimation.frameHeight) *
+            (this.activeAgentVisibleHeightPixels() ??
+              (this.usingCloseAgent()
+                ? this.world.content.manifest.agentCloseAnimation?.frameHeight
+                : this.world.content.manifest.agentAnimation.frameHeight)!) /
+            (this.usingCloseAgent()
+              ? this.world.content.manifest.agentCloseAnimation!.frameHeight
+              : this.world.content.manifest.agentAnimation.frameHeight) *
             this.cameras.main.zoom,
           session: {...this.world.session},
           loadedResources: true,
@@ -823,6 +1011,10 @@ export class GameScene extends Phaser.Scene {
             ...new Set(this.movement.getRemainingPath(player.id).map((point) => point.elevation)),
           ],
           animation: this.activeAnimation,
+          closeAgentLoaded: this.usingCloseAgent(),
+          retainedCloseAgentDirections: [...this.loadedCloseAgentDirections],
+          pendingCloseAgentDirectionCount: this.closeAgentLoads.size,
+          agentTexture: this.sprite.texture.key,
           animationFrame: this.sprite.anims.currentFrame?.index ?? 0,
           cameraVelocity: {...this.cameraVelocity},
           projectedWorldBounds: this.mapPolygon.map((point) => ({...point})),
@@ -908,6 +1100,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private shutdown(): void {
+    this.desiredCloseAgentDirection = undefined;
+    this.evictCloseAgentDirectionsExcept();
     document.removeEventListener('visibilitychange', this.visibilityHandler);
     this.input.keyboard?.off('keydown', this.onKey);
     this.input.removeAllListeners();

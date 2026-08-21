@@ -13,7 +13,7 @@ import type {
 import {GridNavigationService} from '../src/navigation/Pathfinding';
 import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import {createProjection} from '../src/projection/Projection';
-import {entityScaleForProjection} from '../src/projection/EntityScale';
+import {entityScaleForProjection, projectedEntityHeight} from '../src/projection/EntityScale';
 import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
 import {MovementSystem} from '../src/systems/MovementSystem';
 import {
@@ -25,6 +25,11 @@ import {
   overviewForPolygon,
   visibleStageRect,
 } from '../src/views/CameraBounds';
+import {
+  CLOSEUP_HEIGHT_FRACTION,
+  tacticalZoomLevels,
+  ZOOM_LEVEL_COUNT,
+} from '../src/views/ZoomLevels';
 import {VIEW_IDS, ViewManager} from '../src/views/ViewManager';
 import type {EntityState, WorldPoint} from '../src/world/WorldTypes';
 
@@ -67,6 +72,24 @@ const insidePolygon = (candidate: WorldPoint, polygon: WorldPoint[]): boolean =>
     if (crosses) inside = !inside;
   }
   return inside;
+};
+const insideOrOnConvexPolygon = (
+  candidate: {x: number; y: number},
+  polygon: Array<{x: number; y: number}>,
+): boolean => {
+  let direction = 0;
+  for (let index = 0; index < polygon.length; index += 1) {
+    const start = polygon[index]!;
+    const end = polygon[(index + 1) % polygon.length]!;
+    const cross =
+      (end.x - start.x) * (candidate.y - start.y) -
+      (end.y - start.y) * (candidate.x - start.x);
+    if (Math.abs(cross) <= 1e-5) continue;
+    const nextDirection = Math.sign(cross);
+    if (direction !== 0 && direction !== nextDirection) return false;
+    direction = nextDirection;
+  }
+  return true;
 };
 
 const makePlayer = (): EntityState => ({
@@ -155,14 +178,10 @@ describe('single-operative exploration content', () => {
       expect(manifest.mode).toBe('exploration');
       expect(manifest.entities).toEqual(['entities/player.json']);
       expect(manifest.patrols).toEqual([]);
-      if (locationId === 'cluj-napoca-station') {
-        expect(manifest.entityScale).toBeGreaterThan(0.01);
-        expect(manifest.entityScale).toBeLessThan(0.02);
-        expect(manifest.entityWorldHeightMeters).toBe(1.8);
-        expect(manifest.agentAnimation.visibleHeightPixels).toBe(137);
-      } else {
-        expect(manifest.entityScale).toBeGreaterThanOrEqual(0.1);
-      }
+      expect(manifest.entityScale).toBeGreaterThan(0.01);
+      expect(manifest.entityScale).toBeLessThan(0.02);
+      expect(manifest.entityWorldHeightMeters).toBe(1.8);
+      expect(manifest.agentAnimation.visibleHeightPixels).toBe(137);
       const player = readJson<{kind: string; speed: number; runSpeed: number}>(
         locationPath(locationId, manifest.entities[0]!),
       );
@@ -837,37 +856,124 @@ describe('data-driven environment artwork', () => {
         await sharp(locationPath(locationId, 'sprites/agent-atlas.png')).metadata(),
       ).toMatchObject({width: 1152, height: 1280, hasAlpha: true});
     }
-    const clujManifest = readJson<Manifest>(
-      locationPath('cluj-napoca-station', 'manifest.json'),
-    );
-    const projection = readJson<ProjectionResource>(
-      locationPath('cluj-napoca-station', 'projections/view-0.json'),
-    );
-    const atlasFrame = await sharp(
-      locationPath('cluj-napoca-station', 'sprites/agent-atlas.png'),
-    )
-      .extract({left: 0, top: 0, width: 128, height: 160})
-      .ensureAlpha()
-      .raw()
-      .toBuffer({resolveWithObject: true});
-    let firstVisibleRow = 160;
-    let lastVisibleRow = -1;
-    for (let y = 0; y < atlasFrame.info.height; y += 1) {
-      for (let x = 0; x < atlasFrame.info.width; x += 1) {
-        const alpha = atlasFrame.data[(y * atlasFrame.info.width + x) * atlasFrame.info.channels + 3]!;
-        if (alpha <= 8) continue;
-        firstVisibleRow = Math.min(firstVisibleRow, y);
-        lastVisibleRow = Math.max(lastVisibleRow, y);
+    const alphaBounds = async (
+      asset: string,
+      frameWidth: number,
+      frameHeight: number,
+    ): Promise<{first: number; last: number; height: number}> => {
+      const frame = await sharp(asset)
+        .extract({left: 0, top: 0, width: frameWidth, height: frameHeight})
+        .ensureAlpha()
+        .raw()
+        .toBuffer({resolveWithObject: true});
+      let firstVisibleRow = frameHeight;
+      let lastVisibleRow = -1;
+      for (let y = 0; y < frame.info.height; y += 1) {
+        for (let x = 0; x < frame.info.width; x += 1) {
+          const alpha = frame.data[(y * frame.info.width + x) * frame.info.channels + 3]!;
+          if (alpha <= 8) continue;
+          firstVisibleRow = Math.min(firstVisibleRow, y);
+          lastVisibleRow = Math.max(lastVisibleRow, y);
+        }
       }
+      return {
+        first: firstVisibleRow,
+        last: lastVisibleRow,
+        height: lastVisibleRow - firstVisibleRow + 1,
+      };
+    };
+    for (const locationId of LOCATION_IDS) {
+      const manifest = readJson<Manifest>(locationPath(locationId, 'manifest.json'));
+      const projection = readJson<ProjectionResource>(
+        locationPath(locationId, 'projections/view-0.json'),
+      );
+      const standardVisible = await alphaBounds(
+        locationPath(locationId, manifest.agentAtlas),
+        manifest.agentAnimation.frameWidth,
+        manifest.agentAnimation.frameHeight,
+      );
+      expect(standardVisible.height).toBe(137);
+      expect(manifest.agentAnimation.visibleHeightPixels).toBe(standardVisible.height);
+      expect(manifest.entityWorldHeightMeters).toBe(1.8);
+      expect(projectedEntityHeight(manifest, projection)).toBeCloseTo(1.8 * projection.scale, 8);
+      const projectedScale = entityScaleForProjection(manifest, projection);
+      expect((standardVisible.height * projectedScale) / projection.scale).toBeCloseTo(1.8, 8);
+      expect(manifest.agentCloseAtlases).toHaveLength(8);
+      expect(manifest.agentCloseAnimation).toMatchObject({
+        frameWidth: 1024,
+        frameHeight: 1280,
+        visibleHeightPixels: 1119,
+        firstVisibleRow: 47,
+        lastVisibleRow: 1177,
+        columns: 3,
+        rows: 3,
+      });
+      const closePath = locationPath(locationId, manifest.agentCloseAtlases![0]!);
+      expect(await sharp(closePath).metadata()).toMatchObject({
+        width: 3072,
+        height: 3840,
+        format: 'webp',
+        hasAlpha: true,
+      });
+      expect((await alphaBounds(closePath, 1024, 1280)).height).toBe(1088);
+      const closeScale = entityScaleForProjection(
+        manifest,
+        projection,
+        manifest.agentCloseAnimation!.visibleHeightPixels,
+      );
+      expect(
+        (manifest.agentCloseAnimation!.visibleHeightPixels * closeScale) / projection.scale,
+      ).toBeCloseTo(1.8, 8);
     }
-    const visibleHeightPixels = lastVisibleRow - firstVisibleRow + 1;
-    expect(visibleHeightPixels).toBe(137);
-    expect(clujManifest.agentAnimation.visibleHeightPixels).toBe(visibleHeightPixels);
-    expect(clujManifest.entityWorldHeightMeters).toBe(1.8);
-    const projectedScale = entityScaleForProjection(clujManifest, projection);
-    expect((visibleHeightPixels * projectedScale) / projection.scale).toBeCloseTo(1.8, 8);
-    expect(160 * projectedScale * 3).toBeLessThan(8);
-  });
+
+    const manifest = readJson<Manifest>(
+      locationPath('vatra-central-station', 'manifest.json'),
+    );
+    const definition = manifest.agentCloseAnimation!;
+    const frameBounds: Array<{first: number; last: number; height: number}> = [];
+    for (const asset of manifest.agentCloseAtlases!) {
+      const sheet = await sharp(locationPath('vatra-central-station', asset))
+        .ensureAlpha()
+        .raw()
+        .toBuffer({resolveWithObject: true});
+      const bounds = Array.from({length: 9}, () => ({first: 1280, last: -1}));
+      for (let y = 0; y < sheet.info.height; y += 1) {
+        const frameRow = Math.floor(y / definition.frameHeight);
+        const localY = y % definition.frameHeight;
+        for (let x = 0; x < sheet.info.width; x += 1) {
+          const alpha =
+            sheet.data[(y * sheet.info.width + x) * sheet.info.channels + 3]!;
+          if (alpha === 0) continue;
+          const frame = frameRow * definition.columns + Math.floor(x / definition.frameWidth);
+          bounds[frame]!.first = Math.min(bounds[frame]!.first, localY);
+          bounds[frame]!.last = Math.max(bounds[frame]!.last, localY);
+        }
+      }
+      frameBounds.push(
+        ...bounds.map(({first, last}) => ({first, last, height: last - first + 1})),
+      );
+    }
+    expect(frameBounds).toHaveLength(72);
+    expect(Math.min(...frameBounds.map(({first}) => first))).toBe(definition.firstVisibleRow);
+    expect(Math.max(...frameBounds.map(({last}) => last))).toBe(definition.lastVisibleRow);
+    expect(Math.max(...frameBounds.map(({height}) => height))).toBe(
+      definition.visibleHeightPixels,
+    );
+    const sourceOrigin = 0.94 * definition.frameHeight;
+    const sourceEnvelopeCenter =
+      (definition.firstVisibleRow + definition.lastVisibleRow) / 2;
+    const displayedPixelsPerSourcePixel =
+      CLOSEUP_HEIGHT_FRACTION / definition.visibleHeightPixels;
+    const anchor =
+      0.5 + (sourceOrigin - sourceEnvelopeCenter) * displayedPixelsPerSourcePixel;
+    for (const bounds of frameBounds) {
+      const top = anchor + (bounds.first - sourceOrigin) * displayedPixelsPerSourcePixel;
+      const bottom = anchor + (bounds.last - sourceOrigin) * displayedPixelsPerSourcePixel;
+      expect(top).toBeGreaterThanOrEqual(0);
+      expect(bottom).toBeLessThanOrEqual(1);
+      expect(bottom - top).toBeLessThanOrEqual(CLOSEUP_HEIGHT_FRACTION);
+    }
+  }, 15_000);
 
   it('ships replaceable Gone Vatra finish plates and transparent derived occlusion', async () => {
     const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -1073,7 +1179,7 @@ describe('settings and camera behavior', () => {
     expect(store.load()).toEqual(DEFAULT_SETTINGS);
   });
 
-  it('supports a full-map overview and caps persisted zoom', () => {
+  it('persists one of five discrete tactical zoom levels', () => {
     expect(DEFAULT_SETTINGS.zoom).toBe(3);
     let raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 99});
     const storage = {
@@ -1083,9 +1189,11 @@ describe('settings and camera behavior', () => {
     const store = new SettingsStore(storage);
     expect(store.load().zoom).toBe(5);
     raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 0.35});
-    expect(store.load().zoom).toBe(0.35);
+    expect(store.load().zoom).toBe(1);
     raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: -1});
-    expect(store.load().zoom).toBe(0.1);
+    expect(store.load().zoom).toBe(1);
+    raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 3.6});
+    expect(store.load().zoom).toBe(4);
   });
 
   it('constrains panning to the rendered map', () => {
@@ -1162,6 +1270,125 @@ describe('settings and camera behavior', () => {
     expect(center.y).toBeCloseTo(320, 4);
   });
 
+  it('derives five in-map levels ending at a full-body operative close-up', () => {
+    const polygon = [
+      {x: 480, y: 40},
+      {x: 930, y: 320},
+      {x: 480, y: 600},
+      {x: 30, y: 320},
+    ];
+    const viewport = {width: 390, height: 540};
+    const levels = tacticalZoomLevels({
+      polygon,
+      viewportWidth: viewport.width,
+      viewportHeight: viewport.height,
+      projectedEntityHeight: 1.8,
+    });
+    expect(levels).toHaveLength(ZOOM_LEVEL_COUNT);
+    expect(levels.every((zoom, index) => index === 0 || zoom > levels[index - 1]!)).toBe(true);
+    const ratio = levels[1]! / levels[0]!;
+    expect(levels[2]! / levels[1]!).toBeCloseTo(ratio, 10);
+    expect(levels[3]! / levels[2]!).toBeCloseTo(ratio, 10);
+    expect(levels[4]! / levels[3]!).toBeCloseTo(ratio, 10);
+    expect(levels[4]! * 1.8).toBeCloseTo(viewport.height * CLOSEUP_HEIGHT_FRACTION, 8);
+
+    const halfWidth = viewport.width / (2 * levels[0]!);
+    const halfHeight = viewport.height / (2 * levels[0]!);
+    const center = constrainCameraToPolygon({x: 480, y: 320}, polygon, halfWidth, halfHeight);
+    for (const corner of [
+      point(center.x - halfWidth, center.y - halfHeight),
+      point(center.x + halfWidth, center.y - halfHeight),
+      point(center.x + halfWidth, center.y + halfHeight),
+      point(center.x - halfWidth, center.y + halfHeight),
+    ]) {
+      expect(insidePolygon(corner, polygon.map((candidate) => point(candidate.x, candidate.y)))).toBe(
+        true,
+      );
+    }
+  });
+
+  it('keeps all five Cluj levels footprint-safe and the operative in-frame in every perspective', () => {
+    const manifest = readJson<Manifest>(
+      locationPath('cluj-napoca-station', 'manifest.json'),
+    );
+    const world = readJson<{
+      bounds: {minX: number; minY: number; maxX: number; maxY: number};
+      footprint: WorldPoint[];
+      spawns: {player: WorldPoint};
+    }>(locationPath('cluj-napoca-station', 'world.json'));
+    for (const id of VIEW_IDS.slice(0, 4)) {
+      const resource = readJson<ProjectionResource>(
+        locationPath('cluj-napoca-station', `projections/${id}.json`),
+      );
+      const projection = createProjection(resource);
+      const polygon = world.footprint.map((candidate) => projection.worldToScreen(candidate));
+      const player = projection.worldToScreen(world.spawns.player);
+      for (const viewport of [
+        {width: 960, height: 416},
+        {width: 296, height: 540},
+      ]) {
+        const levels = tacticalZoomLevels({
+          polygon,
+          viewportWidth: viewport.width,
+          viewportHeight: viewport.height,
+          projectedEntityHeight: projectedEntityHeight(manifest, resource),
+        });
+        for (const zoom of levels) {
+          const center = constrainCameraToPolygon(
+            player,
+            polygon,
+            viewport.width / (2 * zoom),
+            viewport.height / (2 * zoom),
+          );
+          for (const corner of [
+            point(center.x - viewport.width / (2 * zoom), center.y - viewport.height / (2 * zoom)),
+            point(center.x + viewport.width / (2 * zoom), center.y - viewport.height / (2 * zoom)),
+            point(center.x + viewport.width / (2 * zoom), center.y + viewport.height / (2 * zoom)),
+            point(center.x - viewport.width / (2 * zoom), center.y + viewport.height / (2 * zoom)),
+          ]) {
+            expect(insideOrOnConvexPolygon(corner, polygon)).toBe(true);
+          }
+        }
+
+        const closeZoom = levels[ZOOM_LEVEL_COUNT - 1]!;
+        const closeDefinition = manifest.agentCloseAnimation!;
+        const sourceOrigin = 0.94 * closeDefinition.frameHeight;
+        const sourceEnvelopeCenter =
+          (closeDefinition.firstVisibleRow + closeDefinition.lastVisibleRow) / 2;
+        const displayedPixelsPerSourcePixel =
+          entityScaleForProjection(manifest, resource, closeDefinition.visibleHeightPixels) *
+          closeZoom;
+        const targetAnchorY =
+          viewport.height / 2 +
+          (sourceOrigin - sourceEnvelopeCenter) * displayedPixelsPerSourcePixel;
+        const requested = {
+          x: player.x,
+          y: player.y - (targetAnchorY - viewport.height / 2) / closeZoom,
+        };
+        const closeCenter = constrainCameraToPolygon(
+          requested,
+          polygon,
+          viewport.width / (2 * closeZoom),
+          viewport.height / (2 * closeZoom),
+        );
+        const playerStage = {
+          x: viewport.width / 2 + (player.x - closeCenter.x) * closeZoom,
+          y: viewport.height / 2 + (player.y - closeCenter.y) * closeZoom,
+        };
+        expect(playerStage.x).toBeGreaterThan(0);
+        expect(playerStage.x).toBeLessThan(viewport.width);
+        expect(
+          playerStage.y +
+            (closeDefinition.firstVisibleRow - sourceOrigin) * displayedPixelsPerSourcePixel,
+        ).toBeGreaterThanOrEqual(0);
+        expect(
+          playerStage.y +
+            (closeDefinition.lastVisibleRow - sourceOrigin) * displayedPixelsPerSourcePixel,
+        ).toBeLessThanOrEqual(viewport.height);
+      }
+    }
+  });
+
   it('keeps a close tactical camera inside the projected world bounds', () => {
     const diamond = [
       {x: 480, y: 70},
@@ -1179,13 +1406,20 @@ describe('settings and camera behavior', () => {
 describe('mobile asset budgets', () => {
   it('keeps every runtime view and character atlas within a bounded download budget', () => {
     for (const locationId of LOCATION_IDS) {
-      const manifest = readJson<{views: string[]}>(locationPath(locationId, 'manifest.json'));
+      const manifest = readJson<{views: string[]; agentCloseAtlases: string[]}>(
+        locationPath(locationId, 'manifest.json'),
+      );
       const viewSizes = manifest.views.map((view) => statSync(locationPath(locationId, view)).size);
       expect(Math.max(...viewSizes)).toBeLessThan(2_000_000);
       expect(viewSizes.reduce((total, size) => total + size, 0)).toBeLessThan(8_000_000);
       expect(statSync(locationPath(locationId, 'sprites/agent-atlas.png')).size).toBeLessThan(
         2_000_000,
       );
+      const closeSheetSizes = manifest.agentCloseAtlases.map(
+        (asset) => statSync(locationPath(locationId, asset)).size,
+      );
+      expect(Math.max(...closeSheetSizes)).toBeLessThan(400_000);
+      expect(closeSheetSizes.reduce((total, size) => total + size, 0)).toBeLessThan(2_500_000);
       if (locationId === 'vatra-central-station') {
         const occlusionBytes = VIEW_IDS.reduce(
           (total, id) => total + statSync(locationPath(locationId, `occlusion-3d/${id}.webp`)).size,

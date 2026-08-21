@@ -60,6 +60,25 @@
     "details/view-top.svg"
   ],
   "agentAtlas": "sprites/agent-atlas.png",
+  "agentCloseAtlases": [
+    "sprites/agent-close-direction-0.webp",
+    "sprites/agent-close-direction-1.webp",
+    "sprites/agent-close-direction-2.webp",
+    "sprites/agent-close-direction-3.webp",
+    "sprites/agent-close-direction-4.webp",
+    "sprites/agent-close-direction-5.webp",
+    "sprites/agent-close-direction-6.webp",
+    "sprites/agent-close-direction-7.webp"
+  ],
+  "agentCloseAnimation": {
+    "frameWidth": 1024,
+    "frameHeight": 1280,
+    "visibleHeightPixels": 1119,
+    "firstVisibleRow": 47,
+    "lastVisibleRow": 1177,
+    "columns": 3,
+    "rows": 3
+  },
   "agentAnimation": {
     "frameWidth": 128,
     "frameHeight": 160,

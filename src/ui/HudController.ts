@@ -79,7 +79,7 @@ export class HudController {
     );
   }
 
-  render(world: WorldState, following = false): void {
+  render(world: WorldState, following = false, zoomLevel = 3): void {
     const player = world.player;
     const pace = player.moving ? (player.pace ?? world.session.pace) : world.session.pace;
     this.location.textContent = world.content.manifest.name;
@@ -97,17 +97,21 @@ export class HudController {
     this.root.dataset.pace = world.session.pace;
     this.root.dataset.moving = String(Boolean(player.moving));
     this.root.dataset.following = String(following);
+    this.root.dataset.zoomLevel = String(zoomLevel);
     const follow = this.root.querySelector<HTMLButtonElement>('[data-follow]')!;
     follow.setAttribute('aria-pressed', String(following));
     follow.setAttribute('aria-label', following ? 'Stop following operative' : 'Follow operative');
 
-    const zoom = Math.round(world.camera.zoom * 10) / 10;
     const zoomOut = this.root.querySelector<HTMLButtonElement>('[data-zoom-out]')!;
     const zoomIn = this.root.querySelector<HTMLButtonElement>('[data-zoom-in]')!;
-    zoomOut.disabled = world.camera.zoom <= world.camera.minimumZoom + 0.001;
-    zoomIn.disabled = zoom >= 5;
-    zoomOut.setAttribute('aria-label', `Zoom out. Current zoom ${zoom}×`);
-    zoomIn.setAttribute('aria-label', `Zoom in. Current zoom ${zoom}×`);
+    const satellite = world.activeView === 'view-top';
+    zoomOut.disabled = satellite || zoomLevel <= 1;
+    zoomIn.disabled = satellite || zoomLevel >= 5;
+    zoomOut.setAttribute('aria-label', `Zoom out. Current level ${zoomLevel} of 5`);
+    zoomIn.setAttribute('aria-label', `Zoom in. Current level ${zoomLevel} of 5`);
+    this.root.querySelector<HTMLOutputElement>('[data-zoom-level]')!.textContent = satellite
+      ? 'SAT'
+      : `L${zoomLevel}/5`;
     this.root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((button) =>
       button.setAttribute('aria-pressed', String(button.dataset.view === world.activeView)),
     );

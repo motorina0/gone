@@ -33,7 +33,7 @@ The four runtime finish sources in `art/vatra/paintovers/view-{0,90,180,270}.png
 
 - `art/agent/build_agent_atlas.py` creates Gone's reference-matched field operative with realistic proportions, dark weatherproof coat and raised collar, charcoal knitwear and trousers, brown boots and satchel, eight facings, idle pose, four walk frames, and four run frames.
 - `art/agent/gone-operative.blend` is the editable character source.
-- `tools/assemble-agent-atlas.mjs` deterministically builds the transparent runtime atlas. The same Gone operative is used in all three current locations; location data controls its environment-relative display scale.
+- `tools/assemble-agent-atlas.mjs` deterministically builds the compact 1152×1280 transparent runtime atlas and eight lazy per-direction 3072×3840 WebP close-up sheets from original 1024×1280 Blender frames. The compact idle silhouette is 137 pixels high. Close-up calibration scans every non-transparent pixel in all 72 frames: the tallest single pose is 1119 pixels and the complete animation envelope spans rows 47–1177. Runtime framing uses that envelope so raised walk/run poses keep both head and feet on-screen. The same canonical 1.8 m operative is used in all three current locations.
 
 `art/agent/references/gone-operative-turnaround.png` is an original Gone-only design reference created with Codex's built-in image-generation tool in reference mode; it is not loaded at runtime. Prompt:
 

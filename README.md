@@ -26,7 +26,7 @@ Run `npm run verify` before every push. It validates content, type-checks, lints
 
 - Desktop: hover to preview a route where map complexity permits; click a destination to move; double-click to run; drag, move the pointer to a screen edge, or use the arrow keys to pan; wheel to zoom at the pointer; 1–5 change view; W/R choose walk/run; F toggles follow; Space or Escape pauses.
 - Mobile: tap to move, double-tap to run, drag empty ground to pan, pinch to zoom, and use the safe-area-aware command console.
-- All five camera views are playable and retain exact world position, per-view camera focus/zoom, pace, and pause state. The four tactical projections open at a close 3× framing and can zoom out to an aspect-aware whole-map fit; SAT opens at that full-map overview. Camera views are loaded on demand after the initial view to keep mobile startup bounded.
+- All five camera views are playable and retain exact world position, camera focus, pace, and pause state. The four tactical projections share one persistent five-level zoom setting: level 1 crops to the largest footprint-safe view, levels 2–4 provide geometric steps, and level 5 locks to a full-body operative close-up. Changing perspective keeps the semantic zoom level even when its projection-specific numeric scale changes. SAT is a separate full-map overview and never overwrites the tactical level. Camera views and the eight high-resolution level-5 operative sheets are loaded on demand to keep mobile startup bounded.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ The content registry loads a location manifest referencing separate world, envir
 
 ### Environment art pipeline
 
-`environment.json` is the canonical visual source for atmosphere, surfaces, landmarks, trees, and static props. `npm run generate:views` projects that data through the five location matrices, writes independently editable SVG sources, and bakes material-complete fallback WebPs on the canonical 960×640 stage. For Vatra, `npm run generate:vatra:3d` builds the original editable Blender source, renders five 3840×2560 geometry/depth/occlusion masters, applies the four replaceable Gone tactical finish plates, and bakes the committed 1920×1280 WebPs. `npm run generate:agent` builds and renders the eight-direction character atlas. Raster materials and finish plates stay external to scene data. Final backgrounds remain replaceable without changing gameplay coordinates.
+`environment.json` is the canonical visual source for atmosphere, surfaces, landmarks, trees, and static props. `npm run generate:views` projects that data through the five location matrices, writes independently editable SVG sources, and bakes material-complete fallback WebPs on the canonical 960×640 stage. For Vatra, `npm run generate:vatra:3d` builds the original editable Blender source, renders five 3840×2560 geometry/depth/occlusion masters, applies the four replaceable Gone tactical finish plates, and bakes the committed 1920×1280 WebPs. `npm run generate:agent` builds the standard eight-direction character atlas plus lazy 3072×3840 WebP close-up sheets from 1024×1280 source frames. Raster materials and finish plates stay external to scene data. Final backgrounds remain replaceable without changing gameplay coordinates.
 
 Gara Cluj-Napoca uses normalized OpenStreetMap geometry, sampled Copernicus GLO-30 terrain, separate gameplay-authoring JSON, and deterministic original SVG artwork. See [the location documentation](docs/cluj-napoca-station.md) and [source-data README](data/cluj-napoca-station/README.md).
 

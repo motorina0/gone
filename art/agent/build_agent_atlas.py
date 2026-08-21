@@ -19,8 +19,8 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / "art/agent/renders"
 BLEND_PATH = ROOT / "art/agent/gone-operative.blend"
-FRAME_WIDTH = 384
-FRAME_HEIGHT = 480
+FRAME_WIDTH = 1024
+FRAME_HEIGHT = 1280
 
 
 def hex_color(value: str) -> tuple[float, float, float, float]:

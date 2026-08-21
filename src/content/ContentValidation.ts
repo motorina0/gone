@@ -21,6 +21,35 @@ export const validateLoadedContent = (content: LoadedContent): string[] => {
     errors.push('Player entity spawn must match the canonical world player spawn.');
   }
 
+  const closeAtlases = content.manifest.agentCloseAtlases;
+  const closeAnimation = content.manifest.agentCloseAnimation;
+  if (Boolean(closeAtlases) !== Boolean(closeAnimation)) {
+    errors.push('Close-up agent atlases and animation metadata must be provided together.');
+  }
+  if (closeAtlases && closeAtlases.length !== content.manifest.agentAnimation.directions) {
+    errors.push('Close-up agent art requires one sheet per facing direction.');
+  }
+  if (
+    closeAnimation &&
+    closeAnimation.columns * closeAnimation.rows <=
+      Math.max(
+        ...content.manifest.agentAnimation.idle,
+        ...content.manifest.agentAnimation.walk,
+        ...content.manifest.agentAnimation.run,
+      )
+  ) {
+    errors.push('Close-up agent sheets do not contain every animation frame.');
+  }
+  if (
+    closeAnimation &&
+    (closeAnimation.firstVisibleRow > closeAnimation.lastVisibleRow ||
+      closeAnimation.lastVisibleRow >= closeAnimation.frameHeight ||
+      closeAnimation.visibleHeightPixels >
+        closeAnimation.lastVisibleRow - closeAnimation.firstVisibleRow + 1)
+  ) {
+    errors.push('Close-up agent visible-frame bounds are invalid.');
+  }
+
   if (content.manifest.mode === 'exploration') {
     if (content.mission !== undefined) {
       errors.push('Exploration mode must not load mission resources.');
