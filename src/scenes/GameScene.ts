@@ -87,6 +87,7 @@ export class GameScene extends Phaser.Scene {
   private readonly cameraMemory = new Map<ViewId, {focus: WorldPoint}>();
   private loadedViews = new Set<number>();
   private viewRequest = 0;
+  private activeRenderingId = 'default';
   private activeAnimation = '';
   private readonly loadedCloseAgentDirections = new Set<number>();
   private readonly closeAgentLoads = new Map<number, Promise<void>>();
@@ -100,6 +101,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     const content = this.registry.get('content') as LoadedContent;
+    this.activeRenderingId = content.defaultRendering;
     this.world = new WorldState(content);
     this.applyDefaultAgentSize();
     this.projections = new ProjectionService(content.projections);
@@ -180,6 +182,7 @@ export class GameScene extends Phaser.Scene {
       zoom: (delta) => this.adjustZoom(delta),
       follow: () => this.toggleFollow(),
       agentSize: (percentage) => this.setAgentSizePercentage(percentage),
+      rendering: (id) => void this.switchRendering(id),
     });
     this.applyView(initialView, initialViewIndex, this.world.camera.focus);
 
@@ -187,7 +190,12 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown', this.onKey);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.shutdown());
     this.installTestDiagnostics();
-    this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
+    this.hud.render(
+      this.world,
+      this.following || this.isCloseup(),
+      this.tacticalZoomLevel,
+      this.activeRenderingId,
+    );
   }
 
   update(time: number, delta: number): void {
@@ -199,7 +207,12 @@ export class GameScene extends Phaser.Scene {
     this.updateCameraNavigation(cameraElapsed);
     this.clock.advance(Math.min(delta / 1000, 0.1), (dt) => this.step(dt));
     this.renderWorld();
-    this.hud.render(this.world, this.following || this.isCloseup(), this.tacticalZoomLevel);
+    this.hud.render(
+      this.world,
+      this.following || this.isCloseup(),
+      this.tacticalZoomLevel,
+      this.activeRenderingId,
+    );
   }
 
   private step(dt: number): void {
@@ -637,7 +650,10 @@ export class GameScene extends Phaser.Scene {
     const request = ++this.viewRequest;
     this.rememberCurrentCamera();
     const canonicalFocus = {...this.world.camera.focus};
-    if (!this.loadedViews.has(index)) {
+    if (
+      !this.loadedViews.has(index) ||
+      !this.textures.exists(this.backgroundTextureKey(this.activeRenderingId, index))
+    ) {
       this.world.session.message = `Loading ${id === 'view-top' ? 'satellite' : id.replace('view-', '') + '°'} view…`;
       try {
         await this.ensureViewLoaded(index);
@@ -674,7 +690,7 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.centerOn(focus.x, focus.y);
     this.constrainCamera();
     this.background
-      .setTexture(`background-${index}`)
+      .setTexture(this.backgroundTextureKey(this.activeRenderingId, index))
       .setDisplaySize(APP_WIDTH, APP_HEIGHT);
     this.backdrop
       .setTexture(`backdrop-${index}`)
@@ -732,11 +748,47 @@ export class GameScene extends Phaser.Scene {
     );
   }
 
+  private renderingById(id: string) {
+    return this.world.content.renderings.find((rendering) => rendering.id === id);
+  }
+
+  private backgroundTextureKey(renderingId: string, index: number): string {
+    return renderingId === this.world.content.defaultRendering
+      ? `background-${index}`
+      : `background-${renderingId}-${index}`;
+  }
+
+  private ensureRenderingBackground(renderingId: string, index: number): Promise<void> {
+    const rendering = this.renderingById(renderingId);
+    const url = rendering?.views[index];
+    if (!rendering || !url) return Promise.reject(new Error(`Unknown rendering: ${renderingId}`));
+    return this.loadTexture(this.backgroundTextureKey(renderingId, index), url);
+  }
+
+  private async switchRendering(id: string): Promise<void> {
+    if (id === this.activeRenderingId || !this.renderingById(id)) return;
+    const index = VIEW_IDS.indexOf(this.world.activeView as ViewId);
+    this.world.session.message = `Loading ${id} rendering…`;
+    try {
+      await this.ensureRenderingBackground(id, index);
+    } catch (error) {
+      this.world.session.message = 'Map rendering could not be loaded.';
+      console.error(error);
+      return;
+    }
+    this.activeRenderingId = id;
+    this.background
+      .setTexture(this.backgroundTextureKey(id, index))
+      .setDisplaySize(APP_WIDTH, APP_HEIGHT);
+    this.world.session.message = `${this.renderingById(id)!.label} rendering ready.`;
+    this.renderWorld();
+  }
+
   private ensureViewLoaded(index: number): Promise<void> {
     const content = this.world.content;
     return Promise.all([
       this.loadTexture(`backdrop-${index}`, content.backdrops[index]!),
-      this.loadTexture(`background-${index}`, content.views[index]!),
+      this.ensureRenderingBackground(this.activeRenderingId, index),
       this.loadTexture(`detail-${index}`, content.detailOverlays[index]!),
       this.loadTexture(`occlusion-${index}`, content.occlusion[index]!),
     ]).then(() => {

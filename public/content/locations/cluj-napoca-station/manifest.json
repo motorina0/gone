@@ -38,26 +38,69 @@
     "views/view-top.webp"
   ],
   "backdrops": [
-    "backdrops/view-0.svg",
-    "backdrops/view-90.svg",
-    "backdrops/view-180.svg",
-    "backdrops/view-270.svg",
-    "backdrops/view-top.svg"
+    "raster/backdrops/view-0.webp",
+    "raster/backdrops/view-90.webp",
+    "raster/backdrops/view-180.webp",
+    "raster/backdrops/view-270.webp",
+    "raster/backdrops/view-top.webp"
   ],
   "backdropScale": 4,
   "occlusion": [
-    "occlusion/view-0.svg",
-    "occlusion/view-90.svg",
-    "occlusion/view-180.svg",
-    "occlusion/view-270.svg",
-    "occlusion/view-top.svg"
+    "raster/occlusion/view-0.webp",
+    "raster/occlusion/view-90.webp",
+    "raster/occlusion/view-180.webp",
+    "raster/occlusion/view-270.webp",
+    "raster/occlusion/view-top.webp"
   ],
   "detailOverlays": [
-    "details/view-0.svg",
-    "details/view-90.svg",
-    "details/view-180.svg",
-    "details/view-270.svg",
-    "details/view-top.svg"
+    "raster/details/view-0.webp",
+    "raster/details/view-90.webp",
+    "raster/details/view-180.webp",
+    "raster/details/view-270.webp",
+    "raster/details/view-top.webp"
+  ],
+  "depthMaps": [
+    "raster/depth/view-0.webp",
+    "raster/depth/view-90.webp",
+    "raster/depth/view-180.webp",
+    "raster/depth/view-270.webp",
+    "raster/depth/view-top.webp"
+  ],
+  "defaultRendering": "colored",
+  "renderings": [
+    {
+      "id": "svg",
+      "label": "SVG",
+      "views": [
+        "views/view-0.svg",
+        "views/view-90.svg",
+        "views/view-180.svg",
+        "views/view-270.svg",
+        "views/view-top.svg"
+      ]
+    },
+    {
+      "id": "raster",
+      "label": "PNG",
+      "views": [
+        "raster/views/view-0.webp",
+        "raster/views/view-90.webp",
+        "raster/views/view-180.webp",
+        "raster/views/view-270.webp",
+        "raster/views/view-top.webp"
+      ]
+    },
+    {
+      "id": "colored",
+      "label": "Colored",
+      "views": [
+        "views/view-0.webp",
+        "views/view-90.webp",
+        "views/view-180.webp",
+        "views/view-270.webp",
+        "views/view-top.webp"
+      ]
+    }
   ],
   "agentAtlas": "sprites/agent-atlas.png",
   "agentCloseAtlases": [

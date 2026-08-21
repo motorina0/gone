@@ -82,6 +82,12 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
 
   const entities = entitiesRaw.flatMap((resource) => resource.entities ?? [resource]);
   const patrols = patrolsRaw.filter((patrol) => patrol.points);
+  const renderings = (
+    manifest.renderings ?? [{id: 'default', label: 'Default', views: manifest.views}]
+  ).map((rendering) => ({
+    ...rendering,
+    views: rendering.views.map((asset) => new URL(asset, baseUrl).href),
+  }));
   const environmentBlockers = environment.streetFurniture
     .map(environmentPropBlocker)
     .filter((blocker): blocker is Rect => blocker !== undefined);
@@ -106,6 +112,8 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     occlusion: manifest.occlusion.map((path) => new URL(path, baseUrl).href),
     detailOverlays: manifest.detailOverlays.map((path) => new URL(path, baseUrl).href),
     depthMaps: (manifest.depthMaps ?? []).map((path) => new URL(path, baseUrl).href),
+    defaultRendering: manifest.defaultRendering ?? renderings[0]!.id,
+    renderings,
     agentAtlas: new URL(manifest.agentAtlas, baseUrl).href,
     agentCloseAtlases: (manifest.agentCloseAtlases ?? []).map(
       (path) => new URL(path, baseUrl).href,

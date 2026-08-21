@@ -1,5 +1,6 @@
 import {copyFile, mkdir, readFile, writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import type {
   EnvironmentLandmark,
@@ -310,6 +311,28 @@ const writeText = async (relativePath: string, value: string): Promise<void> => 
   const destination = path.join(locationRoot, relativePath);
   await mkdir(path.dirname(destination), {recursive: true});
   await writeFile(destination, value);
+};
+const writeBinary = async (relativePath: string, value: Buffer): Promise<void> => {
+  const destination = path.join(locationRoot, relativePath);
+  await mkdir(path.dirname(destination), {recursive: true});
+  await writeFile(destination, value);
+};
+const writeRasterPair = async (
+  layer: string,
+  id: string,
+  svg: string,
+): Promise<void> => {
+  const png = await sharp(Buffer.from(svg))
+    .resize(1920, 1280)
+    .png({compressionLevel: 6})
+    .toBuffer();
+  const webp = await sharp(png)
+    .webp({quality: 90, alphaQuality: 100, smartSubsample: true, effort: 0})
+    .toBuffer();
+  await Promise.all([
+    writeBinary(`png/${layer}/${id}.png`, png),
+    writeBinary(`raster/${layer}/${id}.webp`, webp),
+  ]);
 };
 
 const projectionMatrices: Array<{
@@ -1014,6 +1037,12 @@ const trialRuntimeRoot = path.join(projectRoot, 'art/cluj-napoca-station/trials/
 const backdropPaths = projections.map((projection) => `backdrops/${projection.id}.svg`);
 const occlusionPaths = projections.map((projection) => `occlusion/${projection.id}.svg`);
 const detailPaths = projections.map((projection) => `details/${projection.id}.svg`);
+const depthPaths = projections.map((projection) => `depth/${projection.id}.svg`);
+const rasterViewPaths = projections.map((projection) => `raster/views/${projection.id}.webp`);
+const rasterBackdropPaths = projections.map((projection) => `raster/backdrops/${projection.id}.webp`);
+const rasterOcclusionPaths = projections.map((projection) => `raster/occlusion/${projection.id}.webp`);
+const rasterDetailPaths = projections.map((projection) => `raster/details/${projection.id}.webp`);
+const rasterDepthPaths = projections.map((projection) => `raster/depth/${projection.id}.webp`);
 const agentClosePaths = Array.from(
   {length: 8},
   (_, direction) => `sprites/agent-close-direction-${direction}.webp`,
@@ -1037,10 +1066,17 @@ const manifest = {
   projections: projections.map((projection) => `projections/${projection.id}.json`),
   sourceViews: sourceViewPaths,
   views: viewPaths,
-  backdrops: backdropPaths,
+  backdrops: rasterBackdropPaths,
   backdropScale: 4,
-  occlusion: occlusionPaths,
-  detailOverlays: detailPaths,
+  occlusion: rasterOcclusionPaths,
+  detailOverlays: rasterDetailPaths,
+  depthMaps: rasterDepthPaths,
+  defaultRendering: 'colored',
+  renderings: [
+    {id: 'svg', label: 'SVG', views: sourceViewPaths},
+    {id: 'raster', label: 'PNG', views: rasterViewPaths},
+    {id: 'colored', label: 'Colored', views: viewPaths},
+  ],
   agentAtlas: 'sprites/agent-atlas.png',
   agentCloseAtlases: agentClosePaths,
   agentCloseAnimation: {
@@ -1391,6 +1427,16 @@ for (const [viewIndex, projection] of projections.entries()) {
   const detailSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${tunnelLabels}</g></svg>`;
   const occlusionSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${renderedBuildings.map((building) => building.occlusion).join('')}</g></svg>`;
   const backdropSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><defs><pattern id="outer" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#374542"/><path d="M0 12h24M12 0v24" stroke="#56625c" stroke-width=".45" opacity=".45"/></pattern><radialGradient id="fade"><stop stop-color="#718078" stop-opacity=".18"/><stop offset="1" stop-color="#101a18" stop-opacity=".75"/></radialGradient></defs><rect width="960" height="640" fill="url(#outer)"/><rect width="960" height="640" fill="url(#fade)"/></svg>`;
+  const buildingDepths = renderedBuildings.map(({depth}) => depth);
+  const minimumDepth = Math.min(...buildingDepths);
+  const depthRange = Math.max(1, Math.max(...buildingDepths) - minimumDepth);
+  const depthSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><rect width="960" height="640" fill="#000"/>${renderedBuildings.map((building) => {
+    const value = Math.round(40 + ((building.depth - minimumDepth) / depthRange) * 200);
+    const gray = value.toString(16).padStart(2, '0');
+    return building.occlusion
+      .replace('fill="#17201c"', `fill="#${gray}${gray}${gray}"`)
+      .replace(/ opacity="[^"]+"/, '');
+  }).join('')}</svg>`;
   await writeText(sourceViewPaths[viewIndex]!, beautySvg);
   await copyFile(
     path.join(trialRuntimeRoot, `${projection.id}.webp`),
@@ -1399,6 +1445,14 @@ for (const [viewIndex, projection] of projections.entries()) {
   await writeText(detailPaths[viewIndex]!, detailSvg);
   await writeText(occlusionPaths[viewIndex]!, occlusionSvg);
   await writeText(backdropPaths[viewIndex]!, backdropSvg);
+  await writeText(depthPaths[viewIndex]!, depthSvg);
+  await Promise.all([
+    writeRasterPair('views', projection.id, beautySvg),
+    writeRasterPair('backdrops', projection.id, backdropSvg),
+    writeRasterPair('details', projection.id, detailSvg),
+    writeRasterPair('occlusion', projection.id, occlusionSvg),
+    writeRasterPair('depth', projection.id, depthSvg),
+  ]);
 }
 
 console.log(

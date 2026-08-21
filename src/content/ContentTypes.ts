@@ -209,6 +209,12 @@ export interface Manifest {
   occlusion: string[];
   detailOverlays: string[];
   depthMaps?: string[];
+  defaultRendering?: string;
+  renderings?: Array<{
+    id: string;
+    label: string;
+    views: string[];
+  }>;
   agentAtlas: string;
   agentCloseAtlases?: string[];
   agentCloseAnimation?: {
@@ -251,6 +257,8 @@ export interface LoadedContent {
   occlusion: string[];
   detailOverlays: string[];
   depthMaps: string[];
+  defaultRendering: string;
+  renderings: Array<{id: string; label: string; views: string[]}>;
   agentAtlas: string;
   agentCloseAtlases: string[];
 }

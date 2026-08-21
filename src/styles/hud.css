@@ -219,6 +219,26 @@ button img {
   flex: 1 1 0;
 }
 
+.rendering-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #aa9a69;
+  font: 900 0.55rem/1 ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+
+.rendering-control select {
+  min-width: 112px;
+  height: 25px;
+  border: 1px solid #718066;
+  border-radius: 2px;
+  background: #111711;
+  color: #f1f0dc;
+  font: 800 0.62rem/1 ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
 .camera-bank button {
   padding-inline: 0.48rem;
 }

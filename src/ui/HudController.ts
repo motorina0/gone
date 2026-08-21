@@ -9,6 +9,7 @@ export interface HudActions {
   zoom(delta: number): void;
   follow(): void;
   agentSize(percentage: number): void;
+  rendering(id: string): void;
 }
 
 export class HudController {
@@ -20,6 +21,7 @@ export class HudController {
   private readonly movement = this.root.querySelector<HTMLElement>('[data-movement-status]')!;
   private readonly pause = this.root.querySelector<HTMLButtonElement>('[data-pause]')!;
   private readonly agentSize = this.root.querySelector<HTMLInputElement>('[data-agent-size]')!;
+  private readonly rendering = this.root.querySelector<HTMLSelectElement>('[data-rendering]')!;
 
   constructor(actions: HudActions) {
     const options = {signal: this.abortController.signal};
@@ -71,6 +73,8 @@ export class HudController {
       options,
     );
     this.agentSize.addEventListener('keydown', (event) => event.stopPropagation(), options);
+    this.rendering.addEventListener('change', () => actions.rendering(this.rendering.value), options);
+    this.rendering.addEventListener('keydown', (event) => event.stopPropagation(), options);
 
     const fullscreen = this.root.querySelector<HTMLButtonElement>('[data-fullscreen]')!;
     fullscreen.disabled = !document.documentElement.requestFullscreen;
@@ -93,7 +97,7 @@ export class HudController {
     );
   }
 
-  render(world: WorldState, following = false, zoomLevel = 3): void {
+  render(world: WorldState, following = false, zoomLevel = 3, renderingId = 'default'): void {
     const player = world.player;
     const pace = player.moving ? (player.pace ?? world.session.pace) : world.session.pace;
     this.location.textContent = world.content.manifest.name;
@@ -112,6 +116,20 @@ export class HudController {
     this.root.dataset.moving = String(Boolean(player.moving));
     this.root.dataset.following = String(following);
     this.root.dataset.zoomLevel = String(zoomLevel);
+    this.root.dataset.rendering = renderingId;
+    const renderingControl = this.root.querySelector<HTMLElement>('[data-rendering-control]')!;
+    renderingControl.hidden = world.content.renderings.length < 2;
+    if (this.rendering.options.length !== world.content.renderings.length) {
+      this.rendering.replaceChildren(
+        ...world.content.renderings.map((rendering) => {
+          const option = document.createElement('option');
+          option.value = rendering.id;
+          option.textContent = rendering.label;
+          return option;
+        }),
+      );
+    }
+    this.rendering.value = renderingId;
     if (document.activeElement !== this.agentSize) {
       const percentage = Math.min(
         1000,
