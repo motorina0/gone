@@ -4,13 +4,16 @@ import {describe, expect, it} from 'vitest';
 import {environmentPropBlocker} from '../src/content/ContentLoader';
 import type {
   EnvironmentProp,
+  Manifest,
   NavigationResource,
+  ProjectionResource,
   Rect,
   WalkableArea,
 } from '../src/content/ContentTypes';
 import {GridNavigationService} from '../src/navigation/Pathfinding';
 import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import {createProjection} from '../src/projection/Projection';
+import {entityScaleForProjection} from '../src/projection/EntityScale';
 import {DEFAULT_SETTINGS, SettingsStore} from '../src/persistence/SettingsStore';
 import {MovementSystem} from '../src/systems/MovementSystem';
 import {
@@ -45,6 +48,25 @@ const areaCenter = (area: WalkableArea): WorldPoint => {
         plane.slopeY * (center.y - plane.originY)
       : area.elevation,
   };
+};
+const polygonArea = (points: WorldPoint[]): number =>
+  Math.abs(
+    points.reduce((sum, candidate, index) => {
+      const next = points[(index + 1) % points.length]!;
+      return sum + candidate.x * next.y - next.x * candidate.y;
+    }, 0) / 2,
+  );
+const insidePolygon = (candidate: WorldPoint, polygon: WorldPoint[]): boolean => {
+  let inside = false;
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index++) {
+    const start = polygon[previous]!;
+    const end = polygon[index]!;
+    const crosses =
+      start.y > candidate.y !== end.y > candidate.y &&
+      candidate.x < ((end.x - start.x) * (candidate.y - start.y)) / (end.y - start.y) + start.x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
 };
 
 const makePlayer = (): EntityState => ({
@@ -90,7 +112,10 @@ describe('canonical projections', () => {
 
   it('keeps every projected world floor inside its 960 by 640 artwork', () => {
     for (const locationId of LOCATION_IDS) {
-      const world = readJson<{bounds: {minX: number; minY: number; maxX: number; maxY: number}}>(
+      const world = readJson<{
+        bounds: {minX: number; minY: number; maxX: number; maxY: number};
+        footprint?: WorldPoint[];
+      }>(
         locationPath(locationId, 'world.json'),
       );
       for (const id of VIEW_IDS) {
@@ -100,8 +125,13 @@ describe('canonical projections', () => {
           ),
         );
         const {minX, minY, maxX, maxY} = world.bounds;
-        const corners = [point(minX, minY), point(maxX, minY), point(maxX, maxY), point(minX, maxY)]
-          .map((worldPoint) => projection.worldToScreen(worldPoint));
+        const floor = world.footprint ?? [
+          point(minX, minY),
+          point(maxX, minY),
+          point(maxX, maxY),
+          point(minX, maxY),
+        ];
+        const corners = floor.map((worldPoint) => projection.worldToScreen(worldPoint));
         expect(Math.min(...corners.map(({x}) => x))).toBeGreaterThanOrEqual(0);
         expect(Math.max(...corners.map(({x}) => x))).toBeLessThanOrEqual(960);
         expect(Math.min(...corners.map(({y}) => y))).toBeGreaterThanOrEqual(0);
@@ -119,11 +149,20 @@ describe('single-operative exploration content', () => {
         entities: string[];
         patrols: string[];
         entityScale: number;
+        entityWorldHeightMeters?: number;
+        agentAnimation: {visibleHeightPixels?: number};
       }>(locationPath(locationId, 'manifest.json'));
       expect(manifest.mode).toBe('exploration');
       expect(manifest.entities).toEqual(['entities/player.json']);
       expect(manifest.patrols).toEqual([]);
-      expect(manifest.entityScale).toBeGreaterThanOrEqual(0.1);
+      if (locationId === 'cluj-napoca-station') {
+        expect(manifest.entityScale).toBeGreaterThan(0.01);
+        expect(manifest.entityScale).toBeLessThan(0.02);
+        expect(manifest.entityWorldHeightMeters).toBe(1.8);
+        expect(manifest.agentAnimation.visibleHeightPixels).toBe(137);
+      } else {
+        expect(manifest.entityScale).toBeGreaterThanOrEqual(0.1);
+      }
       const player = readJson<{kind: string; speed: number; runSpeed: number}>(
         locationPath(locationId, manifest.entities[0]!),
       );
@@ -387,6 +426,7 @@ describe('Cluj-Napoca station geographic content', () => {
   it('converts WGS84 coordinates to the documented local metre world deterministically', () => {
     const world = readJson<{
       bounds: {minX: number; minY: number; maxX: number; maxY: number};
+      footprint: WorldPoint[];
       geography: {
         geographicBounds: {west: number; east: number; south: number; north: number};
         anchor: {latitude: number; longitude: number; world: WorldPoint};
@@ -402,6 +442,11 @@ describe('Cluj-Napoca station geographic content', () => {
     expect(restored.latitude).toBeCloseTo(world.geography.anchor.latitude, 10);
     expect(world.bounds.maxX).toBeCloseTo(725.436, 3);
     expect(world.bounds.maxY).toBeCloseTo(466.9, 3);
+    expect(world.footprint).toHaveLength(8);
+    expect(polygonArea(world.footprint)).toBeLessThan(
+      world.bounds.maxX * world.bounds.maxY * 0.95,
+    );
+    expect(insidePolygon(world.geography.anchor.world, world.footprint)).toBe(true);
     expect(transform.toWorld({
       longitude: world.geography.geographicBounds.west,
       latitude: world.geography.geographicBounds.south,
@@ -618,6 +663,46 @@ describe('Cluj-Napoca station geographic content', () => {
     expect(blockers.every((blocker) => Number.isFinite(blocker.minElevation))).toBe(true);
   });
 
+  it('cuts unsupported outer corners from artwork, camera bounds, and navigation', () => {
+    const resource = readJson<NavigationResource>(
+      locationPath('cluj-napoca-station', 'navigation/walkable.json'),
+    );
+    const blockers = readJson<{rectangles: Rect[]}>(
+      locationPath('cluj-napoca-station', 'navigation/blockers.json'),
+    ).rectangles;
+    const world = readJson<{footprint: WorldPoint[]; spawns: {player: WorldPoint}}>(
+      locationPath('cluj-napoca-station', 'world.json'),
+    );
+    const navigation = new GridNavigationService(
+      resource.bounds,
+      blockers,
+      resource.cellSize,
+      resource.areas,
+      resource.connections,
+      resource.hazards,
+    );
+    const cornerHazards = resource.hazards!.filter(({id}) => id.startsWith('map-edge-corner-'));
+    expect(cornerHazards.map(({id}) => id).sort()).toEqual([
+      'map-edge-corner-north-east',
+      'map-edge-corner-north-west',
+      'map-edge-corner-south-east',
+      'map-edge-corner-south-west',
+    ]);
+    expect(insidePolygon(world.spawns.player, world.footprint)).toBe(true);
+    const passengerPlatforms = resource.areas.filter(({id}) => id.startsWith('platform-way-'));
+    expect(passengerPlatforms).toHaveLength(5);
+    for (const platform of passengerPlatforms) {
+      expect(
+        platform.points.every((candidate) => insidePolygon(candidate, world.footprint)),
+        `${platform.id} must be completely inside the trimmed footprint`,
+      ).toBe(true);
+    }
+    for (const corner of [point(1, 1), point(724, 1), point(724, 465), point(1, 465)]) {
+      expect(insidePolygon(corner, world.footprint)).toBe(false);
+      expect(navigation.resolveDestination(corner)).toBeUndefined();
+    }
+  });
+
   it('keeps all Cluj runtime layers editable, separate, and source-labelled', () => {
     const manifest = readJson<{
       views: string[];
@@ -641,9 +726,14 @@ describe('Cluj-Napoca station geographic content', () => {
       expect(beauty).toContain('data-canopy=');
       expect(beauty).toContain('data-entrance="main"');
       expect(beauty).toContain('data-barrier=');
-      expect(details).toContain('GARA CLUJ-NAPOCA');
-      expect(details).toContain('INTRARE PRINCIPALĂ · INTERIOR ÎNCHIS');
-      expect(details).toContain('data-transport-stop=');
+      expect(beauty).toContain('data-transport-stop=');
+      expect(beauty).toContain('data-footprint="source-supported"');
+      expect(beauty).toContain('clip-path="url(#map-footprint)"');
+      expect(beauty).not.toContain('<text');
+      expect(details).not.toContain('<text');
+      expect(details).not.toContain('GARA CLUJ-NAPOCA');
+      expect(details).not.toContain('Piața');
+      expect(details).not.toContain('Peronul');
       expect(details).toContain('data-tunnel-entrance=');
     }
   });
@@ -730,6 +820,53 @@ describe('data-driven environment artwork', () => {
       expect(rendered.subarray(0, 4).toString()).toBe('RIFF');
       expect(rendered.subarray(8, 12).toString()).toBe('WEBP');
     }
+    expect(readFileSync('public/ui/agent-portrait.png').subarray(0, 8)).toEqual(pngSignature);
+  });
+
+  it('ships the reference-matched operative portrait and correctly sized runtime character art', async () => {
+    expect(
+      await sharp('art/agent/references/gone-operative-hud-portrait.png').metadata(),
+    ).toMatchObject({width: 1254, height: 1254, hasAlpha: false});
+    expect(await sharp('public/ui/agent-portrait.png').metadata()).toMatchObject({
+      width: 320,
+      height: 320,
+      hasAlpha: false,
+    });
+    for (const locationId of LOCATION_IDS) {
+      expect(
+        await sharp(locationPath(locationId, 'sprites/agent-atlas.png')).metadata(),
+      ).toMatchObject({width: 1152, height: 1280, hasAlpha: true});
+    }
+    const clujManifest = readJson<Manifest>(
+      locationPath('cluj-napoca-station', 'manifest.json'),
+    );
+    const projection = readJson<ProjectionResource>(
+      locationPath('cluj-napoca-station', 'projections/view-0.json'),
+    );
+    const atlasFrame = await sharp(
+      locationPath('cluj-napoca-station', 'sprites/agent-atlas.png'),
+    )
+      .extract({left: 0, top: 0, width: 128, height: 160})
+      .ensureAlpha()
+      .raw()
+      .toBuffer({resolveWithObject: true});
+    let firstVisibleRow = 160;
+    let lastVisibleRow = -1;
+    for (let y = 0; y < atlasFrame.info.height; y += 1) {
+      for (let x = 0; x < atlasFrame.info.width; x += 1) {
+        const alpha = atlasFrame.data[(y * atlasFrame.info.width + x) * atlasFrame.info.channels + 3]!;
+        if (alpha <= 8) continue;
+        firstVisibleRow = Math.min(firstVisibleRow, y);
+        lastVisibleRow = Math.max(lastVisibleRow, y);
+      }
+    }
+    const visibleHeightPixels = lastVisibleRow - firstVisibleRow + 1;
+    expect(visibleHeightPixels).toBe(137);
+    expect(clujManifest.agentAnimation.visibleHeightPixels).toBe(visibleHeightPixels);
+    expect(clujManifest.entityWorldHeightMeters).toBe(1.8);
+    const projectedScale = entityScaleForProjection(clujManifest, projection);
+    expect((visibleHeightPixels * projectedScale) / projection.scale).toBeCloseTo(1.8, 8);
+    expect(160 * projectedScale * 3).toBeLessThan(8);
   });
 
   it('ships replaceable Gone Vatra finish plates and transparent derived occlusion', async () => {

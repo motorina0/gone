@@ -4,6 +4,7 @@ import {WorldState} from '../world/WorldState';
 import type {MovementPace, WorldPoint} from '../world/WorldTypes';
 import {GameClock} from '../world/GameClock';
 import {ProjectionService} from '../projection/ProjectionService';
+import {entityScaleForProjection} from '../projection/EntityScale';
 import {VIEW_IDS, type ViewId} from '../views/ViewManager';
 import {GridNavigationService} from '../navigation/Pathfinding';
 import {MovementSystem} from '../systems/MovementSystem';
@@ -141,7 +142,7 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0.5, 0.94)
       .setDepth(3)
       .setName(this.world.player.id)
-      .setScale(content.manifest.entityScale);
+      .setScale(this.entityScaleForView(initialView));
     this.foreground = this.add
       .image(0, 0, `occlusion-${initialViewIndex}`)
       .setOrigin(0)
@@ -378,10 +379,7 @@ export class GameScene extends Phaser.Scene {
     this.sprite
       .setPosition(point.x, point.y)
       .setFlipX(false)
-      .setScale(
-        this.world.content.manifest.entityScale *
-          (this.world.activeView === 'view-top' ? 1.12 : 1),
-      );
+      .setScale(this.entityScaleForView(this.world.activeView));
 
     this.markers.clear();
     this.markers.fillStyle(0x07100a, 0.55).fillEllipse(point.x, point.y + 2, 9, 4);
@@ -546,12 +544,13 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setZoom(this.zoomLevel);
     const projection = this.projections.get(id);
     const bounds = this.world.content.world.bounds;
-    this.mapPolygon = [
+    const footprint = this.world.content.world.footprint ?? [
       {x: bounds.minX, y: bounds.minY, elevation: 0},
       {x: bounds.maxX, y: bounds.minY, elevation: 0},
       {x: bounds.maxX, y: bounds.maxY, elevation: 0},
       {x: bounds.minX, y: bounds.maxY, elevation: 0},
-    ].map((point) => projection.worldToScreen(point));
+    ];
+    this.mapPolygon = footprint.map((point) => projection.worldToScreen(point));
     const focus = projection.worldToScreen(canonicalFocus);
     this.cameras.main.centerOn(focus.x, focus.y);
     this.constrainCamera();
@@ -576,6 +575,12 @@ export class GameScene extends Phaser.Scene {
     this.settings.preferredView = id;
     this.saveSettings();
     this.renderWorld();
+  }
+
+  private entityScaleForView(id: string): number {
+    const projection = this.world.content.projections.find((candidate) => candidate.id === id);
+    if (!projection) throw new Error(`Projection resource not found: ${id}`);
+    return entityScaleForProjection(this.world.content.manifest, projection);
   }
 
   private ensureViewLoaded(index: number): Promise<void> {
@@ -801,6 +806,12 @@ export class GameScene extends Phaser.Scene {
           minimumZoom: this.minimumZoom,
           zoomLevel: this.zoomLevel,
           playerDisplayHeight: this.sprite.displayHeight * this.cameras.main.zoom,
+          playerVisibleHeight:
+            this.sprite.displayHeight *
+            ((this.world.content.manifest.agentAnimation.visibleHeightPixels ??
+              this.world.content.manifest.agentAnimation.frameHeight) /
+              this.world.content.manifest.agentAnimation.frameHeight) *
+            this.cameras.main.zoom,
           session: {...this.world.session},
           loadedResources: true,
           loadedViewCount: this.loadedViews.size,

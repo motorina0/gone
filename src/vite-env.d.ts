@@ -32,6 +32,7 @@ declare global {
       minimumZoom: number;
       zoomLevel: number;
       playerDisplayHeight: number;
+      playerVisibleHeight: number;
       session: {paused: boolean; pace: string; message: string};
       loadedResources: boolean;
       loadedViewCount: number;

@@ -22,6 +22,19 @@
         "maxY"
       ]
     },
+    "footprint": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "x": {"type": "number"},
+          "y": {"type": "number"},
+          "elevation": {"type": "number"}
+        },
+        "required": ["x", "y", "elevation"]
+      }
+    },
     "spawns": {
       "type": "object"
     },

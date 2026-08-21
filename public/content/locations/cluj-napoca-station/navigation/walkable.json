@@ -11844,6 +11844,86 @@
   ],
   "hazards": [
     {
+      "id": "map-edge-corner-south-west",
+      "points": [
+        {
+          "x": 0,
+          "y": 0,
+          "elevation": 1.969
+        },
+        {
+          "x": 34.363,
+          "y": 0,
+          "elevation": 1.774
+        },
+        {
+          "x": 0,
+          "y": 100.05,
+          "elevation": 1.585
+        }
+      ]
+    },
+    {
+      "id": "map-edge-corner-south-east",
+      "points": [
+        {
+          "x": 725.436,
+          "y": 0,
+          "elevation": -2.155
+        },
+        {
+          "x": 725.436,
+          "y": 100.05,
+          "elevation": -2.539
+        },
+        {
+          "x": 610.893,
+          "y": 0,
+          "elevation": -1.503
+        }
+      ]
+    },
+    {
+      "id": "map-edge-corner-north-east",
+      "points": [
+        {
+          "x": 725.436,
+          "y": 466.9,
+          "elevation": -3.949
+        },
+        {
+          "x": 618.529,
+          "y": 466.9,
+          "elevation": -3.342
+        },
+        {
+          "x": 725.436,
+          "y": 397.976,
+          "elevation": -3.684
+        }
+      ]
+    },
+    {
+      "id": "map-edge-corner-north-west",
+      "points": [
+        {
+          "x": 0,
+          "y": 466.9,
+          "elevation": 0.175
+        },
+        {
+          "x": 0,
+          "y": 372.408,
+          "elevation": 0.538
+        },
+        {
+          "x": 167.996,
+          "y": 466.9,
+          "elevation": -0.78
+        }
+      ]
+    },
+    {
       "id": "closed-building-way-156452299",
       "points": [
         {

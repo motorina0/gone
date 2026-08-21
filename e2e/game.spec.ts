@@ -349,6 +349,14 @@ test('Cluj station loads attributed Pages assets and routes through its passenge
   const errors = await openExploration(page, 'cluj-napoca-station');
 
   await expect(page.locator('[data-location-name]')).toContainText('Gara Cluj-Napoca');
+  const initialAgentHeight = await page.evaluate(() => window.__GONE_TEST__!.playerDisplayHeight);
+  const initialVisibleAgentHeight = await page.evaluate(
+    () => window.__GONE_TEST__!.playerVisibleHeight,
+  );
+  expect(initialAgentHeight).toBeGreaterThan(5);
+  expect(initialAgentHeight).toBeLessThan(8);
+  expect(initialVisibleAgentHeight).toBeGreaterThan(4.5);
+  expect(initialVisibleAgentHeight).toBeLessThan(6.5);
   const attribution = page.locator('[data-map-attribution]');
   await expect(attribution).toBeVisible();
   await expect(attribution).toContainText('OpenStreetMap contributors');

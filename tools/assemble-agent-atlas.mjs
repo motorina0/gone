@@ -34,7 +34,7 @@ const atlas = await sharp({
   .png({compressionLevel: 9})
   .toBuffer();
 
-for (const location of ['piata-unirii', 'vatra-central-station']) {
+for (const location of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-station']) {
   const output = path.join(root, 'public/content/locations', location, 'sprites');
   await mkdir(output, {recursive: true});
   await sharp(atlas).toFile(path.join(output, 'agent-atlas.png'));

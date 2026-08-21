@@ -63,6 +63,7 @@ export interface WorldResource {
   id: string;
   name: string;
   bounds: {minX: number; minY: number; maxX: number; maxY: number};
+  footprint?: WorldPoint[];
   spawns: Record<string, WorldPoint>;
   exchange: WorldPoint;
   package: WorldPoint;
@@ -189,6 +190,7 @@ export interface Manifest {
   environment: string;
   mission: string;
   entityScale: number;
+  entityWorldHeightMeters?: number;
   navigation: {
     walkable: string;
     blockers: string;
@@ -210,6 +212,7 @@ export interface Manifest {
     frameWidth: number;
     frameHeight: number;
     directions: number;
+    visibleHeightPixels?: number;
     idle: number[];
     walk: number[];
     run: number[];

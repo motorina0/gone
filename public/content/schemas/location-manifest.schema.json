@@ -88,6 +88,7 @@
         "frameWidth": {"type": "integer", "minimum": 32},
         "frameHeight": {"type": "integer", "minimum": 32},
         "directions": {"const": 8},
+        "visibleHeightPixels": {"type": "integer", "minimum": 1},
         "idle": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 1},
         "walk": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2},
         "run": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 2},
@@ -100,6 +101,11 @@
       "type": "number",
       "exclusiveMinimum": 0,
       "maximum": 1
+    },
+    "entityWorldHeightMeters": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 3
     }
   },
   "required": [

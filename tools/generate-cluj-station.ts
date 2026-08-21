@@ -46,6 +46,12 @@ interface AuthoredArea {
   coordinates: Coordinate[];
 }
 
+interface AuthoredFootprint {
+  sourceRefs: string[];
+  note: string;
+  coordinates: Coordinate[];
+}
+
 interface AuthoredCrossing {
   id: string;
   elevation: number;
@@ -99,6 +105,7 @@ interface GameplayAuthoring {
     elevation: number;
     note: string;
   };
+  renderFootprint: AuthoredFootprint;
   authoredGroundAreas: AuthoredArea[];
   legitimateRailCrossings: AuthoredCrossing[];
   passengerPlatformLinks: PassengerPlatformLink[];
@@ -288,6 +295,12 @@ const squareArea = (point: WorldPoint, radius: number, elevationOffset: number):
   surfacePoint(point.x + radius, point.y + radius, elevationOffset),
   surfacePoint(point.x - radius, point.y + radius, elevationOffset),
 ];
+const mapFootprint = authoring.renderFootprint.coordinates.map((coordinate) =>
+  coordinateToWorld(coordinate),
+);
+if (mapFootprint.length !== 8) {
+  throw new Error('The Cluj render footprint must contain exactly eight ordered corner-cut points.');
+}
 const writeJson = async (relativePath: string, value: unknown): Promise<void> => {
   const destination = path.join(locationRoot, relativePath);
   await mkdir(path.dirname(destination), {recursive: true});
@@ -315,12 +328,7 @@ const projectionMatrices: Array<{
 ];
 
 const projections: ProjectionResource[] = projectionMatrices.map((definition) => {
-  const corners = [
-    {x: worldBounds.minX, y: worldBounds.minY},
-    {x: worldBounds.maxX, y: worldBounds.minY},
-    {x: worldBounds.maxX, y: worldBounds.maxY},
-    {x: worldBounds.minX, y: worldBounds.maxY},
-  ].map(({x, y}) => ({
+  const corners = mapFootprint.map(({x, y}) => ({
     x: definition.matrix[0] * x + definition.matrix[1] * y,
     y: definition.matrix[2] * x + definition.matrix[3] * y,
   }));
@@ -690,6 +698,40 @@ const closedBuildingHazards: NavigationHazard[] = buildingPolygons
     points: polygon,
     minElevation: round(terrainElevationAt(centroid(polygon)) - 1.5),
   }));
+const outsideFootprintHazards: NavigationHazard[] = [
+  {
+    id: 'map-edge-corner-south-west',
+    points: [
+      surfacePoint(worldBounds.minX, worldBounds.minY),
+      mapFootprint[0]!,
+      mapFootprint[7]!,
+    ],
+  },
+  {
+    id: 'map-edge-corner-south-east',
+    points: [
+      surfacePoint(worldBounds.maxX, worldBounds.minY),
+      mapFootprint[2]!,
+      mapFootprint[1]!,
+    ],
+  },
+  {
+    id: 'map-edge-corner-north-east',
+    points: [
+      surfacePoint(worldBounds.maxX, worldBounds.maxY),
+      mapFootprint[4]!,
+      mapFootprint[3]!,
+    ],
+  },
+  {
+    id: 'map-edge-corner-north-west',
+    points: [
+      surfacePoint(worldBounds.minX, worldBounds.maxY),
+      mapFootprint[6]!,
+      mapFootprint[5]!,
+    ],
+  },
+];
 
 const trackHazards: NavigationHazard[] = [];
 for (const feature of activeRailFeatures) {
@@ -754,7 +796,7 @@ const navigation: NavigationResource & {schemaVersion: string} = {
   bounds: worldBounds,
   areas: walkableAreas,
   connections,
-  hazards: [...closedBuildingHazards, ...trackHazards],
+  hazards: [...outsideFootprintHazards, ...closedBuildingHazards, ...trackHazards],
 };
 
 const world: WorldResource & {schemaVersion: string} = {
@@ -762,6 +804,7 @@ const world: WorldResource & {schemaVersion: string} = {
   id: 'cluj-napoca-station-world',
   name: 'Gara Cluj-Napoca',
   bounds: worldBounds,
+  footprint: mapFootprint,
   spawns: {player: playerSpawn, platformAccess: platformAccessPoint},
   exchange: playerSpawn,
   package: playerSpawn,
@@ -839,7 +882,6 @@ const landmarks: EnvironmentLandmark[] = buildingPolygons
       material: style.material,
       roof: style.roof,
       floors: parseLevels(feature),
-      ...(feature.tags.building === 'train_station' ? {signText: 'GARA CLUJ-NAPOCA'} : {}),
     };
   });
 
@@ -922,7 +964,6 @@ const streetFurniture = furnitureFeatures.map((feature) => {
     depth: type.includes('stop') ? 0.5 : 1,
     height: type.includes('stop') ? 2.4 : 1,
     color: type.includes('tram') ? '#7c3030' : '#355b77',
-    ...(feature.tags.name ? {text: feature.tags.name.slice(0, 32)} : {}),
   };
 });
 
@@ -999,13 +1040,15 @@ const manifest = {
     frameWidth: 128,
     frameHeight: 160,
     directions: 8,
+    visibleHeightPixels: 137,
     idle: [0],
     walk: [1, 2, 3, 4],
     run: [5, 6, 7, 8],
     walkFrameRate: 8,
     runFrameRate: 12,
   },
-  entityScale: 0.12,
+  entityScale: round((1.8 * projections[0]!.scale) / 137, 6),
+  entityWorldHeightMeters: 1.8,
 };
 
 await writeJson('manifest.json', manifest);
@@ -1117,12 +1160,6 @@ const landFeatures = osm.features.filter(
 const roadFeatures = osm.features.filter(
   (feature) => feature.geometry.type === 'LineString' && feature.tags.highway,
 );
-const namedStopFeatures = osm.features.filter(
-  (feature) =>
-    feature.geometry.type === 'Point' &&
-    feature.tags.name &&
-    (feature.tags.public_transport || feature.tags.highway === 'bus_stop'),
-);
 const entranceFeatures = osm.features.filter(
   (feature) => feature.geometry.type === 'Point' && feature.tags.entrance !== undefined,
 );
@@ -1163,12 +1200,7 @@ const renderBuilding = (
 };
 
 for (const [viewIndex, projection] of projections.entries()) {
-  const ground = [
-    surfacePoint(worldBounds.minX, worldBounds.minY),
-    surfacePoint(worldBounds.maxX, worldBounds.minY),
-    surfacePoint(worldBounds.maxX, worldBounds.maxY),
-    surfacePoint(worldBounds.minX, worldBounds.maxY),
-  ];
+  const footprintScreenPoints = svgPoints(projection, mapFootprint);
   const defs = `<defs>
     <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#6f8085"/><stop offset="1" stop-color="#263437"/></linearGradient>
     <pattern id="asphalt" width="18" height="18" patternUnits="userSpaceOnUse"><rect width="18" height="18" fill="#46504e"/><circle cx="3" cy="5" r=".7" fill="#707875" opacity=".35"/><circle cx="13" cy="12" r=".55" fill="#252d2c" opacity=".5"/></pattern>
@@ -1182,6 +1214,7 @@ for (const [viewIndex, projection] of projections.entries()) {
     <radialGradient id="vignette"><stop offset="58%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#08100e" stop-opacity=".42"/></radialGradient>
     <filter id="shadow"><feGaussianBlur stdDeviation="2.2"/></filter>
     <clipPath id="stage"><rect width="960" height="640"/></clipPath>
+    <clipPath id="map-footprint"><polygon points="${footprintScreenPoints}"/></clipPath>
   </defs>`;
 
   const terrainShade = terrain.samples
@@ -1316,41 +1349,8 @@ for (const [viewIndex, projection] of projections.entries()) {
       const coordinate = (feature.geometry as {type: 'Point'; coordinates: Coordinate}).coordinates;
       const screen = projectPoint(projection, coordinateToWorld(coordinate, 1));
       const tram = feature.tags.railway === 'tram_stop';
-      return `<g data-prop="${escapeXml(feature.id)}"><line x1="${screen.x.toFixed(1)}" y1="${(screen.y + 3).toFixed(1)}" x2="${screen.x.toFixed(1)}" y2="${(screen.y - 2).toFixed(1)}" stroke="#303b38" stroke-width="1"/><circle cx="${screen.x.toFixed(1)}" cy="${(screen.y - 3).toFixed(1)}" r="1.8" fill="${tram ? '#a54d43' : '#426d8c'}" stroke="#e3dcc0" stroke-width=".45"/></g>`;
-    })
-    .join('');
-  const stationFeature = buildingFeatures.find((feature) => feature.tags.building === 'train_station');
-  const stationLabel = stationFeature
-    ? (() => {
-        const point = centroid(polygonWorld(stationFeature, projection.kind === 'top' ? 0 : buildingHeight(stationFeature) + 1));
-        const screen = projectPoint(projection, point);
-        return `<g data-label="station"><rect x="${(screen.x - 48).toFixed(1)}" y="${(screen.y - 9).toFixed(1)}" width="96" height="14" rx="2" fill="#17211f" opacity=".86"/><text x="${screen.x.toFixed(1)}" y="${(screen.y + 1.5).toFixed(1)}" text-anchor="middle" fill="#e5ddbd" font-family="system-ui,sans-serif" font-size="7.5" font-weight="700">GARA CLUJ-NAPOCA</text></g>`;
-      })()
-    : '';
-  const platformLabels = platformFeatures
-    .filter((feature) => feature.tags.ref)
-    .map((feature) => {
-      const points = feature.geometry.type === 'Polygon'
-        ? polygonWorld(feature, authoring.elevationModel.platform + 0.2)
-        : lineWorld(feature, authoring.elevationModel.platform + 0.2);
-      const screen = projectPoint(projection, centroid(points));
-      return `<text data-label="platform" x="${screen.x.toFixed(1)}" y="${screen.y.toFixed(1)}" text-anchor="middle" fill="#f2e8c7" stroke="#26302d" stroke-width="1.8" paint-order="stroke" font-family="system-ui,sans-serif" font-size="6.5" font-weight="700">Peronul ${escapeXml(feature.tags.ref ?? '')}</text>`;
-    })
-    .join('');
-  const stopLabels = namedStopFeatures
-    .map((feature) => {
-      const coordinate = (feature.geometry as {type: 'Point'; coordinates: Coordinate}).coordinates;
-      const screen = projectPoint(projection, coordinateToWorld(coordinate, 1));
-      const tram = feature.tags.railway === 'tram_stop';
-      return `<g data-transport-stop="${escapeXml(feature.id)}"><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="3.2" fill="${tram ? '#a54d43' : '#426d8c'}" stroke="#e5e0c6" stroke-width=".7"/><text x="${(screen.x + 5).toFixed(1)}" y="${(screen.y + 2).toFixed(1)}" fill="#ece5c9" stroke="#25302d" stroke-width="1.4" paint-order="stroke" font-family="system-ui,sans-serif" font-size="5.4">${escapeXml(feature.tags.name ?? '')}</text></g>`;
-    })
-    .join('');
-  const entranceLabels = entranceFeatures
-    .filter((feature) => feature.tags.entrance === 'main')
-    .map((feature) => {
-      const coordinate = (feature.geometry as {type: 'Point'; coordinates: Coordinate}).coordinates;
-      const screen = projectPoint(projection, coordinateToWorld(coordinate, 1));
-      return `<text data-label="station-entrance" x="${(screen.x + 5).toFixed(1)}" y="${screen.y.toFixed(1)}" fill="#eadfb8" stroke="#25302d" stroke-width="1.3" paint-order="stroke" font-family="system-ui,sans-serif" font-size="5.2">INTRARE PRINCIPALĂ · INTERIOR ÎNCHIS</text>`;
+      const transportStop = feature.tags.public_transport || feature.tags.highway === 'bus_stop';
+      return `<g data-prop="${escapeXml(feature.id)}"${transportStop ? ` data-transport-stop="${escapeXml(feature.id)}"` : ''}><line x1="${screen.x.toFixed(1)}" y1="${(screen.y + 3).toFixed(1)}" x2="${screen.x.toFixed(1)}" y2="${(screen.y - 2).toFixed(1)}" stroke="#303b38" stroke-width="1"/><circle cx="${screen.x.toFixed(1)}" cy="${(screen.y - 3).toFixed(1)}" r="1.8" fill="${tram ? '#a54d43' : '#426d8c'}" stroke="#e3dcc0" stroke-width=".45"/></g>`;
     })
     .join('');
   const tunnelLabels = connections
@@ -1363,9 +1363,9 @@ for (const [viewIndex, projection] of projections.entries()) {
       return `<g data-tunnel-entrance="${escapeXml(connection.id)}"><path d="M${(screen.x - 3).toFixed(1)} ${(screen.y + 2).toFixed(1)}h6v-5h-6z" fill="#253331" stroke="#c1b98f" stroke-width=".6"/><path d="M${(screen.x - 2).toFixed(1)} ${screen.y.toFixed(1)}h4" stroke="#d9ce9e" stroke-width=".7"/></g>`;
     })
     .join('');
-  const beautySvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1280" viewBox="0 0 960 640">${defs}<g clip-path="url(#stage)"><rect width="960" height="640" fill="url(#sky)"/><rect width="960" height="640" fill="url(#asphalt)"/><polygon data-surface="world-ground" points="${svgPoints(projection, ground)}" fill="url(#asphalt)" stroke="#747d76" stroke-width="1.2"/>${terrainShade}${landSvg}${roads}${authoredForecourts}${tracks}${platformSvg}${crossingSvg}${canopySvg}${buildings}${entranceSvg}${barrierSvg}${treeSvg}${propSvg}<rect width="960" height="640" fill="url(#vignette)" pointer-events="none"/></g></svg>`;
-  const detailSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><g>${stationLabel}${platformLabels}${stopLabels}${entranceLabels}${tunnelLabels}</g></svg>`;
-  const occlusionSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><g>${renderedBuildings.map((building) => building.occlusion).join('')}</g></svg>`;
+  const beautySvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1280" viewBox="0 0 960 640">${defs}<g clip-path="url(#stage)"><g clip-path="url(#map-footprint)"><polygon data-surface="world-ground" data-footprint="source-supported" points="${footprintScreenPoints}" fill="url(#asphalt)" stroke="#747d76" stroke-width="1.2"/>${terrainShade}${landSvg}${roads}${authoredForecourts}${tracks}${platformSvg}${crossingSvg}${canopySvg}${buildings}${entranceSvg}${barrierSvg}${treeSvg}${propSvg}<rect width="960" height="640" fill="url(#vignette)" pointer-events="none"/></g></g></svg>`;
+  const detailSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${tunnelLabels}</g></svg>`;
+  const occlusionSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">${defs}<g clip-path="url(#map-footprint)">${renderedBuildings.map((building) => building.occlusion).join('')}</g></svg>`;
   const backdropSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640"><defs><pattern id="outer" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#374542"/><path d="M0 12h24M12 0v24" stroke="#56625c" stroke-width=".45" opacity=".45"/></pattern><radialGradient id="fade"><stop stop-color="#718078" stop-opacity=".18"/><stop offset="1" stop-color="#101a18" stop-opacity=".75"/></radialGradient></defs><rect width="960" height="640" fill="url(#outer)"/><rect width="960" height="640" fill="url(#fade)"/></svg>`;
   await writeText(viewPaths[viewIndex]!, beautySvg);
   await writeText(detailPaths[viewIndex]!, detailSvg);

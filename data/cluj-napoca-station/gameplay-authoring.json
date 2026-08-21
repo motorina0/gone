@@ -17,6 +17,20 @@
     "elevation": 0,
     "note": "Public forecourt beside the mapped eastern underpass stair; approximate deployment point."
   },
+  "renderFootprint": {
+    "sourceRefs": ["way/262209819", "way/215798523", "way/215798526", "way/215798529", "way/215798532", "way/1416233688", "way/242182112"],
+    "note": "Conservative octagonal scope mask around the contiguous mapped station district. Unsupported outer corners are excluded rather than filled with invented content; the canonical geographic transform and source envelope remain unchanged.",
+    "coordinates": [
+      [23.58425, 46.7821],
+      [23.5918, 46.7821],
+      [23.5933, 46.783],
+      [23.5933, 46.78568],
+      [23.5919, 46.7863],
+      [23.586, 46.7863],
+      [23.5838, 46.78545],
+      [23.5838, 46.783]
+    ]
+  },
   "authoredGroundAreas": [
     {
       "id": "piata-garii-forecourt",
@@ -179,6 +193,7 @@
     "The Peronul 6;7 stair is placed conservatively at the mapped tunnel/platform intersection because the exact vertical structure is absent from OSM.",
     "A short Peronul 1 connector bridges the six-metre mapping gap between the passenger footway and platform edge; its exact kerb or ramp form is unknown.",
     "The conflicting line representation of Peronul 1 is retained as source artwork but is not itself walkable where it overlaps mapped rail; mapped passenger links provide safe access to the platform polygon.",
+    "The map footprint cuts unsupported outer corners from the source envelope instead of inventing filler buildings, vegetation, or surface detail.",
     "Station interiors, service yards, and construction areas are intentionally inaccessible."
   ]
 }

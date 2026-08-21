@@ -208,8 +208,7 @@
       "elevation": 11,
       "material": "plaster",
       "roof": "pitched",
-      "floors": 1,
-      "signText": "GARA CLUJ-NAPOCA"
+      "floors": 1
     },
     {
       "id": "building-way-275493607",
@@ -4253,8 +4252,7 @@
       "width": 1,
       "depth": 1,
       "height": 1,
-      "color": "#355b77",
-      "text": "Cluj Napoca"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-429913389",
@@ -4265,8 +4263,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#7c3030",
-      "text": "Piața Gării Vechi"
+      "color": "#7c3030"
     },
     {
       "id": "prop-node-429919283",
@@ -4277,8 +4274,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Sud"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-828649165",
@@ -4289,8 +4285,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#7c3030",
-      "text": "Piața Gării Noi"
+      "color": "#7c3030"
     },
     {
       "id": "prop-node-1693837265",
@@ -4301,8 +4296,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Nord"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-2252377460",
@@ -4346,8 +4340,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Sud"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-3282493058",
@@ -4358,8 +4351,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Grupul Școlar CFR Est"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-3282493262",
@@ -4370,8 +4362,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Grupul Școlar CFR Est"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-3284221484",
@@ -4382,8 +4373,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Vest"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-3284221485",
@@ -4394,8 +4384,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Nord"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-4446477080",
@@ -4428,8 +4417,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Piața Gării Vest"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-8297135362",
@@ -4440,8 +4428,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Gara Mică"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-8321461620",
@@ -4496,8 +4483,7 @@
       "width": 0.5,
       "depth": 0.5,
       "height": 2.4,
-      "color": "#355b77",
-      "text": "Gara Mică"
+      "color": "#355b77"
     },
     {
       "id": "prop-node-9648311727",

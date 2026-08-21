@@ -64,6 +64,7 @@
     "frameWidth": 128,
     "frameHeight": 160,
     "directions": 8,
+    "visibleHeightPixels": 137,
     "idle": [
       0
     ],
@@ -82,5 +83,6 @@
     "walkFrameRate": 8,
     "runFrameRate": 12
   },
-  "entityScale": 0.12
+  "entityScale": 0.012788,
+  "entityWorldHeightMeters": 1.8
 }

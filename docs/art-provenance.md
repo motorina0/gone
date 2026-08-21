@@ -7,7 +7,7 @@ Every runtime-visible asset in Gone is original to this repository. No stock lib
 - `data/cluj-napoca-station/osm-source.json` is a normalized, clipped ODbL source snapshot used for geographic geometry; it is data rather than artwork.
 - `data/cluj-napoca-station/terrain-source.json` contains sampled Copernicus GLO-30 elevations, the canonical terrain-plane derivation, and the required source and liability notices. No DEM raster is shipped.
 - `data/cluj-napoca-station/gameplay-authoring.json` records conservative original gameplay interpretation and every material station approximation.
-- `tools/generate-cluj-station.ts` deterministically creates the five runtime beauty SVGs and their separate detail, occlusion, and backdrop layers. All colors, patterns, façade and mapped-entrance treatment, platform/canopy styling, ballast, rails, fences and walls, vegetation rendering, wet-surface treatment, icons, and typography are original Gone vectors. No raster map or aerial image is used as an art input.
+- `tools/generate-cluj-station.ts` deterministically creates the five runtime beauty SVGs and their separate icon, occlusion, and backdrop layers. All colors, patterns, façade and mapped-entrance treatment, platform/canopy styling, ballast, rails, fences and walls, vegetation rendering, wet-surface treatment, and text-free icons are original Gone vectors. The visible layers are clipped to the editable source-supported footprint; no invented edge filler, raster map, or aerial image is used as an art input.
 - `data/cluj-napoca-station/openaerialmap-coverage.json` records that OAM returned no catalogue image. The OAM viewer basemap was not downloaded or used.
 
 ## Vatra Central Station
@@ -31,13 +31,17 @@ The four runtime finish sources in `art/vatra/paintovers/view-{0,90,180,270}.png
 
 ## Operative
 
-- `art/agent/build_agent_atlas.py` creates Gone's low-poly field operative, eight facings, idle pose, four walk frames, and four run frames.
+- `art/agent/build_agent_atlas.py` creates Gone's reference-matched field operative with realistic proportions, dark weatherproof coat and raised collar, charcoal knitwear and trousers, brown boots and satchel, eight facings, idle pose, four walk frames, and four run frames.
 - `art/agent/gone-operative.blend` is the editable character source.
-- `tools/assemble-agent-atlas.mjs` deterministically builds the transparent runtime atlas. The same Gone operative is used in both current locations.
+- `tools/assemble-agent-atlas.mjs` deterministically builds the transparent runtime atlas. The same Gone operative is used in all three current locations; location data controls its environment-relative display scale.
 
 `art/agent/references/gone-operative-turnaround.png` is an original Gone-only design reference created with Codex's built-in image-generation tool in reference mode; it is not loaded at runtime. Prompt:
 
 > Create an original character turnaround made specifically for Gone: a late-thirties civilian field operative in a slate-green raincoat over charcoal knitwear and trousers, worn brown boots, and a practical brown leather satchel. Realistic human proportions, restrained tired expression, short dark hair, subtle early-2000s Eastern European civilian styling, no uniform, no weapon, no tactical armor, no insignia, no logo, no text. Show clear front, three-quarter, profile, and back views on a neutral studio background for an isometric game sprite model. Grounded realistic materials and construction, entirely original character design.
+
+`art/agent/references/gone-operative-hud-portrait.png` is the full-resolution original portrait generated from that Gone-only turnaround with Codex's built-in image-generation tool. `public/ui/agent-portrait.png` is its optimized text-free runtime derivative. The production prompt was:
+
+> Use case: identity-preserve. Asset type: Gone game HUD operative portrait, ultimately displayed at 68 × 72 pixels. Input image: the authoritative character turnaround and identity/clothing reference. Create a polished chest-up portrait of the same adult male operative. Preserve his recognizable face, short dark hair, light stubble, serious neutral expression, charcoal weatherproof coat with raised collar, dark knit layer, and brown satchel strap. Use a restrained dark charcoal-green studio gradient suitable for the Gone tactical HUD; realistic game-character treatment with natural materials and skin texture, subtly cinematic and neither cartoonish nor painterly. Center the head and shoulders at a near-front three-quarter angle with enough room for a tight square crop. Soft overcast key light, gentle warm rim, sober investigative mood. Charcoal, weathered dark green, muted brown leather, and natural skin tones. No text, added symbols, logos, watermark, frame, decorative border, extra objects, or additional people. Avoid an oversized head, exaggerated features, smiling, glossy fashion retouching, and a bright background.
 
 ## Generated Gone materials
 
@@ -77,4 +81,4 @@ Prompt:
 
 ## UI and projected fallback art
 
-All HUD panels are repository CSS. Icons, portraits, projection overlays, and SVG fallback scenes are original vector resources created in this repository. The UI follows only the broad genre grammar of a restrained bottom command console with a clear central viewport.
+All HUD panels are repository CSS. Icons, projection overlays, and SVG fallback scenes are original vector resources created in this repository; the operative HUD portrait is the documented original external raster above. The UI follows only the broad genre grammar of a restrained bottom command console with a clear central viewport.

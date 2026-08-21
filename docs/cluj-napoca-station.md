@@ -2,9 +2,9 @@
 
 ## Scope
 
-The playable envelope is WGS84 west `23.58380`, east `23.59330`, south `46.78210`, north `46.78630`: approximately 725 × 467 metres. The eastern edge is slightly beyond the initial requested bound so the mapped passenger platforms are complete; the western side was tightened to avoid distant neighbourhood and yard content.
+The canonical source envelope is WGS84 west `23.58380`, east `23.59330`, south `46.78210`, north `46.78630`: approximately 725 × 467 metres. The visible and camera-constrained playable footprint is an octagonal subset recorded in `gameplay-authoring.json`. It cuts unsupported outer corners instead of presenting blank grey terrain or inventing filler buildings, trees, and streets. The eastern edge is slightly beyond the initial requested bound so the mapped passenger platforms are complete; the western side was tightened to avoid distant neighbourhood and yard content.
 
-The map includes the main station building and its mapped entrances, mapped passenger platforms, original approximate canopies, passenger tracks, Piața Gării, tram and bus stops, immediate public paths, mapped underground passenger passages, legitimate mapped rail crossings, visible barriers, nearby framing buildings, mapped trees, and transport furniture. Entrances are shown and labelled, but station interiors, construction/service areas, unrelated yards, and ordinary track beds are closed.
+The map includes the main station building and its mapped entrances, mapped passenger platforms, original approximate canopies, passenger tracks, Piața Gării, tram and bus stops, immediate public paths, mapped underground passenger passages, legitimate mapped rail crossings, visible barriers, nearby framing buildings, mapped trees, and transport furniture. Entrances are visible but station interiors, construction/service areas, unrelated yards, and ordinary track beds are closed. Location names and labels are not embedded in the world artwork; the HUD retains the current area and position, and legally required attribution remains visible.
 
 ## Geographic transform
 
@@ -42,7 +42,9 @@ All five mapped passenger-platform polygons are reachable from the forecourt. Pe
 
 ## Artwork and performance
 
-`tools/generate-cluj-station.ts` creates five original Gone SVG beauty views plus separate detail, occlusion, and extended backdrop SVGs. The artwork is generated from normalized OSM geometry with original colors, vector patterns, roofs, façades, ballast, track marks, canopies, trees, wet-surface treatment, signs, and Romanian labels. It does not trace or sample any map image.
+`tools/generate-cluj-station.ts` creates five original Gone SVG beauty views plus separate icon, occlusion, and extended backdrop SVGs. The artwork is generated from normalized OSM geometry with original colors, vector patterns, roofs, façades, ballast, track marks, canopies, trees, wet-surface treatment, and text-free transport/entrance symbols. It does not trace or sample any map image. Every generated layer is clipped to the editable source-supported footprint, leaving only the established dark backdrop beyond the trimmed map edge.
+
+The field operative uses an original eight-direction Blender atlas refined from `art/agent/references/gone-operative-turnaround.png`: dark weatherproof coat, charcoal knitwear and trousers, worn brown boots, and a practical satchel. Cluj declares a canonical visual height of `1.8 m` and the atlas records a measured 137-pixel visible idle silhouette. The runtime derives scale per view as `1.8 × projection scale ÷ 137`, yielding approximately 5.5 visible screen pixels at the default 3× tactical zoom and preserving the map's metre scale instead of making the character building-sized.
 
 Long geographic lines are clipped, coordinates are rounded, buildings are reduced to one footprint extrusion each, and navigation uses two-metre cells over selected public surfaces only. Exact building polygons keep closed interiors non-walkable; long fence and wall collisions are split into short local segments to avoid oversized bounding boxes. Location geometry remains in JSON; the generic runtime contains no Cluj coordinates or feature IDs.
 

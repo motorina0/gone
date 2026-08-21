@@ -23,7 +23,7 @@ export class HudController {
     const options = {signal: this.abortController.signal};
     const publicRoot = new URL(import.meta.env.BASE_URL, window.location.href);
     this.root.querySelector<HTMLImageElement>('[data-portrait]')!.src = new URL(
-      'ui/agent-portrait.svg',
+      'ui/agent-portrait.png',
       publicRoot,
     ).href;
     this.root.querySelectorAll<HTMLImageElement>('[data-icon]').forEach((icon) => {
