@@ -10,7 +10,10 @@ import type {
   Rect,
   WalkableArea,
 } from '../src/content/ContentTypes';
-import {GridNavigationService} from '../src/navigation/Pathfinding';
+import {
+  GridNavigationService,
+  MAX_UNASSISTED_ELEVATION_DELTA_METERS,
+} from '../src/navigation/Pathfinding';
 import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import {createProjection} from '../src/projection/Projection';
 import {entityScaleForProjection, projectedEntityHeight} from '../src/projection/EntityScale';
@@ -388,6 +391,38 @@ describe('single-operative exploration content', () => {
     expect(navigation.findPath(point(5, 5), {x: 5, y: 5, elevation: 7})).toEqual([]);
   });
 
+  it('crosses surface steps up to 0.4 metres and blocks larger unassisted steps', () => {
+    const routeAcrossStep = (elevation: number) => {
+      const navigation = new GridNavigationService(
+        {minX: 0, minY: 0, maxX: 8, maxY: 4},
+        [],
+        1,
+        [
+          {
+            id: 'lower-surface',
+            elevation: 0,
+            points: [point(0, 0), point(4, 0), point(4, 4), point(0, 4)],
+          },
+          {
+            id: 'raised-surface',
+            elevation,
+            points: [
+              {x: 4, y: 0, elevation},
+              {x: 8, y: 0, elevation},
+              {x: 8, y: 4, elevation},
+              {x: 4, y: 4, elevation},
+            ],
+          },
+        ],
+      );
+      return navigation.findPath(point(1, 2), {x: 7, y: 2, elevation});
+    };
+
+    expect(MAX_UNASSISTED_ELEVATION_DELTA_METERS).toBe(0.4);
+    expect(routeAcrossStep(0.4).length).toBeGreaterThan(0);
+    expect(routeAcrossStep(0.401)).toEqual([]);
+  });
+
   it('keeps smoothed Vatra routes continuously inside authored surfaces and blockers', () => {
     const resource = readJson<NavigationResource>(
       locationPath('vatra-central-station', 'navigation/walkable.json'),
@@ -598,9 +633,10 @@ describe('Cluj-Napoca station geographic content', () => {
       expect(navigation.isWalkable(destination), platform.id).toBe(true);
       expect(route.length, platform.id).toBeGreaterThan(2);
     }
-    expect(expandedNodes).toBeLessThan(35_000);
-    expect(walkabilityChecks).toBeLessThan(250_000);
-    expect(segmentSamples).toBeLessThan(200_000);
+    // The expanded topology now includes the surrounding road, parking, and tram network.
+    expect(expandedNodes).toBeLessThan(50_000);
+    expect(walkabilityChecks).toBeLessThan(350_000);
+    expect(segmentSamples).toBeLessThan(250_000);
 
     const platform = platforms.find((area) => area.id === 'platform-way-215798526')!;
     const route = navigation.findPath(world.spawns.player, areaCenter(platform));
@@ -616,7 +652,7 @@ describe('Cluj-Napoca station geographic content', () => {
     for (const offset of [0, -3.2, 0.55]) expect(offsets.has(offset), `${offset} m layer`).toBe(true);
   }, 30_000);
 
-  it('keeps station interiors, railway tracks, and tram tracks blocked except at mapped crossings', () => {
+  it('keeps station interiors and railway tracks blocked while opening vehicle and tram surfaces', () => {
     const resource = readJson<NavigationResource>(
       locationPath('cluj-napoca-station', 'navigation/walkable.json'),
     );
@@ -635,6 +671,14 @@ describe('Cluj-Napoca station geographic content', () => {
       (hazard) => hazard.id === 'closed-building-way-262209819',
     )!;
     const crossing = resource.areas.find((area) => area.id === 'crossing-central')!;
+    const vehicleArea = resource.areas.find(
+      (area) => area.id === 'vehicle-way-585508296-4',
+    )!;
+    const parkingArea = resource.areas.find(
+      (area) => area.id === 'vehicle-parking-way-156452300',
+    )!;
+    const tramAreas = resource.areas.filter((area) => area.id.startsWith('tram-'));
+    const vehicleAreas = resource.areas.filter((area) => area.id.startsWith('vehicle-'));
     const crossingCenter = areaCenter(crossing);
     const stationCenter = areaCenter({
       id: station.id,
@@ -656,6 +700,9 @@ describe('Cluj-Napoca station geographic content', () => {
       longitude: 23.5858139,
       latitude: 46.7838535,
     });
+    const world = readJson<{spawns: Record<string, WorldPoint>}>(
+      locationPath('cluj-napoca-station', 'world.json'),
+    );
 
     expect(
       navigation.resolveDestination(stationCenter),
@@ -663,10 +710,13 @@ describe('Cluj-Napoca station geographic content', () => {
     expect(
       navigation.resolveDestination(unmarkedTrack),
     ).toBeUndefined();
-    expect(navigation.resolveDestination(unmarkedTramTrack)).toBeUndefined();
+    expect(navigation.resolveDestination(unmarkedTramTrack)).toBeDefined();
     expect(navigation.resolveDestination(mappedTramCrossing)).toBeDefined();
     expect(
       resource.hazards!.some(({id}) => id.startsWith('track-way-380768280-')),
+    ).toBe(false);
+    expect(
+      resource.hazards!.some(({id}) => id.startsWith('track-way-215798263-')),
     ).toBe(true);
     expect(resource.hazards!.filter(({id}) => id.startsWith('track-')).length).toBeGreaterThan(
       3_000,
@@ -677,6 +727,18 @@ describe('Cluj-Napoca station geographic content', () => {
         .every((hazard) => hazard.minElevation !== undefined && hazard.maxElevation !== undefined),
     ).toBe(true);
     expect(navigation.isWalkable(crossingCenter)).toBe(true);
+    expect(vehicleAreas.length).toBeGreaterThan(350);
+    expect(tramAreas.length).toBeGreaterThan(90);
+    expect(navigation.resolveDestination(areaCenter(vehicleArea))).toBeDefined();
+    expect(navigation.resolveDestination(areaCenter(parkingArea))).toBeDefined();
+    for (const spawnId of ['vehicleAccess', 'tramAccess']) {
+      const destination = world.spawns[spawnId]!;
+      expect(navigation.resolveDestination(destination), spawnId).toBeDefined();
+      expect(
+        navigation.findPath(world.spawns.player!, destination).length,
+        spawnId,
+      ).toBeGreaterThan(0);
+    }
     expect(navigation.resolveDestination({...crossingCenter, elevation: 0})?.elevation).toBeCloseTo(
       crossingCenter.elevation,
       3,
@@ -1207,7 +1269,7 @@ describe('settings and camera behavior', () => {
     expect(store.load()).toEqual(DEFAULT_SETTINGS);
   });
 
-  it('persists one of five discrete tactical zoom levels', () => {
+  it('persists one of four shared zoom levels', () => {
     expect(DEFAULT_SETTINGS.zoom).toBe(3);
     let raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 99});
     const storage = {
@@ -1215,7 +1277,7 @@ describe('settings and camera behavior', () => {
       setItem: () => undefined,
     };
     const store = new SettingsStore(storage);
-    expect(store.load().zoom).toBe(5);
+    expect(store.load().zoom).toBe(4);
     raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: 0.35});
     expect(store.load().zoom).toBe(1);
     raw = JSON.stringify({...DEFAULT_SETTINGS, zoom: -1});
@@ -1380,7 +1442,7 @@ describe('settings and camera behavior', () => {
     expect(center.y).toBeCloseTo(320, 4);
   });
 
-  it('derives five in-map levels ending at a full-body operative close-up', () => {
+  it('derives four in-map tactical levels without the removed full-body close-up', () => {
     const polygon = [
       {x: 480, y: 40},
       {x: 930, y: 320},
@@ -1399,8 +1461,7 @@ describe('settings and camera behavior', () => {
     const ratio = levels[1]! / levels[0]!;
     expect(levels[2]! / levels[1]!).toBeCloseTo(ratio, 10);
     expect(levels[3]! / levels[2]!).toBeCloseTo(ratio, 10);
-    expect(levels[4]! / levels[3]!).toBeCloseTo(ratio, 10);
-    expect(levels[4]! * 1.8).toBeCloseTo(viewport.height * CLOSEUP_HEIGHT_FRACTION, 8);
+    expect(levels[3]! * 1.8).toBeLessThan(viewport.height * CLOSEUP_HEIGHT_FRACTION);
 
     const halfWidth = viewport.width / (2 * levels[0]!);
     const halfHeight = viewport.height / (2 * levels[0]!);
@@ -1417,7 +1478,7 @@ describe('settings and camera behavior', () => {
     }
   });
 
-  it('keeps all five Cluj levels footprint-safe and the operative in-frame in every perspective', () => {
+  it('keeps all four Cluj levels footprint-safe in every perspective', () => {
     const manifest = readJson<Manifest>(
       locationPath('cluj-napoca-station', 'manifest.json'),
     );
@@ -1460,41 +1521,9 @@ describe('settings and camera behavior', () => {
           }
         }
 
-        const closeZoom = levels[ZOOM_LEVEL_COUNT - 1]!;
-        const closeDefinition = manifest.agentCloseAnimation!;
-        const sourceOrigin = 0.94 * closeDefinition.frameHeight;
-        const sourceEnvelopeCenter =
-          (closeDefinition.firstVisibleRow + closeDefinition.lastVisibleRow) / 2;
-        const displayedPixelsPerSourcePixel =
-          entityScaleForProjection(manifest, resource, closeDefinition.visibleHeightPixels) *
-          closeZoom;
-        const targetAnchorY =
-          viewport.height / 2 +
-          (sourceOrigin - sourceEnvelopeCenter) * displayedPixelsPerSourcePixel;
-        const requested = {
-          x: player.x,
-          y: player.y - (targetAnchorY - viewport.height / 2) / closeZoom,
-        };
-        const closeCenter = constrainCameraToPolygon(
-          requested,
-          polygon,
-          viewport.width / (2 * closeZoom),
-          viewport.height / (2 * closeZoom),
-        );
-        const playerStage = {
-          x: viewport.width / 2 + (player.x - closeCenter.x) * closeZoom,
-          y: viewport.height / 2 + (player.y - closeCenter.y) * closeZoom,
-        };
-        expect(playerStage.x).toBeGreaterThan(0);
-        expect(playerStage.x).toBeLessThan(viewport.width);
         expect(
-          playerStage.y +
-            (closeDefinition.firstVisibleRow - sourceOrigin) * displayedPixelsPerSourcePixel,
-        ).toBeGreaterThanOrEqual(0);
-        expect(
-          playerStage.y +
-            (closeDefinition.lastVisibleRow - sourceOrigin) * displayedPixelsPerSourcePixel,
-        ).toBeLessThanOrEqual(viewport.height);
+          levels[ZOOM_LEVEL_COUNT - 1]! * projectedEntityHeight(manifest, resource),
+        ).toBeLessThan(viewport.height * CLOSEUP_HEIGHT_FRACTION);
       }
     }
   });

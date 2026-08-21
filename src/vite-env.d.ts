@@ -21,6 +21,13 @@ declare global {
         world: {x: number; y: number; elevation: number};
         screen: {x: number; y: number};
       };
+      testSpawns: Record<
+        string,
+        {
+          world: {x: number; y: number; elevation: number};
+          screen: {x: number; y: number};
+        }
+      >;
       playerScale: number;
       playerMoving: boolean;
       movementPace?: string;

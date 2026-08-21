@@ -1208,6 +1208,12 @@ export class GameScene extends Phaser.Scene {
                 screen: projection.worldToScreen(this.world.content.world.spawns.platformAccess),
               }
             : undefined,
+          testSpawns: Object.fromEntries(
+            Object.entries(this.world.content.world.spawns).map(([id, world]) => [
+              id,
+              {world: {...world}, screen: projection.worldToScreen(world)},
+            ]),
+          ),
         };
       },
     });

@@ -32,6 +32,8 @@ export interface PathSearchDiagnostics {
   segmentSamples: number;
 }
 
+export const MAX_UNASSISTED_ELEVATION_DELTA_METERS = 0.4;
+
 const key = ({x, y, elevation}: GridPoint): string => `${x},${y},${elevation.toFixed(4)}`;
 
 const heapPush = (heap: QueueEntry[], entry: QueueEntry): void => {
@@ -290,7 +292,7 @@ export class GridNavigationService implements NavigationService {
   }
 
   private surfaceStepLimit(): number {
-    return Math.min(0.4, Math.max(0.15, this.cellSize * 0.15));
+    return MAX_UNASSISTED_ELEVATION_DELTA_METERS;
   }
 
   private gridNodeAt(
@@ -393,16 +395,11 @@ export class GridNavigationService implements NavigationService {
     const distance = Math.hypot(end.x - start.x, end.y - start.y);
     const interval = Math.min(0.5, this.cellSize / 4);
     const samples = Math.max(1, Math.ceil(distance / interval));
-    for (let index = 0; index <= samples; index += 1) {
-      this.searchDiagnostics.segmentSamples += 1;
-      const amount = index / samples;
-      if (!this.isWalkable({
-        x: start.x + (end.x - start.x) * amount,
-        y: start.y + (end.y - start.y) * amount,
-        elevation: start.elevation + (end.elevation - start.elevation) * amount,
-      })) return false;
-    }
-    return true;
+    return this.sampledSegmentWalkable(
+      start,
+      end,
+      Array.from({length: samples + 1}, (_, index) => index / samples),
+    );
   }
 
   private localSegmentWalkable(start: WorldPoint, end: WorldPoint): boolean {
@@ -411,16 +408,37 @@ export class GridNavigationService implements NavigationService {
     const segmentKey = startKey < endKey ? `${startKey}|${endKey}` : `${endKey}|${startKey}`;
     const cached = this.localSegmentWalkableCache.get(segmentKey);
     if (cached !== undefined) return cached;
-    const walkable = [0.25, 0.5, 0.75].every((amount) => {
+    const walkable = this.sampledSegmentWalkable(start, end, [0.25, 0.5, 0.75, 1]);
+    this.localSegmentWalkableCache.set(segmentKey, walkable);
+    return walkable;
+  }
+
+  private sampledSegmentWalkable(
+    start: WorldPoint,
+    end: WorldPoint,
+    amounts: number[],
+  ): boolean {
+    let previous = start;
+    for (const amount of amounts) {
       this.searchDiagnostics.segmentSamples += 1;
-      return this.isWalkable({
+      const candidate = {
         x: start.x + (end.x - start.x) * amount,
         y: start.y + (end.y - start.y) * amount,
         elevation: start.elevation + (end.elevation - start.elevation) * amount,
-      });
-    });
-    this.localSegmentWalkableCache.set(segmentKey, walkable);
-    return walkable;
+      };
+      const surface = this.isWalkable(candidate)
+        ? candidate
+        : this.resolveDestination(candidate);
+      if (
+        !surface ||
+        Math.abs(surface.elevation - previous.elevation) >
+          MAX_UNASSISTED_ELEVATION_DELTA_METERS + 1e-7
+      ) {
+        return false;
+      }
+      previous = surface;
+    }
+    return true;
   }
 
   private smooth(path: WorldPoint[]): WorldPoint[] {

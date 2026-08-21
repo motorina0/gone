@@ -31,6 +31,32 @@
       [23.5838, 46.783]
     ]
   },
+  "navigationPolicy": {
+    "vehicleHighwayValues": [
+      "motorway",
+      "motorway_link",
+      "trunk",
+      "trunk_link",
+      "primary",
+      "primary_link",
+      "secondary",
+      "secondary_link",
+      "tertiary",
+      "tertiary_link",
+      "unclassified",
+      "residential",
+      "living_street",
+      "service",
+      "road"
+    ],
+    "includeParkingAreas": true,
+    "tramTracksWalkable": true,
+    "railwayTracksHazardous": true,
+    "maximumUnassistedElevationDeltaMeters": 0.4,
+    "representativeVehicleAreaId": "vehicle-way-23894014-6",
+    "representativeTramAreaId": "tram-way-585785544-2",
+    "note": "Every mapped surface open to motor vehicles or trams is authored as a human-walkable navigation surface. Railway tracks remain hazards except at mapped crossings; buildings, walls, and fences remain barriers. Surface elevation transitions up to and including 0.4 m require no authored stairs or ramp."
+  },
   "authoredGroundAreas": [
     {
       "id": "piata-garii-forecourt",
@@ -194,6 +220,6 @@
     "A short Peronul 1 connector bridges the six-metre mapping gap between the passenger footway and platform edge; its exact kerb or ramp form is unknown.",
     "The conflicting line representation of Peronul 1 is retained as source artwork but is not itself walkable where it overlaps mapped rail; mapped passenger links provide safe access to the platform polygon.",
     "The map footprint cuts unsupported outer corners from the source envelope instead of inventing filler buildings, vegetation, or surface detail.",
-    "Station interiors, service yards, and construction areas are intentionally inaccessible."
+    "Station interiors and construction areas are intentionally inaccessible. Mapped roads, parking areas, service ways, and tram corridors are walkable for the operative; railway tracks remain blocked except at legitimate mapped crossings."
   ]
 }

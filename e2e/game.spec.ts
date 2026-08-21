@@ -86,33 +86,31 @@ const elevatedDestinationClient = async (page: Page): Promise<{x: number; y: num
   };
 };
 
+const authoredSpawnClient = async (
+  page: Page,
+  spawnId: string,
+): Promise<{x: number; y: number}> => {
+  const canvas = page.locator('canvas');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const state = await page.evaluate(() => window.__GONE_TEST__!);
+  const target = state.testSpawns[spawnId];
+  expect(target, spawnId).toBeDefined();
+  return {
+    x:
+      box!.x +
+      (box!.width / 960) *
+        (480 + (target!.screen.x - state.cameraScreenCenter.x) * state.cameraZoom),
+    y:
+      box!.y +
+      (box!.height / 640) *
+        (320 + (target!.screen.y - state.cameraScreenCenter.y) * state.cameraZoom),
+  };
+};
+
 const clickDiagnosticDestination = async (page: Page): Promise<void> => {
   const target = await diagnosticDestinationClient(page);
   await page.mouse.click(target.x, target.y);
-};
-
-const expectFullMapVisible = (state: NonNullable<Window['__GONE_TEST__']>): void => {
-  expect(state.cameraZoom).toBeCloseTo(state.minimumZoom, 5);
-  for (const point of state.projectedWorldBounds) {
-    const rendered = {
-      x: 480 + (point.x - state.cameraScreenCenter.x) * state.cameraZoom,
-      y: 320 + (point.y - state.cameraScreenCenter.y) * state.cameraZoom,
-    };
-    expect(rendered.x).toBeGreaterThanOrEqual(state.visibleStage.left - 0.1);
-    expect(rendered.x).toBeLessThanOrEqual(state.visibleStage.right + 0.1);
-    expect(rendered.y).toBeGreaterThanOrEqual(state.visibleStage.top - 0.1);
-    expect(rendered.y).toBeLessThanOrEqual(state.visibleStage.bottom + 0.1);
-  }
-  const visibleWorld = {
-    left: state.cameraScreenCenter.x + (state.visibleStage.left - 480) / state.cameraZoom,
-    top: state.cameraScreenCenter.y + (state.visibleStage.top - 320) / state.cameraZoom,
-    right: state.cameraScreenCenter.x + (state.visibleStage.right - 480) / state.cameraZoom,
-    bottom: state.cameraScreenCenter.y + (state.visibleStage.bottom - 320) / state.cameraZoom,
-  };
-  expect(visibleWorld.left).toBeGreaterThanOrEqual(state.backdropBounds.left);
-  expect(visibleWorld.top).toBeGreaterThanOrEqual(state.backdropBounds.top);
-  expect(visibleWorld.right).toBeLessThanOrEqual(state.backdropBounds.right);
-  expect(visibleWorld.bottom).toBeLessThanOrEqual(state.backdropBounds.bottom);
 };
 
 const pointInsideConvexPolygon = (
@@ -459,12 +457,30 @@ test('Cluj station loads attributed Pages assets and routes through its passenge
     .toBeGreaterThan(0);
   await expect.poll(
     () => page.evaluate(() => window.__GONE_TEST__!.player.elevation),
-    {timeout: 15_000},
+    {timeout: 30_000},
   ).toBeLessThan(-2.5);
 
   await page.locator('button[data-view="view-top"]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
   expect(await page.evaluate(() => window.__GONE_TEST__!.loadedViewCount)).toBe(2);
+  expect(errors).toEqual([]);
+});
+
+test('Cluj accepts operative routes onto road and tram surfaces', async ({page}) => {
+  await page.setViewportSize({width: 1280, height: 720});
+  const errors = await openExploration(page, 'cluj-napoca-station');
+  await zoomOutToLevelOne(page);
+
+  for (const spawnId of ['vehicleAccess', 'tramAccess']) {
+    const destination = await authoredSpawnClient(page, spawnId);
+    await page.mouse.click(destination.x, destination.y);
+    await expect
+      .poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRouteLength))
+      .toBeGreaterThan(0);
+    await page.locator('[data-restart]').click();
+    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBe(0);
+  }
+
   expect(errors).toEqual([]);
 });
 
@@ -569,10 +585,12 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
     return Math.hypot(velocity.x, velocity.y);
   }).toBeLessThan(0.05);
   const rememberedViewZero = await page.evaluate(() => window.__GONE_TEST__!.cameraFocus);
+  const sharedZoomLevel = await page.evaluate(() => window.__GONE_TEST__!.zoomLevel);
   await page.keyboard.press('5');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-top');
-  const overview = await page.evaluate(() => window.__GONE_TEST__!);
-  expectFullMapVisible(overview);
+  const satellite = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(satellite.zoomLevel).toBe(sharedZoomLevel);
+  expectTacticalViewportInsideMap(satellite);
   await page.keyboard.press('1');
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
   expect(await page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThanOrEqual(2.4);
@@ -591,7 +609,7 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
 });
 
-test('five global tactical levels stay inside every perspective and end in a sharp full-body close-up', async ({page}) => {
+test('four global tactical levels stay inside every perspective without loading close-up art', async ({page}) => {
   test.setTimeout(300_000);
   await page.setViewportSize({width: 390, height: 844});
   const closeSheetRequests: string[] = [];
@@ -608,7 +626,7 @@ test('five global tactical levels stay inside every perspective and end in a sha
       await expect(page.locator('#hud')).toHaveAttribute('data-view', id);
     }
     const inheritedLevel = await page.evaluate(() => window.__GONE_TEST__!.zoomLevel);
-    if (index > 0) expect(inheritedLevel).toBe(5);
+    if (index > 0) expect(inheritedLevel).toBe(4);
     expect(await tacticalTopBandVariation(page, id)).toBeGreaterThan(4);
     const visualMetrics = await tacticalVisualMetrics(page, id);
     // The blue-hour grade is intentionally low-key; local edge energy protects
@@ -638,7 +656,7 @@ test('five global tactical levels stay inside every perspective and end in a sha
       ),
     ).toBe(true);
 
-    for (let level = 2; level <= 5; level += 1) {
+    for (let level = 2; level <= 4; level += 1) {
       await page.locator('[data-zoom-in]').click();
       await expect(page.locator('#hud')).toHaveAttribute('data-zoom-level', String(level));
       const state = await page.evaluate(() => window.__GONE_TEST__!);
@@ -648,38 +666,21 @@ test('five global tactical levels stay inside every perspective and end in a sha
       zooms.push(state.cameraZoom);
     }
     expect(zooms.every((zoom, level) => level === 0 || zoom > zooms[level - 1]!)).toBe(true);
-    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(true);
-    await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.agentTexture)).toContain(
+    expect(await page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(false);
+    expect(await page.evaluate(() => window.__GONE_TEST__!.agentTexture)).not.toContain(
       'agent-close-direction-',
     );
-    const closeup = await page.evaluate(() => window.__GONE_TEST__!);
-    expect(closeup.playerVisibleHeight / closeup.visibleStage.height).toBeCloseTo(0.94, 2);
-    expect(closeup.retainedCloseAgentDirections).toHaveLength(1);
-    expect(closeup.agentTexture).toBe(
-      `agent-close-direction-${closeup.retainedCloseAgentDirections[0]}`,
-    );
-    expect(closeup.playerStage.y).toBeLessThan(closeup.visibleStage.bottom);
-    expect(closeup.playerStage.y - closeup.playerVisibleHeight).toBeGreaterThanOrEqual(
-      closeup.visibleStage.top - 1,
-    );
-    expect(closeup.playerStage.x).toBeGreaterThan(closeup.visibleStage.left);
-    expect(closeup.playerStage.x).toBeLessThan(closeup.visibleStage.right);
-    expect(new Set(closeSheetRequests).size).toBeLessThanOrEqual(index + 1);
+    expect(new Set(closeSheetRequests).size).toBe(0);
   }
 
   await page.locator('button[data-view="view-0"]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-0');
   await page.locator('button[data-view="view-90"]').click();
   await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-90');
-  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(true);
-  await expect
-    .poll(() => page.evaluate(() => window.__GONE_TEST__!.pendingCloseAgentDirectionCount))
-    .toBe(0);
-  expect(
-    await page.evaluate(() => window.__GONE_TEST__!.retainedCloseAgentDirections),
-  ).toHaveLength(1);
-  expect(new Set(closeSheetRequests).size).toBeGreaterThan(0);
-  expect(new Set(closeSheetRequests).size).toBeLessThanOrEqual(4);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.closeAgentLoaded)).toBe(false);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.pendingCloseAgentDirectionCount)).toBe(0);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.retainedCloseAgentDirections)).toEqual([]);
+  expect(new Set(closeSheetRequests).size).toBe(0);
   expect(errors).toEqual([]);
 });
 

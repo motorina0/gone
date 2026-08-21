@@ -13,6 +13,7 @@ import type {
   WorldResource,
 } from '../src/content/ContentTypes';
 import type {WorldPoint} from '../src/world/WorldTypes';
+import {MAX_UNASSISTED_ELEVATION_DELTA_METERS} from '../src/navigation/Pathfinding';
 
 type Coordinate = [number, number];
 type Geometry =
@@ -107,6 +108,16 @@ interface GameplayAuthoring {
     note: string;
   };
   renderFootprint: AuthoredFootprint;
+  navigationPolicy: {
+    vehicleHighwayValues: string[];
+    includeParkingAreas: boolean;
+    tramTracksWalkable: boolean;
+    railwayTracksHazardous: boolean;
+    maximumUnassistedElevationDeltaMeters: number;
+    representativeVehicleAreaId: string;
+    representativeTramAreaId: string;
+    note: string;
+  };
   authoredGroundAreas: AuthoredArea[];
   legitimateRailCrossings: AuthoredCrossing[];
   passengerPlatformLinks: PassengerPlatformLink[];
@@ -411,6 +422,37 @@ const publicFootways = osm.features.filter(
     feature.tags.level !== '-1' &&
     !['private', 'no'].includes(feature.tags.access ?? ''),
 );
+const vehicleHighwayValues = new Set(authoring.navigationPolicy.vehicleHighwayValues);
+const vehicleWays = osm.features.filter(
+  (feature) =>
+    feature.geometry.type === 'LineString' &&
+    vehicleHighwayValues.has(feature.tags.highway ?? '') &&
+    feature.tags.access !== 'no' &&
+    feature.tags.vehicle !== 'no' &&
+    feature.tags.motor_vehicle !== 'no' &&
+    feature.tags.tunnel !== 'yes' &&
+    feature.tags.layer !== '-1',
+);
+const parkingFeatures = authoring.navigationPolicy.includeParkingAreas
+  ? osm.features.filter(
+      (feature) =>
+        feature.geometry.type === 'Polygon' &&
+        feature.tags.amenity === 'parking' &&
+        feature.tags.access !== 'no',
+    )
+  : [];
+const tramFeatures = authoring.navigationPolicy.tramTracksWalkable
+  ? activeRailFeatures.filter((feature) => feature.tags.railway === 'tram')
+  : [];
+
+if (
+  authoring.navigationPolicy.maximumUnassistedElevationDeltaMeters !==
+  MAX_UNASSISTED_ELEVATION_DELTA_METERS
+) {
+  throw new Error(
+    `Cluj navigation policy must match the shared ${MAX_UNASSISTED_ELEVATION_DELTA_METERS} m surface-step rule.`,
+  );
+}
 
 const walkableAreas: NavigationResource['areas'] = [];
 const addArea = (id: string, elevationOffset: number, points: WorldPoint[]): void => {
@@ -467,6 +509,47 @@ for (const feature of publicFootways) {
   }
 }
 
+for (const feature of vehicleWays) {
+  const line = lineWorld(feature, authoring.elevationModel.ground);
+  const width = roadWidth(feature);
+  for (let index = 0; index < line.length - 1; index += 1) {
+    addArea(
+      `vehicle-${feature.id.replace('/', '-')}-${index + 1}`,
+      authoring.elevationModel.ground,
+      bufferSegment(
+        line[index]!,
+        line[index + 1]!,
+        width,
+        authoring.elevationModel.ground,
+      ),
+    );
+  }
+}
+
+for (const feature of parkingFeatures) {
+  addArea(
+    `vehicle-parking-${feature.id.replace('/', '-')}`,
+    authoring.elevationModel.ground,
+    polygonWorld(feature, authoring.elevationModel.ground),
+  );
+}
+
+for (const feature of tramFeatures) {
+  const line = lineWorld(feature, authoring.elevationModel.trackBed);
+  for (let index = 0; index < line.length - 1; index += 1) {
+    addArea(
+      `tram-${feature.id.replace('/', '-')}-${index + 1}`,
+      authoring.elevationModel.trackBed,
+      bufferSegment(
+        line[index]!,
+        line[index + 1]!,
+        4,
+        authoring.elevationModel.trackBed,
+      ),
+    );
+  }
+}
+
 const platformPolygons: WorldPoint[][] = [];
 for (const feature of platformFeatures) {
   if (feature.geometry.type === 'Polygon') {
@@ -484,7 +567,9 @@ const safeRailCrossingPolygons: WorldPoint[][] = [];
 for (const feature of osm.features.filter(
   (candidate) =>
     candidate.geometry.type === 'Point' &&
-    ['tram_crossing', 'tram_level_crossing'].includes(candidate.tags.railway ?? ''),
+    ['crossing', 'level_crossing', 'tram_crossing', 'tram_level_crossing'].includes(
+      candidate.tags.railway ?? '',
+    ),
 )) {
   if (feature.geometry.type !== 'Point') continue;
   const point = coordinateToWorld(feature.geometry.coordinates, authoring.elevationModel.ground);
@@ -758,6 +843,12 @@ const outsideFootprintHazards: NavigationHazard[] = [
 
 const trackHazards: NavigationHazard[] = [];
 for (const feature of activeRailFeatures) {
+  if (feature.tags.railway === 'tram' && authoring.navigationPolicy.tramTracksWalkable) {
+    continue;
+  }
+  if (feature.tags.railway === 'rail' && !authoring.navigationPolicy.railwayTracksHazardous) {
+    continue;
+  }
   const line = lineWorld(feature, authoring.elevationModel.trackBed);
   const hazardWidth = feature.tags.railway === 'tram' ? 2.4 : 3.4;
   for (let index = 0; index < line.length - 1; index += 1) {
@@ -805,6 +896,18 @@ for (const feature of activeRailFeatures) {
 
 const playerSpawn = pointToWorld(authoring.playerSpawn, authoring.playerSpawn.elevation);
 const anchorWorld = pointToWorld(authoring.anchor);
+const representativeAreaCenter = (id: string): WorldPoint => {
+  const area = walkableAreas.find((candidate) => candidate.id === id);
+  if (!area) throw new Error(`Missing representative navigation area ${id}.`);
+  const center = centroid(area.points);
+  return {x: round(center.x), y: round(center.y), elevation: round(center.elevation)};
+};
+const vehicleAccessPoint = representativeAreaCenter(
+  authoring.navigationPolicy.representativeVehicleAreaId,
+);
+const tramAccessPoint = representativeAreaCenter(
+  authoring.navigationPolicy.representativeTramAreaId,
+);
 const elevatedTestArea = walkableAreas.find((area) => area.id === 'platform-way-215798526');
 if (!elevatedTestArea) throw new Error('Expected the OSM Peronul 2;3 polygon.');
 const platformAccessPoint = {
@@ -814,7 +917,7 @@ const platformAccessPoint = {
 const navigation: NavigationResource & {schemaVersion: string} = {
   schemaVersion: '1.0.0',
   id: 'cluj-napoca-station-walkable',
-  name: 'Zone pietonale, peroane și pasaje pentru călători',
+  name: 'Zone pietonale, carosabile, tramvai, peroane și pasaje pentru călători',
   cellSize: 2,
   bounds: worldBounds,
   areas: walkableAreas,
@@ -828,7 +931,12 @@ const world: WorldResource & {schemaVersion: string} = {
   name: 'Gara Cluj-Napoca',
   bounds: worldBounds,
   footprint: mapFootprint,
-  spawns: {player: playerSpawn, platformAccess: platformAccessPoint},
+  spawns: {
+    player: playerSpawn,
+    platformAccess: platformAccessPoint,
+    vehicleAccess: vehicleAccessPoint,
+    tramAccess: tramAccessPoint,
+  },
   exchange: playerSpawn,
   package: playerSpawn,
   extraction: playerSpawn,
@@ -1198,13 +1306,13 @@ const colorForLand = (feature: SourceFeature): string => {
   if (feature.tags.landuse === 'garages') return '#4d5350';
   return '#515b56';
 };
-const roadWidth = (feature: SourceFeature): number => {
+function roadWidth(feature: SourceFeature): number {
   if (feature.tags.highway === 'primary') return Number(feature.tags.lanes ?? 2) * 3.2;
   if (['secondary', 'tertiary'].includes(feature.tags.highway ?? '')) return 7;
   if (['residential', 'service'].includes(feature.tags.highway ?? '')) return 5;
   if (['footway', 'pedestrian', 'steps', 'path'].includes(feature.tags.highway ?? '')) return 2.2;
   return 4;
-};
+}
 const roadColor = (feature: SourceFeature): string =>
   ['footway', 'pedestrian', 'steps', 'path'].includes(feature.tags.highway ?? '')
     ? '#969489'

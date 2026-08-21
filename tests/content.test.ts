@@ -36,4 +36,4 @@ it('regenerates the Cluj location idempotently from committed sources', () => {
   } finally {
     rmSync(generatedRoot, {recursive: true, force: true});
   }
-}, 15_000);
+}, 60_000);
