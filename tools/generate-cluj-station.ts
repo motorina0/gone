@@ -1,10 +1,12 @@
-import {copyFile, mkdir, readFile, writeFile} from 'node:fs/promises';
+import {copyFile, mkdir, readFile, stat, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import {createLocalGeoTransform} from '../src/geography/LocalGeoTransform';
 import type {
   EnvironmentLandmark,
   EnvironmentResource,
+  HighResolutionTile,
+  HighResolutionView,
   NavigationConnection,
   NavigationHazard,
   NavigationResource,
@@ -163,6 +165,7 @@ interface TerrainSource {
 const projectRoot = path.resolve('.');
 const sourceRoot = path.join(projectRoot, 'data/cluj-napoca-station');
 const outputArgumentIndex = process.argv.indexOf('--output');
+const skipHighResolution = process.argv.includes('--skip-high-resolution');
 if (outputArgumentIndex >= 0 && !process.argv[outputArgumentIndex + 1]) {
   throw new Error('--output requires a destination directory.');
 }
@@ -344,6 +347,116 @@ const writeRasterPair = async (
     writeBinary(`png/${layer}/${id}.png`, png),
     writeBinary(`raster/${layer}/${id}.webp`, webp),
   ]);
+};
+
+const HIGH_RESOLUTION_STAGE = {width: 960, height: 640};
+const HIGH_RESOLUTION_TILE_SIZE = 2048;
+const HIGH_RESOLUTION_BUNDLE_SIZE = 32 * 1024 * 1024;
+const HIGH_RESOLUTION_SCALES = [2, 4, 8, 16] as const;
+interface HighResolutionJob {
+  svg: string;
+  tile: HighResolutionTile;
+  renderX: number;
+  renderY: number;
+  renderWidth: number;
+  renderHeight: number;
+  pixelWidth: number;
+  pixelHeight: number;
+}
+const highResolutionJobs: HighResolutionJob[] = [];
+const highResolutionViews: HighResolutionView[] = projectionsPlaceholder();
+const highResolutionDetails: HighResolutionView[] = projectionsPlaceholder();
+const highResolutionOcclusion: HighResolutionView[] = projectionsPlaceholder();
+
+function projectionsPlaceholder(): HighResolutionView[] {
+  return Array.from({length: 5}, () => ({levels: []}));
+}
+
+const queueHighResolutionView = (
+  svg: string,
+  target: HighResolutionView,
+): void => {
+  for (const [index, sourceScale] of HIGH_RESOLUTION_SCALES.entries()) {
+    const level = index + 1;
+    const logicalTileSize = HIGH_RESOLUTION_TILE_SIZE / sourceScale;
+    const tiles: HighResolutionTile[] = [];
+    for (let y = 0; y < HIGH_RESOLUTION_STAGE.height; y += logicalTileSize) {
+      for (let x = 0; x < HIGH_RESOLUTION_STAGE.width; x += logicalTileSize) {
+        const width = Math.min(logicalTileSize, HIGH_RESOLUTION_STAGE.width - x);
+        const height = Math.min(logicalTileSize, HIGH_RESOLUTION_STAGE.height - y);
+        const bleed = 1 / sourceScale;
+        const renderX = Math.max(0, x - bleed);
+        const renderY = Math.max(0, y - bleed);
+        const renderRight = Math.min(HIGH_RESOLUTION_STAGE.width, x + width + bleed);
+        const renderBottom = Math.min(HIGH_RESOLUTION_STAGE.height, y + height + bleed);
+        const renderWidth = renderRight - renderX;
+        const renderHeight = renderBottom - renderY;
+        const tile: HighResolutionTile = {
+          x,
+          y,
+          width,
+          height,
+          bundle: 0,
+          offset: 0,
+          bytes: 0,
+          cropX: Math.round((x - renderX) * sourceScale),
+          cropY: Math.round((y - renderY) * sourceScale),
+        };
+        tiles.push(tile);
+        highResolutionJobs.push({
+          svg,
+          tile,
+          renderX,
+          renderY,
+          renderWidth,
+          renderHeight,
+          pixelWidth: Math.round(renderWidth * sourceScale),
+          pixelHeight: Math.round(renderHeight * sourceScale),
+        });
+      }
+    }
+    target.levels.push({level, sourceScale, tiles});
+  }
+};
+
+const cropSvgForTile = (job: HighResolutionJob): string => {
+  const match = job.svg.match(/^<svg\s+([^>]*)>/);
+  if (!match) throw new Error('Generated map layer does not begin with an SVG root.');
+  const attributes = match[1]!.replace(/\s(?:width|height|viewBox)="[^"]*"/g, '');
+  const root = `<svg ${attributes} width="${job.pixelWidth}" height="${job.pixelHeight}" viewBox="${job.renderX} ${job.renderY} ${job.renderWidth} ${job.renderHeight}">`;
+  return job.svg.replace(/^<svg\s+[^>]*>/, root);
+};
+
+const renderHighResolutionBundles = async (): Promise<Buffer[]> => {
+  const results: Buffer[] = Array.from({length: highResolutionJobs.length});
+  let cursor = 0;
+  const worker = async (): Promise<void> => {
+    while (cursor < highResolutionJobs.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await sharp(Buffer.from(cropSvgForTile(highResolutionJobs[index]!)))
+        .png({compressionLevel: 6})
+        .toBuffer();
+    }
+  };
+  await Promise.all(Array.from({length: 4}, worker));
+  const bundles: Buffer[][] = [[]];
+  const bundleSizes = [0];
+  for (const [index, job] of highResolutionJobs.entries()) {
+    const result = results[index]!;
+    let bundle = bundles.length - 1;
+    if (bundleSizes[bundle]! > 0 && bundleSizes[bundle]! + result.byteLength > HIGH_RESOLUTION_BUNDLE_SIZE) {
+      bundles.push([]);
+      bundleSizes.push(0);
+      bundle += 1;
+    }
+    job.tile.bundle = bundle;
+    job.tile.offset = bundleSizes[bundle]!;
+    job.tile.bytes = result.byteLength;
+    bundles[bundle]!.push(result);
+    bundleSizes[bundle] = bundleSizes[bundle]! + result.byteLength;
+  }
+  return bundles.map((parts, index) => Buffer.concat(parts, bundleSizes[index]));
 };
 
 const projectionMatrices: Array<{
@@ -1211,7 +1324,6 @@ const manifest = {
   entityWorldHeightMeters: 1.8,
 };
 
-await writeJson('manifest.json', manifest);
 await writeJson('world.json', world);
 await writeJson('environment.json', environment);
 await writeJson('navigation/walkable.json', navigation);
@@ -1545,6 +1657,9 @@ for (const [viewIndex, projection] of projections.entries()) {
       .replace('fill="#17201c"', `fill="#${gray}${gray}${gray}"`)
       .replace(/ opacity="[^"]+"/, '');
   }).join('')}</svg>`;
+  queueHighResolutionView(beautySvg, highResolutionViews[viewIndex]!);
+  queueHighResolutionView(detailSvg, highResolutionDetails[viewIndex]!);
+  queueHighResolutionView(occlusionSvg, highResolutionOcclusion[viewIndex]!);
   await writeText(sourceViewPaths[viewIndex]!, beautySvg);
   await copyFile(
     path.join(trialRuntimeRoot, `${projection.id}.webp`),
@@ -1561,6 +1676,54 @@ for (const [viewIndex, projection] of projections.entries()) {
     writeRasterPair('occlusion', projection.id, occlusionSvg),
     writeRasterPair('depth', projection.id, depthSvg),
   ]);
+}
+
+if (skipHighResolution) {
+  await writeJson('manifest.json', manifest);
+} else {
+  const highResolutionBundleBuffers = await renderHighResolutionBundles();
+  const highResolutionBundles = highResolutionBundleBuffers.map((_, index) => ({
+    path: `high-resolution/tiles-${index}.bin`,
+    mimeType: 'image/png',
+  }));
+  await Promise.all(
+    highResolutionBundleBuffers.map((bundle, index) =>
+      writeBinary(highResolutionBundles[index]!.path, bundle),
+    ),
+  );
+
+  const preloadPaths = new Set([
+    ...viewPaths,
+    ...sourceViewPaths,
+    ...rasterViewPaths,
+    ...rasterBackdropPaths,
+    ...rasterOcclusionPaths,
+    ...rasterDetailPaths,
+    ...rasterDepthPaths,
+    'sprites/agent-atlas.png',
+    ...agentClosePaths,
+    ...highResolutionBundles.map((bundle) => bundle.path),
+  ]);
+  const preloadAssets = await Promise.all(
+    [...preloadPaths].sort().map(async (assetPath) => ({
+      path: assetPath,
+      bytes: (await stat(path.join(locationRoot, assetPath))).size,
+    })),
+  );
+  await writeJson('manifest.json', {
+    ...manifest,
+    highResolution: {
+      stageWidth: HIGH_RESOLUTION_STAGE.width,
+      stageHeight: HIGH_RESOLUTION_STAGE.height,
+      tileSize: HIGH_RESOLUTION_TILE_SIZE,
+      bundles: highResolutionBundles,
+      renderingIds: ['svg', 'raster'],
+      views: highResolutionViews,
+      detailOverlays: highResolutionDetails,
+      occlusion: highResolutionOcclusion,
+    },
+    preloadAssets,
+  });
 }
 
 console.log(

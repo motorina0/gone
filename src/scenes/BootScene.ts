@@ -3,6 +3,12 @@ import {loadLocation} from '../content/ContentLoader';
 import {validateLoadedContent} from '../content/ContentValidation';
 import {SettingsStore} from '../persistence/SettingsStore';
 import {VIEW_IDS} from '../views/ViewManager';
+import {preloadAssets, resolvePreloadedAsset} from '../assets/AssetPreloader';
+import {
+  hideLoadingScreen,
+  markLoadingScreenPreparing,
+  updateLoadingScreen,
+} from '../ui/LoadingOverlay';
 
 export class BootScene extends Phaser.Scene {
   constructor(private locationId: string) {
@@ -18,6 +24,8 @@ export class BootScene extends Phaser.Scene {
       const content = await loadLocation(this.locationId);
       const errors = validateLoadedContent(content);
       if (errors.length) throw new Error(errors.join(' '));
+      await preloadAssets(content.preloadAssets, updateLoadingScreen);
+      markLoadingScreenPreparing();
 
       this.registry.set('content', content);
       const preferredView = new SettingsStore().load().preferredView;
@@ -26,15 +34,30 @@ export class BootScene extends Phaser.Scene {
         VIEW_IDS.findIndex((viewId) => viewId === preferredView),
       );
       this.registry.set('initialViewIndex', initialViewIndex);
-      this.load.image(`backdrop-${initialViewIndex}`, content.backdrops[initialViewIndex]!);
-      this.load.image(`background-${initialViewIndex}`, content.views[initialViewIndex]!);
-      this.load.image(`occlusion-${initialViewIndex}`, content.occlusion[initialViewIndex]!);
-      this.load.image(`detail-${initialViewIndex}`, content.detailOverlays[initialViewIndex]!);
-      this.load.spritesheet('agent-atlas', content.agentAtlas, {
+      this.load.image(
+        `backdrop-${initialViewIndex}`,
+        resolvePreloadedAsset(content.backdrops[initialViewIndex]!),
+      );
+      this.load.image(
+        `background-${initialViewIndex}`,
+        resolvePreloadedAsset(content.views[initialViewIndex]!),
+      );
+      this.load.image(
+        `occlusion-${initialViewIndex}`,
+        resolvePreloadedAsset(content.occlusion[initialViewIndex]!),
+      );
+      this.load.image(
+        `detail-${initialViewIndex}`,
+        resolvePreloadedAsset(content.detailOverlays[initialViewIndex]!),
+      );
+      this.load.spritesheet('agent-atlas', resolvePreloadedAsset(content.agentAtlas), {
         frameWidth: content.manifest.agentAnimation.frameWidth,
         frameHeight: content.manifest.agentAnimation.frameHeight,
       });
-      this.load.once(Phaser.Loader.Events.COMPLETE, () => this.scene.start('game'));
+      this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+        this.scene.start('game');
+        hideLoadingScreen();
+      });
       this.load.start();
     } catch (error) {
       this.game.events.emit('boot-error', error);

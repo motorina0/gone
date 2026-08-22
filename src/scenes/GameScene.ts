@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type {LoadedContent} from '../content/ContentTypes';
+import type {HighResolutionView, LoadedContent} from '../content/ContentTypes';
 import {WorldState} from '../world/WorldState';
 import type {MovementPace, WorldPoint} from '../world/WorldTypes';
 import {GameClock} from '../world/GameClock';
@@ -30,6 +30,7 @@ import {
   ZOOM_LEVEL_COUNT,
 } from '../views/ZoomLevels';
 import {overlayWorldMetrics, type OverlayWorldMetrics} from '../views/OverlayScale';
+import {resolveBundledAsset, resolvePreloadedAsset} from '../assets/AssetPreloader';
 
 const SATELLITE_BASE_ZOOM = 0.1;
 const TACTICAL_INITIAL_ZOOM = 3;
@@ -51,6 +52,11 @@ interface TapRecord {
   y: number;
 }
 
+interface ActiveHighResolutionTile {
+  image: Phaser.GameObjects.Image;
+  textureKey: string;
+}
+
 export class GameScene extends Phaser.Scene {
   private world!: WorldState;
   private projections!: ProjectionService;
@@ -63,6 +69,19 @@ export class GameScene extends Phaser.Scene {
   private backdrop!: Phaser.GameObjects.Image;
   private detail!: Phaser.GameObjects.Image;
   private foreground!: Phaser.GameObjects.Image;
+  private highResolutionBackground!: Phaser.GameObjects.Container;
+  private highResolutionDetail!: Phaser.GameObjects.Container;
+  private highResolutionForeground!: Phaser.GameObjects.Container;
+  private readonly highResolutionTiles = {
+    background: new Map<string, ActiveHighResolutionTile>(),
+    detail: new Map<string, ActiveHighResolutionTile>(),
+    foreground: new Map<string, ActiveHighResolutionTile>(),
+  };
+  private highResolutionSignature = '';
+  private highResolutionRequest = 0;
+  private highResolutionSourceScale = 0;
+  private readonly textureLoads = new Map<string, Promise<void>>();
+  private readonly highResolutionDesiredTextures = new Set<string>();
   private hud!: HudController;
   private pointerStart?: {x: number; y: number; time: number};
   private pointerLast?: {x: number; y: number};
@@ -168,6 +187,9 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0)
       .setDisplaySize(APP_WIDTH, APP_HEIGHT)
       .setDepth(5);
+    this.highResolutionBackground = this.add.container(0, 0).setDepth(0).setVisible(false);
+    this.highResolutionDetail = this.add.container(0, 0).setDepth(1).setVisible(false);
+    this.highResolutionForeground = this.add.container(0, 0).setDepth(5).setVisible(false);
 
     this.input.mouse?.disableContextMenu();
     this.input.addPointer(2);
@@ -207,6 +229,7 @@ export class GameScene extends Phaser.Scene {
     this.updateCameraNavigation(cameraElapsed);
     this.clock.advance(Math.min(delta / 1000, 0.1), (dt) => this.step(dt));
     this.renderWorld();
+    void this.refreshHighResolutionTiles();
     this.hud.render(
       this.world,
       this.following || this.isCloseup(),
@@ -252,7 +275,7 @@ export class GameScene extends Phaser.Scene {
         pointer.x - this.pointerStart.x,
         pointer.y - this.pointerStart.y,
       );
-      if (moved > TAP_DISTANCE) this.panning = true;
+      if (moved > TAP_DISTANCE * this.renderResolution()) this.panning = true;
       if (this.panning && this.pointerLast) {
         this.setFollowing(false);
         const camera = this.cameras.main;
@@ -270,7 +293,7 @@ export class GameScene extends Phaser.Scene {
       const tap =
         !this.panning &&
         Math.hypot(pointer.x - this.pointerStart.x, pointer.y - this.pointerStart.y) <
-          TAP_DISTANCE &&
+          TAP_DISTANCE * this.renderResolution() &&
         performance.now() - this.pointerStart.time < 500;
       this.pointerStart = undefined;
       this.pointerLast = undefined;
@@ -298,7 +321,7 @@ export class GameScene extends Phaser.Scene {
     );
     if (this.pinchDistance > 0) {
       const change = distance - this.pinchDistance;
-      if (Math.abs(change) >= PINCH_ZOOM_THRESHOLD) {
+      if (Math.abs(change) >= PINCH_ZOOM_THRESHOLD * this.renderResolution()) {
         const centerX = (touches[0]!.x + touches[1]!.x) / 2;
         const centerY = (touches[0]!.y + touches[1]!.y) / 2;
         this.adjustZoom(change > 0 ? 1 : -1, {x: centerX, y: centerY});
@@ -503,7 +526,8 @@ export class GameScene extends Phaser.Scene {
     const camera = this.cameras.main;
     const canvas = this.game.canvas.getBoundingClientRect();
     const container = this.getPlayableContainerRect();
-    const visible = visibleStageRect(canvas, container, APP_WIDTH, APP_HEIGHT);
+    const stage = this.renderStageSize();
+    const visible = visibleStageRect(canvas, container, stage.width, stage.height);
     if (!this.mapPolygon.length || visible.width <= 0 || visible.height <= 0) return;
     const levels = this.cameraZoomLevels(visible.width, visible.height);
     const nextZoom = levels[this.tacticalZoomLevel - 1]!;
@@ -584,6 +608,14 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  private renderStageSize(): {width: number; height: number} {
+    return {width: this.scale.gameSize.width, height: this.scale.gameSize.height};
+  }
+
+  private renderResolution(): number {
+    return this.scale.gameSize.width / APP_WIDTH;
+  }
+
   private adjustZoom(delta: number, anchor?: ScreenPoint): void {
     const nextLevel = Phaser.Math.Clamp(
       this.tacticalZoomLevel + Math.sign(delta),
@@ -593,11 +625,12 @@ export class GameScene extends Phaser.Scene {
     if (nextLevel === this.tacticalZoomLevel) return;
     const camera = this.cameras.main;
     const canvas = this.game.canvas.getBoundingClientRect();
+    const stage = this.renderStageSize();
     const visible = visibleStageRect(
       canvas,
       this.getPlayableContainerRect(),
-      APP_WIDTH,
-      APP_HEIGHT,
+      stage.width,
+      stage.height,
     );
     const levels = this.cameraZoomLevels(visible.width, visible.height);
     const nextZoom = levels[nextLevel - 1]!;
@@ -624,6 +657,7 @@ export class GameScene extends Phaser.Scene {
     this.constrainCamera();
     this.saveSettings();
     this.world.session.message = `Camera zoom level ${nextLevel} of ${ZOOM_LEVEL_COUNT}.`;
+    void this.refreshHighResolutionTiles();
   }
 
   private async switchView(id: ViewId): Promise<void> {
@@ -692,6 +726,7 @@ export class GameScene extends Phaser.Scene {
     this.settings.preferredView = id;
     this.saveSettings();
     this.renderWorld();
+    void this.refreshHighResolutionTiles();
   }
 
   private projectionResource(id: string) {
@@ -761,6 +796,7 @@ export class GameScene extends Phaser.Scene {
       .setDisplaySize(APP_WIDTH, APP_HEIGHT);
     this.world.session.message = `${this.renderingById(id)!.label} rendering ready.`;
     this.renderWorld();
+    void this.refreshHighResolutionTiles();
   }
 
   private ensureViewLoaded(index: number): Promise<void> {
@@ -775,9 +811,243 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private async refreshHighResolutionTiles(): Promise<void> {
+    const highResolution = this.world.content.highResolution;
+    const viewIndex = VIEW_IDS.indexOf(this.world.activeView as ViewId);
+    if (
+      !highResolution ||
+      viewIndex < 0 ||
+      !highResolution.renderingIds.includes(this.activeRenderingId)
+    ) {
+      this.disableHighResolutionTiles(`fallback:${this.activeRenderingId}:${viewIndex}`);
+      return;
+    }
+
+    const backgroundView = highResolution.views[viewIndex];
+    const detailView = highResolution.detailOverlays[viewIndex];
+    const foregroundView = highResolution.occlusion[viewIndex];
+    if (!backgroundView || !detailView || !foregroundView) {
+      this.disableHighResolutionTiles(`fallback:missing:${viewIndex}`);
+      return;
+    }
+    const level = this.tacticalZoomLevel;
+    const camera = this.cameras.main;
+    const stage = this.renderStageSize();
+    const visible = visibleStageRect(
+      this.game.canvas.getBoundingClientRect(),
+      this.getPlayableContainerRect(),
+      stage.width,
+      stage.height,
+    );
+    const visibleOffset = {
+      x: (visible.left + visible.right) / 2 - camera.centerX,
+      y: (visible.top + visible.bottom) / 2 - camera.centerY,
+    };
+    const center = {
+      x: camera.scrollX + camera.width / 2 + visibleOffset.x / camera.zoom,
+      y: camera.scrollY + camera.height / 2 + visibleOffset.y / camera.zoom,
+    };
+    const margin = 4;
+    const bounds = {
+      left: center.x - visible.width / (2 * camera.zoom) - margin,
+      top: center.y - visible.height / (2 * camera.zoom) - margin,
+      right: center.x + visible.width / (2 * camera.zoom) + margin,
+      bottom: center.y + visible.height / (2 * camera.zoom) + margin,
+    };
+    const visibleTiles = (view: HighResolutionView) => {
+      const definition = view.levels.find((candidate) => candidate.level === level);
+      return {
+        definition,
+        tiles:
+          definition?.tiles.filter(
+            (tile) =>
+              tile.x < bounds.right &&
+              tile.x + tile.width > bounds.left &&
+              tile.y < bounds.bottom &&
+              tile.y + tile.height > bounds.top,
+          ) ?? [],
+      };
+    };
+    const background = visibleTiles(backgroundView);
+    const detail = visibleTiles(detailView);
+    const foreground = visibleTiles(foregroundView);
+    if (!background.definition || !detail.definition || !foreground.definition) {
+      this.disableHighResolutionTiles(`fallback:level:${level}:${viewIndex}`);
+      return;
+    }
+    const signature = [
+      viewIndex,
+      level,
+      ...background.tiles.map((tile) => `${tile.bundle}/${tile.offset}`),
+      '|',
+      ...detail.tiles.map((tile) => `${tile.bundle}/${tile.offset}`),
+      '|',
+      ...foreground.tiles.map((tile) => `${tile.bundle}/${tile.offset}`),
+    ].join(':');
+    if (signature === this.highResolutionSignature) return;
+    this.highResolutionSignature = signature;
+    const request = ++this.highResolutionRequest;
+    this.showFallbackLayers();
+
+    const layers = [
+      {name: 'background' as const, tiles: background.tiles},
+      {name: 'detail' as const, tiles: detail.tiles},
+      {name: 'foreground' as const, tiles: foreground.tiles},
+    ];
+    const requestedTextureKeys = new Set<string>();
+    try {
+      const requests = layers.flatMap(({name, tiles}) =>
+          tiles.map((tile) => {
+            const bundle = highResolution.bundles[tile.bundle];
+            if (!bundle) throw new Error(`Missing high-resolution bundle ${tile.bundle}.`);
+            const textureKey = `high-resolution-${tile.bundle}-${tile.offset}-${tile.bytes}`;
+            requestedTextureKeys.add(textureKey);
+            const url = resolveBundledAsset(
+              bundle.url,
+              tile.offset,
+              tile.bytes,
+              bundle.mimeType,
+            );
+            return this.loadTexture(textureKey, url).then(() => ({name, tile, textureKey}));
+          }),
+        );
+      this.highResolutionDesiredTextures.clear();
+      for (const textureKey of requestedTextureKeys) {
+        this.highResolutionDesiredTextures.add(textureKey);
+      }
+      const results = await Promise.allSettled(requests);
+      const failure = results.find((result) => result.status === 'rejected');
+      if (failure?.status === 'rejected') throw failure.reason;
+      if (request !== this.highResolutionRequest) {
+        this.removeUnusedHighResolutionTextures(requestedTextureKeys);
+        return;
+      }
+      for (const layer of layers) {
+        const sourceScale =
+          layer.name === 'background'
+            ? background.definition.sourceScale
+            : layer.name === 'detail'
+              ? detail.definition.sourceScale
+              : foreground.definition.sourceScale;
+        this.installHighResolutionLayer(layer.name, layer.tiles, sourceScale);
+      }
+      this.highResolutionSourceScale = background.definition.sourceScale;
+      this.background.setVisible(false);
+      this.detail.setVisible(false);
+      this.foreground.setVisible(false);
+      this.highResolutionBackground.setVisible(true);
+      this.highResolutionDetail.setVisible(true);
+      this.highResolutionForeground.setVisible(true);
+    } catch (error) {
+      if (request === this.highResolutionRequest) {
+        this.highResolutionSignature = '';
+        this.highResolutionDesiredTextures.clear();
+        this.showFallbackLayers();
+      }
+      this.removeUnusedHighResolutionTextures(requestedTextureKeys);
+      console.error(error);
+    }
+  }
+
+  private installHighResolutionLayer(
+    name: keyof typeof this.highResolutionTiles,
+    tiles: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      bundle: number;
+      offset: number;
+      bytes: number;
+      cropX: number;
+      cropY: number;
+    }>,
+    sourceScale: number,
+  ): void {
+    const active = this.highResolutionTiles[name];
+    const container =
+      name === 'background'
+        ? this.highResolutionBackground
+        : name === 'detail'
+          ? this.highResolutionDetail
+          : this.highResolutionForeground;
+    const desired = new Set(tiles.map((tile) => `${tile.bundle}/${tile.offset}`));
+    for (const [id, current] of active) {
+      if (desired.has(id)) continue;
+      current.image.destroy();
+      active.delete(id);
+      if (this.textures.exists(current.textureKey)) this.textures.remove(current.textureKey);
+    }
+    for (const tile of tiles) {
+      const id = `${tile.bundle}/${tile.offset}`;
+      if (active.has(id)) continue;
+      const textureKey = `high-resolution-${tile.bundle}-${tile.offset}-${tile.bytes}`;
+      const image = this.add
+        .image(tile.x, tile.y, textureKey)
+        .setOrigin(0)
+        .setCrop(
+          tile.cropX,
+          tile.cropY,
+          Math.round(tile.width * sourceScale),
+          Math.round(tile.height * sourceScale),
+        )
+        .setScale(1 / sourceScale);
+      container.add(image);
+      active.set(id, {image, textureKey});
+    }
+  }
+
+  private showFallbackLayers(): void {
+    this.background.setVisible(true);
+    this.detail.setVisible(true);
+    this.foreground.setVisible(true);
+    this.highResolutionBackground.setVisible(false);
+    this.highResolutionDetail.setVisible(false);
+    this.highResolutionForeground.setVisible(false);
+  }
+
+  private removeUnusedHighResolutionTextures(candidates: Iterable<string>): void {
+    const activeTextureKeys = this.activeHighResolutionTextureKeys();
+    for (const textureKey of candidates) {
+      if (
+        !this.highResolutionDesiredTextures.has(textureKey) &&
+        !activeTextureKeys.has(textureKey) &&
+        this.textures.exists(textureKey)
+      ) {
+        this.textures.remove(textureKey);
+      }
+    }
+  }
+
+  private activeHighResolutionTextureKeys(): Set<string> {
+    return new Set(
+      Object.values(this.highResolutionTiles).flatMap((tiles) =>
+        [...tiles.values()].map((tile) => tile.textureKey),
+      ),
+    );
+  }
+
+  private disableHighResolutionTiles(signature: string): void {
+    if (this.highResolutionSignature === signature) return;
+    this.highResolutionSignature = signature;
+    this.highResolutionRequest += 1;
+    this.highResolutionSourceScale = 0;
+    this.highResolutionDesiredTextures.clear();
+    this.showFallbackLayers();
+    for (const active of Object.values(this.highResolutionTiles)) {
+      for (const current of active.values()) {
+        current.image.destroy();
+        if (this.textures.exists(current.textureKey)) this.textures.remove(current.textureKey);
+      }
+      active.clear();
+    }
+  }
+
   private loadTexture(key: string, url: string): Promise<void> {
     if (this.textures.exists(key)) return Promise.resolve();
-    return new Promise((resolve, reject) => {
+    const pending = this.textureLoads.get(key);
+    if (pending) return pending;
+    const load = new Promise<void>((resolve, reject) => {
       const image = new Image();
       image.decoding = 'async';
       image.onload = () => {
@@ -785,8 +1055,11 @@ export class GameScene extends Phaser.Scene {
         resolve();
       };
       image.onerror = () => reject(new Error(`Failed to load texture: ${url}`));
-      image.src = url;
+      image.src = resolvePreloadedAsset(url);
     });
+    const tracked = load.finally(() => this.textureLoads.delete(key));
+    this.textureLoads.set(key, tracked);
+    return tracked;
   }
 
   private ensureCloseAgentLoaded(direction: number): Promise<void> {
@@ -840,7 +1113,7 @@ export class GameScene extends Phaser.Scene {
         resolve();
       };
       image.onerror = () => reject(new Error(`Failed to load sprite sheet: ${url}`));
-      image.src = url;
+      image.src = resolvePreloadedAsset(url);
     });
   }
 
@@ -863,11 +1136,12 @@ export class GameScene extends Phaser.Scene {
     let horizontal = Number(Boolean(this.cursors?.right.isDown)) - Number(Boolean(this.cursors?.left.isDown));
     let vertical = Number(Boolean(this.cursors?.down.isDown)) - Number(Boolean(this.cursors?.up.isDown));
     if (this.edgePointer && !this.pointerStart) {
+      const stage = this.renderStageSize();
       const visible = visibleStageRect(
         this.game.canvas.getBoundingClientRect(),
         this.getPlayableContainerRect(),
-        APP_WIDTH,
-        APP_HEIGHT,
+        stage.width,
+        stage.height,
       );
       const insidePlayable =
         this.edgePointer.x >= visible.left &&
@@ -875,10 +1149,11 @@ export class GameScene extends Phaser.Scene {
         this.edgePointer.y >= visible.top &&
         this.edgePointer.y <= visible.bottom;
       if (insidePlayable) {
-        if (this.edgePointer.x <= visible.left + EDGE_SCROLL_ZONE) horizontal -= 1;
-        if (this.edgePointer.x >= visible.right - EDGE_SCROLL_ZONE) horizontal += 1;
-        if (this.edgePointer.y <= visible.top + EDGE_SCROLL_ZONE) vertical -= 1;
-        if (this.edgePointer.y >= visible.bottom - EDGE_SCROLL_ZONE) vertical += 1;
+        const edgeZone = EDGE_SCROLL_ZONE * this.renderResolution();
+        if (this.edgePointer.x <= visible.left + edgeZone) horizontal -= 1;
+        if (this.edgePointer.x >= visible.right - edgeZone) horizontal += 1;
+        if (this.edgePointer.y <= visible.top + edgeZone) vertical -= 1;
+        if (this.edgePointer.y >= visible.bottom - edgeZone) vertical += 1;
       }
     }
     const magnitude = Math.hypot(horizontal, vertical);
@@ -1081,11 +1356,11 @@ export class GameScene extends Phaser.Scene {
           playerScreen: projection.worldToScreen(player.position),
           playerStage: {
             x:
-              APP_WIDTH / 2 +
+              this.cameras.main.width / 2 +
               (projection.worldToScreen(player.position).x - this.cameras.main.midPoint.x) *
                 this.cameras.main.zoom,
             y:
-              APP_HEIGHT / 2 +
+              this.cameras.main.height / 2 +
               (projection.worldToScreen(player.position).y - this.cameras.main.midPoint.y) *
                 this.cameras.main.zoom,
           },
@@ -1100,6 +1375,18 @@ export class GameScene extends Phaser.Scene {
           cameraZoom: this.world.camera.zoom,
           minimumZoom: this.minimumZoom,
           zoomLevel: this.tacticalZoomLevel,
+          activeRenderingId: this.activeRenderingId,
+          highResolutionTileCount: Object.values(this.highResolutionTiles).reduce(
+            (total, tiles) => total + tiles.size,
+            0,
+          ),
+          highResolutionSourceScale: this.highResolutionSourceScale,
+          highResolutionOrphanTextureCount: this.textures
+            .getTextureKeys()
+            .filter((key) => key.startsWith('high-resolution-'))
+            .filter((key) => !this.activeHighResolutionTextureKeys().has(key)).length,
+          renderResolution: this.renderResolution(),
+          canvasBackingSize: {width: this.game.canvas.width, height: this.game.canvas.height},
           playerDisplayHeight: this.sprite.displayHeight * this.cameras.main.zoom,
           playerVisibleHeight:
             this.sprite.displayHeight *
@@ -1138,12 +1425,15 @@ export class GameScene extends Phaser.Scene {
             right: this.backdrop.x + this.backdrop.displayWidth / 2,
             bottom: this.backdrop.y + this.backdrop.displayHeight / 2,
           },
-          visibleStage: visibleStageRect(
-            this.game.canvas.getBoundingClientRect(),
-            this.getPlayableContainerRect(),
-            APP_WIDTH,
-            APP_HEIGHT,
-          ),
+          visibleStage: (() => {
+            const stage = this.renderStageSize();
+            return visibleStageRect(
+              this.game.canvas.getBoundingClientRect(),
+              this.getPlayableContainerRect(),
+              stage.width,
+              stage.height,
+            );
+          })(),
           testDestination: [20, 40]
             .flatMap((distance) => [
               {

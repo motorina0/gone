@@ -100,6 +100,48 @@
         "required": ["id", "label", "views"]
       }
     },
+    "highResolution": {
+      "type": "object",
+      "properties": {
+        "stageWidth": {"type": "integer", "minimum": 1},
+        "stageHeight": {"type": "integer", "minimum": 1},
+        "tileSize": {"type": "integer", "minimum": 256},
+        "bundles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "mimeType": {"const": "image/png"}
+            },
+            "required": ["path", "mimeType"],
+            "additionalProperties": false
+          }
+        },
+        "renderingIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "views": {"$ref": "#/$defs/highResolutionViews"},
+        "detailOverlays": {"$ref": "#/$defs/highResolutionViews"},
+        "occlusion": {"$ref": "#/$defs/highResolutionViews"}
+      },
+      "required": ["stageWidth", "stageHeight", "tileSize", "bundles", "renderingIds", "views", "detailOverlays", "occlusion"]
+    },
+    "preloadAssets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "bytes": {"type": "integer", "minimum": 1}
+        },
+        "required": ["path", "bytes"],
+        "additionalProperties": false
+      }
+    },
     "agentAtlas": {"type": "string"},
     "agentCloseAtlases": {
       "type": "array",
@@ -144,6 +186,54 @@
       "type": "number",
       "exclusiveMinimum": 0,
       "maximum": 3
+    }
+  },
+  "$defs": {
+    "highResolutionViews": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "properties": {
+          "levels": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {"type": "integer", "minimum": 1, "maximum": 4},
+                "sourceScale": {"type": "number", "minimum": 1},
+                "tiles": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "x": {"type": "number", "minimum": 0},
+                      "y": {"type": "number", "minimum": 0},
+                      "width": {"type": "number", "exclusiveMinimum": 0},
+                      "height": {"type": "number", "exclusiveMinimum": 0},
+                      "bundle": {"type": "integer", "minimum": 0},
+                      "offset": {"type": "integer", "minimum": 0},
+                      "bytes": {"type": "integer", "minimum": 1},
+                      "cropX": {"type": "integer", "minimum": 0, "maximum": 1},
+                      "cropY": {"type": "integer", "minimum": 0, "maximum": 1}
+                    },
+                    "required": ["x", "y", "width", "height", "bundle", "offset", "bytes", "cropX", "cropY"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["level", "sourceScale", "tiles"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["levels"],
+        "additionalProperties": false
+      }
     }
   },
   "required": [

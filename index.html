@@ -20,6 +20,18 @@
         </div>
       </section>
 
+      <section class="loading-screen" data-loading-screen aria-live="polite" hidden>
+        <div>
+          <small>FIELD OPERATIONS / MAP LOAD</small>
+          <h1 data-loading-location>Selected area</h1>
+          <p data-loading-status>Preparing selected map…</p>
+          <div class="loading-meter">
+            <progress data-loading-progress max="1" value="0"></progress>
+            <output data-loading-percentage>0%</output>
+          </div>
+        </div>
+      </section>
+
       <div id="game" aria-label="Tactical exploration map"></div>
 
       <p class="orientation-hint" role="note">

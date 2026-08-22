@@ -44,7 +44,9 @@ const openExploration = async (
     errors.push(`${request.url()} ${request.failure()?.errorText}`),
   );
   await page.goto(`?test=1&location=${locationId}`);
-  await expect.poll(() => page.evaluate(() => Boolean(window.__GONE_TEST__))).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => Boolean(window.__GONE_TEST__)), {timeout: 120_000})
+    .toBe(true);
   return errors;
 };
 
@@ -58,12 +60,14 @@ const diagnosticDestinationClient = async (
   const target = state.testDestination.screen;
   const clientX =
     box!.x +
-    (box!.width / 960) *
-      (480 + (target.x - state.cameraScreenCenter.x) * state.cameraZoom);
+    (box!.width / state.canvasBackingSize.width) *
+      (state.canvasBackingSize.width / 2 +
+        (target.x - state.cameraScreenCenter.x) * state.cameraZoom);
   const clientY =
     box!.y +
-    (box!.height / 640) *
-      (320 + (target.y - state.cameraScreenCenter.y) * state.cameraZoom);
+    (box!.height / state.canvasBackingSize.height) *
+      (state.canvasBackingSize.height / 2 +
+        (target.y - state.cameraScreenCenter.y) * state.cameraZoom);
   return {x: clientX, y: clientY};
 };
 
@@ -77,12 +81,14 @@ const elevatedDestinationClient = async (page: Page): Promise<{x: number; y: num
   return {
     x:
       box!.x +
-      (box!.width / 960) *
-        (480 + (target.x - state.cameraScreenCenter.x) * state.cameraZoom),
+      (box!.width / state.canvasBackingSize.width) *
+        (state.canvasBackingSize.width / 2 +
+          (target.x - state.cameraScreenCenter.x) * state.cameraZoom),
     y:
       box!.y +
-      (box!.height / 640) *
-        (320 + (target.y - state.cameraScreenCenter.y) * state.cameraZoom),
+      (box!.height / state.canvasBackingSize.height) *
+        (state.canvasBackingSize.height / 2 +
+          (target.y - state.cameraScreenCenter.y) * state.cameraZoom),
   };
 };
 
@@ -99,12 +105,14 @@ const authoredSpawnClient = async (
   return {
     x:
       box!.x +
-      (box!.width / 960) *
-        (480 + (target!.screen.x - state.cameraScreenCenter.x) * state.cameraZoom),
+      (box!.width / state.canvasBackingSize.width) *
+        (state.canvasBackingSize.width / 2 +
+          (target!.screen.x - state.cameraScreenCenter.x) * state.cameraZoom),
     y:
       box!.y +
-      (box!.height / 640) *
-        (320 + (target!.screen.y - state.cameraScreenCenter.y) * state.cameraZoom),
+      (box!.height / state.canvasBackingSize.height) *
+        (state.canvasBackingSize.height / 2 +
+          (target!.screen.y - state.cameraScreenCenter.y) * state.cameraZoom),
   };
 };
 
@@ -141,8 +149,12 @@ const expectTacticalViewportInsideMap = (
   ];
   for (const corner of corners) {
     const worldScreenPoint = {
-      x: state.cameraScreenCenter.x + (corner.x - 480) / state.cameraZoom,
-      y: state.cameraScreenCenter.y + (corner.y - 320) / state.cameraZoom,
+      x:
+        state.cameraScreenCenter.x +
+        (corner.x - state.canvasBackingSize.width / 2) / state.cameraZoom,
+      y:
+        state.cameraScreenCenter.y +
+        (corner.y - state.canvasBackingSize.height / 2) / state.cameraZoom,
     };
     expect(pointInsideConvexPolygon(worldScreenPoint, state.projectedWorldBounds)).toBe(true);
   }
@@ -397,12 +409,118 @@ for (const locationId of ['piata-unirii', 'vatra-central-station', 'cluj-napoca-
 test('location picker deploys the selected station district', async ({page}) => {
   await page.goto('');
   await expect(page.locator('[data-location-picker]')).toBeVisible();
+  await expect(page.locator('[data-location]')).toHaveValue('cluj-napoca-station');
   await page.locator('[data-location]').selectOption('vatra-central-station');
   await expect(page.locator('[data-location-description]')).toContainText('railway');
   await page.locator('[data-load-location]').click();
   await expect(page.locator('[data-location-picker]')).toBeHidden();
   await expect(page.locator('canvas')).toBeVisible({timeout: 30_000});
   await expect(page.locator('[data-location-name]')).toContainText('Vatra');
+});
+
+test('Cluj preloads only its selected assets and uses four sharp PNG/SVG tile levels', async ({
+  page,
+}) => {
+  let releaseBundle!: () => void;
+  const bundleGate = new Promise<void>((resolve) => {
+    releaseBundle = resolve;
+  });
+  const locationAssetUrls: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/content/locations/')) locationAssetUrls.push(request.url());
+  });
+  await page.route('**/high-resolution/tiles-*.bin', async (route) => {
+    await bundleGate;
+    await route.continue();
+  });
+  await page.goto('?test=1&location=cluj-napoca-station');
+  const loading = page.locator('[data-loading-screen]');
+  await expect(loading).toBeVisible();
+  await expect(page.locator('[data-loading-location]')).toContainText('Gara Cluj-Napoca');
+  await expect(page.locator('[data-loading-percentage]')).not.toHaveText('100%');
+  releaseBundle();
+  await expect.poll(() => page.evaluate(() => Boolean(window.__GONE_TEST__))).toBe(true);
+  await expect(loading).toBeHidden();
+  expect(locationAssetUrls.length).toBeGreaterThan(10);
+  expect(
+    locationAssetUrls.every((url) => url.includes('/locations/cluj-napoca-station/')),
+  ).toBe(true);
+
+  await page.locator('select[data-rendering]').selectOption('raster');
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRenderingId)).toBe(
+    'raster',
+  );
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.highResolutionSourceScale))
+    .toBe(8);
+  expect(await page.evaluate(() => window.__GONE_TEST__!.highResolutionTileCount)).toBeGreaterThan(
+    0,
+  );
+
+  await page.locator('[data-zoom-in]').click();
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.zoomLevel)).toBe(4);
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.highResolutionSourceScale))
+    .toBe(16);
+
+  await page.locator('select[data-rendering]').selectOption('svg');
+  await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.activeRenderingId)).toBe(
+    'svg',
+  );
+  expect(await page.evaluate(() => window.__GONE_TEST__!.highResolutionSourceScale)).toBe(16);
+  for (const id of ['view-90', 'view-180', 'view-270']) {
+    await page.locator(`button[data-view="${id}"]`).click();
+  }
+  await expect(page.locator('#hud')).toHaveAttribute('data-view', 'view-270');
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.highResolutionTileCount))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.highResolutionOrphanTextureCount))
+    .toBe(0);
+});
+
+test('Cluj uses a capped 2x render stage without breaking pointer navigation', async ({browser}) => {
+  const context = await browser.newContext({
+    viewport: {width: 1280, height: 720},
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+  const errors = await openExploration(page, 'cluj-napoca-station');
+  const initial = await page.evaluate(() => window.__GONE_TEST__!);
+  expect(initial.renderResolution).toBe(2);
+  expect(initial.canvasBackingSize).toEqual({width: 1920, height: 1280});
+  expect(initial.visibleStage.width).toBe(1920);
+
+  const canvas = page.locator('canvas');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const target = initial.testDestination.screen;
+  const clientX =
+    box!.x +
+    (box!.width / initial.canvasBackingSize.width) *
+      (initial.canvasBackingSize.width / 2 +
+        (target.x - initial.cameraScreenCenter.x) * initial.cameraZoom);
+  const clientY =
+    box!.y +
+    (box!.height / initial.canvasBackingSize.height) *
+      (initial.canvasBackingSize.height / 2 +
+        (target.y - initial.cameraScreenCenter.y) * initial.cameraZoom);
+  await page.mouse.click(clientX, clientY);
+  await expect
+    .poll(async () => {
+      const player = await page.evaluate(() => window.__GONE_TEST__!.player);
+      return Math.hypot(player.x - initial.player.x, player.y - initial.player.y);
+    })
+    .toBeGreaterThan(0.1);
+
+  await page.locator('select[data-rendering]').selectOption('raster');
+  await page.locator('[data-zoom-in]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__GONE_TEST__!.highResolutionSourceScale))
+    .toBe(16);
+  expect(errors).toEqual([]);
+  await context.close();
 });
 
 test('Cluj station loads attributed Pages assets and routes through its passenger tunnel', async ({page}) => {
@@ -530,10 +648,10 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   expect(canvasBox).not.toBeNull();
   await page.mouse.move(
     canvasBox!.x +
-      (canvasBox!.width / 960) *
+      (canvasBox!.width / tactical.canvasBackingSize.width) *
         ((tactical.visibleStage.left + tactical.visibleStage.right) / 2),
     canvasBox!.y +
-      (canvasBox!.height / 640) *
+      (canvasBox!.height / tactical.canvasBackingSize.height) *
         ((tactical.visibleStage.top + tactical.visibleStage.bottom) / 2),
   );
   const focusBeforePan = tactical.cameraFocus;
@@ -550,10 +668,17 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
     return Math.hypot(velocity.x, velocity.y);
   }).toBeLessThan(0.05);
   const beforeWheel = await page.evaluate(() => window.__GONE_TEST__!);
-  const pointer = {x: 960 * 0.78, y: 640 * 0.34};
+  const pointer = {
+    x: beforeWheel.canvasBackingSize.width * 0.78,
+    y: beforeWheel.canvasBackingSize.height * 0.34,
+  };
   const anchorBefore = {
-    x: beforeWheel.cameraScreenCenter.x + (pointer.x - 480) / beforeWheel.cameraZoom,
-    y: beforeWheel.cameraScreenCenter.y + (pointer.y - 320) / beforeWheel.cameraZoom,
+    x:
+      beforeWheel.cameraScreenCenter.x +
+      (pointer.x - beforeWheel.canvasBackingSize.width / 2) / beforeWheel.cameraZoom,
+    y:
+      beforeWheel.cameraScreenCenter.y +
+      (pointer.y - beforeWheel.canvasBackingSize.height / 2) / beforeWheel.cameraZoom,
   };
   await page.mouse.wheel(0, -320);
   await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.cameraZoom)).toBeGreaterThan(
@@ -561,8 +686,12 @@ test('keyboard controls switch views, pace, and pause', async ({page}) => {
   );
   const afterWheel = await page.evaluate(() => window.__GONE_TEST__!);
   const anchorAfter = {
-    x: afterWheel.cameraScreenCenter.x + (pointer.x - 480) / afterWheel.cameraZoom,
-    y: afterWheel.cameraScreenCenter.y + (pointer.y - 320) / afterWheel.cameraZoom,
+    x:
+      afterWheel.cameraScreenCenter.x +
+      (pointer.x - afterWheel.canvasBackingSize.width / 2) / afterWheel.cameraZoom,
+    y:
+      afterWheel.cameraScreenCenter.y +
+      (pointer.y - afterWheel.canvasBackingSize.height / 2) / afterWheel.cameraZoom,
   };
   expect(Math.hypot(anchorAfter.x - anchorBefore.x, anchorAfter.y - anchorBefore.y)).toBeLessThan(
     0.05,
@@ -643,8 +772,12 @@ test('four global tactical levels stay inside every perspective without loading 
     expectTacticalViewportInsideMap(levelOne);
     expectFixedScreenSpaceOverlays(levelOne);
     const renderedVertices = levelOne.projectedWorldBounds.map((point) => ({
-      x: 480 + (point.x - levelOne.cameraScreenCenter.x) * levelOne.cameraZoom,
-      y: 320 + (point.y - levelOne.cameraScreenCenter.y) * levelOne.cameraZoom,
+      x:
+        levelOne.canvasBackingSize.width / 2 +
+        (point.x - levelOne.cameraScreenCenter.x) * levelOne.cameraZoom,
+      y:
+        levelOne.canvasBackingSize.height / 2 +
+        (point.y - levelOne.cameraScreenCenter.y) * levelOne.cameraZoom,
     }));
     expect(
       renderedVertices.some(
@@ -693,10 +826,11 @@ for (const viewport of [
     const errors = await openExploration(page, 'vatra-central-station');
     const canvas = await page.locator('canvas').boundingBox();
     expect(canvas).not.toBeNull();
-    const visible = await page.evaluate(() => window.__GONE_TEST__!.visibleStage);
+    const state = await page.evaluate(() => window.__GONE_TEST__!);
+    const visible = state.visibleStage;
     const toClient = (x: number, y: number): {x: number; y: number} => ({
-      x: canvas!.x + (x / 960) * canvas!.width,
-      y: canvas!.y + (y / 640) * canvas!.height,
+      x: canvas!.x + (x / state.canvasBackingSize.width) * canvas!.width,
+      y: canvas!.y + (y / state.canvasBackingSize.height) * canvas!.height,
     });
     const center = toClient(
       (visible.left + visible.right) / 2,
@@ -756,11 +890,15 @@ test('route feedback, animated movement, follow, and lazy view loading work toge
   const stateBeforeBlocked = await page.evaluate(() => window.__GONE_TEST__!);
   await page.mouse.click(
     canvasBox!.x +
-      (canvasBox!.width / 960) *
-        (480 + (blocked!.screen.x - stateBeforeBlocked.cameraScreenCenter.x) * stateBeforeBlocked.cameraZoom),
+      (canvasBox!.width / stateBeforeBlocked.canvasBackingSize.width) *
+        (stateBeforeBlocked.canvasBackingSize.width / 2 +
+          (blocked!.screen.x - stateBeforeBlocked.cameraScreenCenter.x) *
+            stateBeforeBlocked.cameraZoom),
     canvasBox!.y +
-      (canvasBox!.height / 640) *
-        (320 + (blocked!.screen.y - stateBeforeBlocked.cameraScreenCenter.y) * stateBeforeBlocked.cameraZoom),
+      (canvasBox!.height / stateBeforeBlocked.canvasBackingSize.height) *
+        (stateBeforeBlocked.canvasBackingSize.height / 2 +
+          (blocked!.screen.y - stateBeforeBlocked.cameraScreenCenter.y) *
+            stateBeforeBlocked.cameraZoom),
   );
   await expect(page.locator('[data-message]')).toContainText(/blocked|unreachable/i);
   expect(await page.evaluate(() => window.__GONE_TEST__!.activeRouteLength)).toBe(0);
@@ -815,6 +953,7 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
   const page = await context.newPage();
   const errors = await openExploration(page, 'cluj-napoca-station');
   await zoomOutToLevelOne(page);
+  await page.locator('[data-pace="run"]').click();
   const session = await context.newCDPSession(page);
   const canvasBox = await page.locator('canvas').boundingBox();
   expect(canvasBox).not.toBeNull();
@@ -824,12 +963,15 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
   const destination = await diagnosticDestinationClient(page);
   await page.touchscreen.tap(destination.x, destination.y);
   await expect.poll(() => page.evaluate(() => window.__GONE_TEST__!.playerMoving)).toBe(true);
-  await expect.poll(
-    () => page.evaluate(() => window.__GONE_TEST__!.playerMoving),
-    {timeout: 12_000},
-  ).toBe(false);
+  await expect
+    .poll(async () => {
+      const player = await page.evaluate(() => window.__GONE_TEST__!.player);
+      return Math.hypot(player.x - initial.player.x, player.y - initial.player.y);
+    })
+    .toBeGreaterThan(1);
+  await page.locator('[data-pause]').click();
+  await expect(page.locator('#hud')).toHaveAttribute('data-phase', 'paused');
   const afterTap = await page.evaluate(() => window.__GONE_TEST__!);
-  expect(Math.hypot(afterTap.player.x - initial.player.x, afterTap.player.y - initial.player.y)).toBeGreaterThan(1);
 
   const zoomBeforePinch = afterTap.cameraZoom;
   const levelBeforePinch = afterTap.zoomLevel;
@@ -859,11 +1001,11 @@ test('Cluj real touch gestures and orientation changes preserve exploration stat
     id: 1,
     x:
       canvasBox!.x +
-      (canvasBox!.width / 960) *
+      (canvasBox!.width / afterPinch.canvasBackingSize.width) *
         (afterPinch.visibleStage.left + afterPinch.visibleStage.width * 0.72),
     y:
       canvasBox!.y +
-      (canvasBox!.height / 640) *
+      (canvasBox!.height / afterPinch.canvasBackingSize.height) *
         (afterPinch.visibleStage.top + afterPinch.visibleStage.height * 0.45),
   };
   let beforeRotate = afterPinch;

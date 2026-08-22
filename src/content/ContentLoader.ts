@@ -114,6 +114,19 @@ export const loadLocation = async (locationId = 'piata-unirii'): Promise<LoadedC
     depthMaps: (manifest.depthMaps ?? []).map((path) => new URL(path, baseUrl).href),
     defaultRendering: manifest.defaultRendering ?? renderings[0]!.id,
     renderings,
+    highResolution: manifest.highResolution
+      ? {
+          ...manifest.highResolution,
+          bundles: manifest.highResolution.bundles.map((bundle) => ({
+            url: new URL(bundle.path, baseUrl).href,
+            mimeType: bundle.mimeType,
+          })),
+        }
+      : undefined,
+    preloadAssets: (manifest.preloadAssets ?? []).map((asset) => ({
+      url: new URL(asset.path, baseUrl).href,
+      bytes: asset.bytes,
+    })),
     agentAtlas: new URL(manifest.agentAtlas, baseUrl).href,
     agentCloseAtlases: (manifest.agentCloseAtlases ?? []).map(
       (path) => new URL(path, baseUrl).href,

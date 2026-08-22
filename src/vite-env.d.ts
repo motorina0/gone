@@ -39,6 +39,12 @@ declare global {
       cameraZoom: number;
       minimumZoom: number;
       zoomLevel: number;
+      activeRenderingId: string;
+      highResolutionTileCount: number;
+      highResolutionSourceScale: number;
+      highResolutionOrphanTextureCount: number;
+      renderResolution: number;
+      canvasBackingSize: {width: number; height: number};
       playerDisplayHeight: number;
       playerVisibleHeight: number;
       session: {paused: boolean; pace: string; message: string};

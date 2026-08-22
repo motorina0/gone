@@ -215,6 +215,11 @@ export interface Manifest {
     label: string;
     views: string[];
   }>;
+  highResolution?: HighResolutionManifest;
+  preloadAssets?: Array<{
+    path: string;
+    bytes: number;
+  }>;
   agentAtlas: string;
   agentCloseAtlases?: string[];
   agentCloseAnimation?: {
@@ -239,6 +244,43 @@ export interface Manifest {
   };
 }
 
+export interface HighResolutionTile {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  bundle: number;
+  offset: number;
+  bytes: number;
+  cropX: number;
+  cropY: number;
+}
+
+export interface HighResolutionLevel {
+  level: number;
+  sourceScale: number;
+  tiles: HighResolutionTile[];
+}
+
+export interface HighResolutionView {
+  levels: HighResolutionLevel[];
+}
+
+export interface HighResolutionManifest {
+  stageWidth: number;
+  stageHeight: number;
+  tileSize: number;
+  bundles: Array<{path: string; mimeType: string}>;
+  renderingIds: string[];
+  views: HighResolutionView[];
+  detailOverlays: HighResolutionView[];
+  occlusion: HighResolutionView[];
+}
+
+export interface LoadedHighResolution extends Omit<HighResolutionManifest, 'bundles'> {
+  bundles: Array<{url: string; mimeType: string}>;
+}
+
 export interface LoadedContent {
   baseUrl: URL;
   manifest: Manifest;
@@ -259,6 +301,8 @@ export interface LoadedContent {
   depthMaps: string[];
   defaultRendering: string;
   renderings: Array<{id: string; label: string; views: string[]}>;
+  highResolution?: LoadedHighResolution;
+  preloadAssets: Array<{url: string; bytes: number}>;
   agentAtlas: string;
   agentCloseAtlases: string[];
 }
